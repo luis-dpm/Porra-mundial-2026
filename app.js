@@ -2,27 +2,20 @@
 const D = PORRA_DATA;
 const PLAYERS = D.players;
 
-const PLAYER_COLORS = {
-  'LUIS': '#D4A23C',
-  'EL MATO': '#6FA8DC',
-  'IVÁN': '#C44536',
-  'ADRIÁN': '#8B7BC4',
-  'JUAN': '#4FAE7E',
-  'CARLOS': '#D67BB0',
-  'JAVI': '#E8915C',
-};
+// Paleta fija por posición en la lista de jugadores (no por nombre), para que
+// siga funcionando aunque alguien cambie su nombre en el Excel.
+const COLOR_PALETTE = ['#D4A23C', '#6FA8DC', '#C44536', '#8B7BC4', '#4FAE7E', '#D67BB0', '#E8915C', '#5AC8C8', '#B0905A'];
+const DASH_PALETTE = [[], [6,3], [2,2], [6,3,2,3], [2,2,6,2], [4,4], [1,1], [3,1,1,1], [5,2,1,2]];
 
-const PLAYER_DASH = {
-  'LUIS': [],
-  'EL MATO': [6,3],
-  'IVÁN': [2,2],
-  'ADRIÁN': [6,3,2,3],
-  'JUAN': [2,2,6,2],
-  'CARLOS': [4,4],
-  'JAVI': [1,1],
-};
+const PLAYER_COLORS = {};
+const PLAYER_DASH = {};
+PLAYERS.forEach((p, i) => {
+  PLAYER_COLORS[p] = COLOR_PALETTE[i % COLOR_PALETTE.length];
+  PLAYER_DASH[p] = DASH_PALETTE[i % DASH_PALETTE.length];
+});
 
 const POINT_STYLES = ['circle','rectRot','triangle','rect','star','crossRot','cross'];
+
 
 function fmtDate(iso) {
   const [y,m,d] = iso.split('-');
@@ -323,6 +316,12 @@ function renderGroupPlayerSelector() {
           </div>
         `).join('')}
       </div>
+      <p class="gps-disclaimer">
+        ⚠️ Solo se puntúan las posiciones <strong>1ª y 2ª</strong> de cada grupo (clasificación directa) y el orden <strong>3º/4º</strong> dentro del grupo.
+        Los <strong>mejores terceros</strong> que avanzan a dieciseisavos (8 de los 12 terceros) se calculan comparando puntos, diferencia de gol y goles a favor
+        <em>entre los 12 grupos</em> — esa comparación todavía no está implementada aquí porque cambia partido a partido mientras se completa la fase de grupos.
+        Se añadirá cuando estén jugados los 72 partidos.
+      </p>
     </div>
   `;
 }
@@ -413,24 +412,36 @@ function renderProximosContent(date) {
   el.innerHTML = matches.map(m => {
     const [home, away] = m.match.split('-');
 
+    // Detectar si algún jugador va completamente solo con su signo (1/X/2)
+    const activeSigns = {};
+    PLAYERS.forEach(p => {
+      const pred = m.predictions[p];
+      if (pred) activeSigns[p] = pred.split('|')[0];
+    });
+    const signCounts = {};
+    Object.values(activeSigns).forEach(s => { signCounts[s] = (signCounts[s] || 0) + 1; });
+    const totalActive = Object.keys(activeSigns).length;
+
     const predRows = PLAYERS.map(p => {
       const pred = m.predictions[p];
       if (!pred) {
         return `
           <div class="pred-row">
             <span class="pred-player">${p}</span>
-            <span class="pred-guess">—</span>
+            <span class="pred-guess guess-miss">—</span>
             <div class="pred-badges"><span class="badge b-miss">SIN APUESTA</span></div>
           </div>`;
       }
       const [sign, guessScore] = pred.split('|');
       const signLabel = sign === '1' ? 'Local' : (sign === 'X' ? 'Empate' : 'Visitante');
       const signClass = sign === '1' ? 'badge-sign-1' : (sign === 'X' ? 'badge-sign-x' : 'badge-sign-2');
+      // Va solo si es el único con ese signo entre 4 o más jugadores activos
+      const isLone = totalActive >= 4 && signCounts[sign] === 1;
       return `
-        <div class="pred-row">
+        <div class="pred-row ${isLone ? 'pred-row-lone' : ''}">
           <span class="pred-player">${p}</span>
           <span class="pred-guess">${guessScore}</span>
-          <div class="pred-badges"><span class="badge ${signClass}">${signLabel.toUpperCase()}</span></div>
+          <div class="pred-badges"><span class="badge ${signClass}">${signLabel.toUpperCase()}</span>${isLone ? '<span class="badge b-lone">VA SOLO</span>' : ''}</div>
         </div>`;
     }).join('');
 

@@ -431,6 +431,12 @@ main {
   font-size: 13px;
 }
 .pred-row:nth-child(odd) { background: rgba(244,241,232,0.03); }
+.pred-row.pred-row-lone {
+  outline: 1.5px solid var(--rust);
+  outline-offset: -1px;
+  background: rgba(196,69,54,0.08);
+}
+.badge.b-lone { background: rgba(196,69,54,0.25); color: #F0958A; }
 .pred-player { font-weight: 500; }
 .pred-guess { font-family: var(--font-mono); color: var(--chalk-dim); }
 .pred-guess.guess-miss { color: var(--chalk-dim); }
@@ -578,6 +584,15 @@ main {
   font-weight: 700;
   color: var(--chalk);
 }
+.gps-disclaimer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-line);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--chalk-dim);
+}
+.gps-disclaimer strong { color: var(--gold-bright); }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 640px) {
