@@ -35,12 +35,25 @@ function fmtDateLong(iso) {
 }
 
 // ============ TAB NAVIGATION ============
+let chartsRendered = false;
+let chartInstances = [];
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+
+    if (btn.dataset.tab === 'graficos') {
+      if (!chartsRendered) {
+        renderCharts();
+        chartsRendered = true;
+      } else {
+        // El contenedor estaba oculto al crearse; forzamos recalculo de tamaño
+        chartInstances.forEach(c => c.resize());
+      }
+    }
   });
 });
 
@@ -136,7 +149,7 @@ function renderCharts() {
   Chart.defaults.font.family = "'Inter', sans-serif";
   Chart.defaults.borderColor = 'rgba(244,241,232,0.08)';
 
-  new Chart(document.getElementById('dailyChart'), {
+  const c1 = new Chart(document.getElementById('dailyChart'), {
     type: 'bar',
     data: { labels, datasets: buildDatasets(D.daily_points, true) },
     options: {
@@ -149,20 +162,31 @@ function renderCharts() {
     }
   });
 
-  new Chart(document.getElementById('posChart'), {
+  const c2 = new Chart(document.getElementById('posChart'), {
     type: 'line',
     data: { labels, datasets: buildDatasets(D.positions_by_day, false) },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { reverse: true, min: 0.5, max: 7.5, ticks: { stepSize: 1, callback: v => Number.isInteger(v) ? v : '' }, title: { display: true, text: 'Posición', color: '#C9D4C7' } },
+        y: {
+          reverse: true,
+          min: 0.5,
+          max: PLAYERS.length + 0.5,
+          ticks: {
+            stepSize: 1,
+            callback: function(value) {
+              return Number.isInteger(value) ? value : '';
+            }
+          },
+          title: { display: true, text: 'Posición', color: '#C9D4C7' }
+        },
         x: { grid: { display: false } }
       }
     }
   });
 
-  new Chart(document.getElementById('cumChart'), {
+  const c3 = new Chart(document.getElementById('cumChart'), {
     type: 'line',
     data: { labels, datasets: buildDatasets(D.cumulative_points, false) },
     options: {
@@ -174,6 +198,8 @@ function renderCharts() {
       }
     }
   });
+
+  chartInstances = [c1, c2, c3];
 
   document.getElementById('legendStrip').innerHTML = PLAYERS.map(p => `
     <div class="legend-item">
@@ -220,7 +246,7 @@ function renderJornadaContent(date) {
         return `
           <div class="pred-row">
             <span class="pred-player">${p}</span>
-            <span class="pred-guess">—</span>
+            <span class="pred-guess guess-miss">—</span>
             <div class="pred-badges"><span class="badge b-miss">SIN APUESTA</span></div>
           </div>`;
       }
@@ -230,10 +256,14 @@ function renderJornadaContent(date) {
       if (bd.diff) badges.push('<span class="badge b-diff">DIF. +1</span>');
       if (bd.exact) badges.push('<span class="badge b-exact">EXACTO +2</span>');
       if (!bd.sign) badges.push('<span class="badge b-miss">FALLO</span>');
+      let guessClass = 'guess-miss';
+      if (bd.exact) guessClass = 'guess-exact';
+      else if (bd.diff) guessClass = 'guess-diff';
+      else if (bd.sign) guessClass = 'guess-sign';
       return `
         <div class="pred-row">
           <span class="pred-player">${p}</span>
-          <span class="pred-guess">${guessScore}</span>
+          <span class="pred-guess ${guessClass}">${guessScore}</span>
           <div class="pred-badges">${badges.join('')}<span class="pred-total">${bd.pts} pts</span></div>
         </div>`;
     }).join('');
@@ -254,47 +284,76 @@ function renderJornadaContent(date) {
 }
 
 // ============ PAGE 4: GRUPOS ============
-let currentGroupPlayer = PLAYERS[0];
+// Puntos por posición de grupo acertada (según sistema de puntuación acordado)
+const GROUP_POS_POINTS = { 1: 2, 2: 2, 3: 1, 4: 1 };
 
-function renderGroupPlayerSelector() {
-  const el = document.getElementById('groupPlayerSelector');
-  el.innerHTML = PLAYERS.map(p =>
-    `<button class="player-pill ${p === currentGroupPlayer ? 'active' : ''}" data-player="${p}">${p}</button>`
-  ).join('');
-
-  el.querySelectorAll('.player-pill').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentGroupPlayer = btn.dataset.player;
-      el.querySelectorAll('.player-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderGroupsGrid();
+function calcGroupPointsForPlayer(player) {
+  let total = 0;
+  const groups = Object.keys(D.group_positions).sort();
+  groups.forEach(g => {
+    const realStandings = D.group_standings_real[g] || [];
+    const realByPos = {};
+    realStandings.forEach((row, i) => { realByPos[i + 1] = row.team; });
+    [1, 2, 3, 4].forEach(pos => {
+      const predTeam = D.group_positions[g][pos][player];
+      const realTeam = realByPos[pos];
+      if (realTeam && realTeam === predTeam) {
+        total += GROUP_POS_POINTS[pos];
+      }
     });
   });
+  return total;
+}
+
+function renderGroupPlayerSelector() {
+  // Banner resumen de puntos esperados por los 7, en vez de selector de un jugador
+  const el = document.getElementById('groupPlayerSelector');
+  const pts = PLAYERS.map(p => ({ player: p, pts: calcGroupPointsForPlayer(p) }))
+    .sort((a, b) => b.pts - a.pts);
+  const maxPts = Object.keys(D.group_positions).length * (GROUP_POS_POINTS[1] + GROUP_POS_POINTS[2] + GROUP_POS_POINTS[3] + GROUP_POS_POINTS[4]);
+
+  el.innerHTML = `
+    <div class="group-pts-summary">
+      <span class="gps-title">Puntos esperados por posiciones de grupo (sobre ${maxPts}, con la clasificación actual)</span>
+      <div class="gps-row">
+        ${pts.map(x => `
+          <div class="gps-item">
+            <span class="gps-name" style="color:${PLAYER_COLORS[x.player]}">${x.player}</span>
+            <span class="gps-val">${x.pts}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function renderGroupsGrid() {
   const el = document.getElementById('groupsGrid');
   const groups = Object.keys(D.group_positions).sort();
 
-  el.innerHTML = groups.map(g => {
+  const cards = groups.map(g => {
     const realStandings = D.group_standings_real[g] || [];
     const realByPos = {};
-    realStandings.forEach((row, i) => { realByPos[i+1] = row.team; });
+    realStandings.forEach((row, i) => { realByPos[i + 1] = row.team; });
+    const hasRealData = realStandings.length > 0;
 
-    const rows = [1,2,3,4].map(pos => {
-      const predTeam = D.group_positions[g][pos][currentGroupPlayer];
+    const rows = [1, 2, 3, 4].map(pos => {
       const realTeam = realByPos[pos];
-      const isMatch = realTeam && realTeam === predTeam;
-      const realInfo = realStandings.length > 0
-        ? `<span class="pos-team-real">${realTeam || '—'}${isMatch ? ' <span class=\"check-icon\">✓</span>' : ''}</span>`
-        : '';
+      const display = hasRealData ? realTeam : '— por jugar —';
+
+      // Para cada jugador, comprobar si acertó esta posición
+      const playerChecks = PLAYERS.map(p => {
+        const predTeam = D.group_positions[g][pos][p];
+        const isMatch = hasRealData && realTeam === predTeam;
+        const title = `${p}: ${predTeam}${isMatch ? ' ✓ acierto' : ''}`;
+        return `<span class="player-dot ${isMatch ? 'hit' : ''}" style="${isMatch ? `background:${PLAYER_COLORS[p]}` : ''}" title="${title}">${isMatch ? p[0] : ''}</span>`;
+      }).join('');
+
       return `
-        <div class="group-pos-row ${isMatch ? 'match' : 'no-match'}">
+        <div class="group-pos-row ${hasRealData ? '' : 'no-data'}">
           <span class="pos-num">${pos}</span>
-          <div class="pos-team">
-            <span class="pos-team-pred">${predTeam}</span>
-            ${realInfo}
-          </div>
+          <span class="pos-team-real">${display}</span>
+          <div class="player-dots">${playerChecks}</div>
         </div>
       `;
     }).join('');
@@ -306,6 +365,8 @@ function renderGroupsGrid() {
       </div>
     `;
   }).join('');
+
+  el.innerHTML = `<div class="groups-grid-inner">${cards}</div>`;
 }
 
 // ============ PAGE 5: PRÓXIMOS PARTIDOS ============
@@ -364,11 +425,12 @@ function renderProximosContent(date) {
       }
       const [sign, guessScore] = pred.split('|');
       const signLabel = sign === '1' ? 'Local' : (sign === 'X' ? 'Empate' : 'Visitante');
+      const signClass = sign === '1' ? 'badge-sign-1' : (sign === 'X' ? 'badge-sign-x' : 'badge-sign-2');
       return `
         <div class="pred-row">
           <span class="pred-player">${p}</span>
           <span class="pred-guess">${guessScore}</span>
-          <div class="pred-badges"><span class="badge b-sign">${signLabel.toUpperCase()}</span></div>
+          <div class="pred-badges"><span class="badge ${signClass}">${signLabel.toUpperCase()}</span></div>
         </div>`;
     }).join('');
 
@@ -391,7 +453,6 @@ function renderProximosContent(date) {
 renderScoreboard();
 renderDaySelector();
 renderDayStandings();
-renderCharts();
 renderJornadaSelector();
 renderProximosSelector();
 renderGroupPlayerSelector();
