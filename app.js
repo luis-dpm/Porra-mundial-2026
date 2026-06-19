@@ -40,11 +40,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
     if (btn.dataset.tab === 'graficos') {
       if (!chartsRendered) {
-        renderCharts();
-        chartsRendered = true;
+        // Esperamos un tick para que el navegador aplique display:block
+        // antes de que Chart.js calcule el tamaño del canvas.
+        setTimeout(() => {
+          renderCharts();
+          chartsRendered = true;
+        }, 0);
       } else {
-        // El contenedor estaba oculto al crearse; forzamos recalculo de tamaño
-        chartInstances.forEach(c => c.resize());
+        setTimeout(() => chartInstances.forEach(c => c.resize()), 0);
       }
     }
   });
@@ -155,23 +158,23 @@ function renderCharts() {
     }
   });
 
+  const numPlayers = PLAYERS.length;
   const c2 = new Chart(document.getElementById('posChart'), {
     type: 'line',
-    data: { labels, datasets: buildDatasets(D.positions_by_day, false) },
+    data: {
+      labels,
+      datasets: buildDatasets(D.positions_by_day, false)
+    },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         y: {
           reverse: true,
-          min: 0.5,
-          max: PLAYERS.length + 0.5,
-          ticks: {
-            stepSize: 1,
-            callback: function(value) {
-              return Number.isInteger(value) ? value : '';
-            }
-          },
+          min: 1,
+          max: numPlayers,
+          ticks: { stepSize: 1 },
           title: { display: true, text: 'Posición', color: '#C9D4C7' }
         },
         x: { grid: { display: false } }
