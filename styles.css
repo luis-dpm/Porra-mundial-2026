@@ -405,6 +405,14 @@ main {
   padding: 2px 12px;
   border-radius: var(--radius-sm);
 }
+.match-result.pending {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--chalk-dim);
+  background: rgba(244,241,232,0.06);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 .match-group-tag {
   font-size: 11px;
   color: var(--chalk-dim);
