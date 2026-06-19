@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Porra Mundial 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="field-lines" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">⚽</span>
+      <div class="brand-text">
+        <span class="brand-title">PORRA MUNDIAL</span>
+        <span class="brand-year">2026</span>
+      </div>
+    </div>
+    <nav class="tabs" id="mainTabs">
+      <button class="tab-btn active" data-tab="clasificacion">Clasificación</button>
+      <button class="tab-btn" data-tab="graficos">Gráficos</button>
+      <button class="tab-btn" data-tab="jornadas">Jornadas</button>
+      <button class="tab-btn" data-tab="grupos">Fase de grupos</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ PAGE 1: CLASIFICACIÓN ============ -->
+  <section class="page active" id="page-clasificacion">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Clasificación general</h1>
+        <p class="page-sub">Puntos acumulados tras <span id="matchesPlayedCount">—</span> partidos jugados</p>
+      </div>
+
+      <div class="scoreboard" id="scoreboard"></div>
+
+      <div class="section-divider">
+        <span>Clasificación por día</span>
+      </div>
+
+      <div class="day-selector-wrap">
+        <label for="daySelect" class="day-label">Ver clasificación al final del</label>
+        <select id="daySelect" class="day-select"></select>
+      </div>
+
+      <div class="day-standings" id="dayStandings"></div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 2: GRÁFICOS ============ -->
+  <section class="page" id="page-graficos">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Evolución del torneo</h1>
+        <p class="page-sub">Tres formas de ver la misma historia</p>
+      </div>
+
+      <div class="chart-block">
+        <h2 class="chart-title">Puntos por jornada</h2>
+        <p class="chart-desc">Lo que suma cada jugador cada día, sin acumular</p>
+        <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+      </div>
+
+      <div class="chart-block">
+        <h2 class="chart-title">Posición día a día</h2>
+        <p class="chart-desc">Quién manda la clasificación en cada jornada (1 = primero)</p>
+        <div class="chart-wrap"><canvas id="posChart"></canvas></div>
+      </div>
+
+      <div class="chart-block">
+        <h2 class="chart-title">Puntos totales acumulados</h2>
+        <p class="chart-desc">La carrera de fondo</p>
+        <div class="chart-wrap"><canvas id="cumChart"></canvas></div>
+      </div>
+
+      <div class="legend-strip" id="legendStrip"></div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 3: JORNADAS ============ -->
+  <section class="page" id="page-jornadas">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Resultados por jornada</h1>
+        <p class="page-sub">Qué acertó cada jugador, partido a partido</p>
+      </div>
+
+      <div class="jornada-selector" id="jornadaSelector"></div>
+      <div class="jornada-content" id="jornadaContent"></div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 4: GRUPOS ============ -->
+  <section class="page" id="page-grupos">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Fase de grupos: pronósticos vs realidad</h1>
+        <p class="page-sub">Posiciones que predijo cada jugador. <span class="legend-dot-inline ok"></span> = clasificación real actual coincide con su pronóstico</p>
+      </div>
+
+      <div class="group-player-selector" id="groupPlayerSelector"></div>
+      <div class="groups-grid" id="groupsGrid"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
