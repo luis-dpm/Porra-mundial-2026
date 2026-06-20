@@ -776,7 +776,7 @@ main {
   border: 0;
 }
 
-/* ============ ELIMINATORIA / BRACKET ============ */
+/* ============ ELIMINATORIA / BRACKET DE TORNEO ============ */
 .ko-empty {
   color: var(--chalk-dim);
   font-size: 13px;
@@ -787,104 +787,144 @@ main {
   text-align: center;
 }
 
-.ko-bracket-scroll {
-  display: flex;
-  gap: 16px;
+.ko-tree-scroll {
   overflow-x: auto;
   padding-bottom: 12px;
   margin-bottom: 16px;
 }
-.ko-column {
-  flex: 0 0 180px;
+.ko-tree {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 920px;
+}
+.ko-tree-half {
+  display: flex;
+  flex: 1;
+  gap: 18px;
+}
+.ko-tree-half.right { flex-direction: row-reverse; }
+.ko-tree-center {
+  flex: 0 0 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.ko-round-col {
+  flex: 0 0 150px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: center;
+  gap: 14px;
 }
-.ko-column-title {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold);
-  text-align: center;
-  margin-bottom: 2px;
-}
+/* Cada ronda dobla el espacio entre tarjetas respecto a la anterior, así
+   cada partido queda visualmente centrado entre los dos que lo alimentan
+   — es lo que produce el efecto de "embudo" hacia el centro. */
+.ko-gap-r0 { gap: 10px; }
+.ko-gap-r1 { gap: 34px; }
+.ko-gap-r2 { gap: 82px; }
+.ko-gap-r3 { gap: 0; }
+
+.ko-card-slot { display: flex; }
+.ko-card-slot.empty { visibility: hidden; }
 
 /* Tarjetas del bracket REAL */
 .ko-real-card {
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 9px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 11.5px;
   position: relative;
+  width: 100%;
 }
+.ko-real-card.compact { padding: 7px 8px; font-size: 11px; }
 .ko-real-card.played { border-color: rgba(212,162,60,0.3); }
+.ko-real-card.final-card {
+  border-color: rgba(212,162,60,0.5);
+  background: linear-gradient(135deg, rgba(212,162,60,0.08), var(--panel) 70%);
+  padding: 14px 16px;
+  font-size: 14px;
+}
 .ko-match-num {
   position: absolute;
-  top: 4px;
+  top: 3px;
   right: 6px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 8.5px;
   color: var(--chalk-dim);
 }
 .ko-real-team {
   font-weight: 500;
   color: var(--chalk);
   text-align: center;
+  line-height: 1.25;
 }
 .ko-real-team.lost { color: var(--rust); text-decoration: line-through; opacity: 0.7; }
-.ko-pending { font-size: 10px; color: var(--chalk-dim); }
+.ko-pending { font-size: 9px; color: var(--chalk-dim); }
 .ko-score {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--gold-bright);
 }
 
+.ko-final-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.ko-final-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
 .ko-honor {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 8px;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  width: 100%;
 }
 .ko-honor-item {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 13px;
-  padding: 8px 16px;
+  font-size: 12px;
+  padding: 6px 12px;
   border-radius: var(--radius-md);
   background: var(--panel);
   border: 1px solid var(--panel-line);
+  text-align: center;
 }
 .ko-honor-item.gold { border-color: rgba(212,162,60,0.5); color: var(--gold-bright); }
 .ko-honor-item.silver { border-color: rgba(201,212,199,0.4); color: var(--chalk); }
 .ko-honor-item.bronze { border-color: rgba(196,138,84,0.4); color: #C48A54; }
 
-/* Tarjetas de predicción de cada jugador */
+/* Tarjetas de predicción de cada jugador (en dieciseisavos) */
 .ko-pred-card {
   border-radius: var(--radius-md);
-  padding: 8px 10px;
-  font-size: 11px;
+  padding: 7px 8px;
+  font-size: 10.5px;
   display: flex;
   flex-direction: column;
   gap: 3px;
   align-items: center;
   text-align: center;
   border: 1px solid transparent;
+  width: 100%;
 }
-.ko-pred-teams { color: var(--chalk); font-weight: 500; }
-.ko-pred-guess { font-family: var(--font-mono); font-size: 11px; color: var(--chalk-dim); }
-.ko-pred-pts {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-}
+.ko-pred-teams { color: var(--chalk); font-weight: 500; line-height: 1.2; }
+.ko-pred-guess { font-family: var(--font-mono); font-size: 10.5px; color: var(--chalk-dim); }
+.ko-pred-guess b { font-weight: 700; }
 
 .ko-pred-card.pending { background: rgba(244,241,232,0.03); color: var(--chalk-dim); }
 .ko-pred-card.alive { background: rgba(79,174,126,0.10); border-color: rgba(79,174,126,0.25); }
@@ -892,11 +932,11 @@ main {
 .ko-pred-card.miss { background: rgba(196,69,54,0.10); border-color: rgba(196,69,54,0.3); }
 .ko-pred-card.miss .ko-pred-teams { color: #E8746A; text-decoration: line-through; }
 .ko-pred-card.hit-sign { background: rgba(111,168,220,0.12); border-color: rgba(111,168,220,0.3); }
-.ko-pred-card.hit-sign .ko-pred-pts { color: var(--player-2); }
+.ko-pred-card.hit-sign .ko-pred-guess b { color: var(--player-2); }
 .ko-pred-card.hit-diff { background: rgba(79,174,126,0.12); border-color: rgba(79,174,126,0.3); }
-.ko-pred-card.hit-diff .ko-pred-pts { color: #6FCB9C; }
+.ko-pred-card.hit-diff .ko-pred-guess b { color: #6FCB9C; }
 .ko-pred-card.hit-exact { background: rgba(212,162,60,0.15); border-color: rgba(212,162,60,0.35); }
-.ko-pred-card.hit-exact .ko-pred-pts { color: var(--gold-bright); }
+.ko-pred-card.hit-exact .ko-pred-guess b { color: var(--gold-bright); }
 
 .ko-player-selector {
   display: flex;
@@ -905,6 +945,39 @@ main {
   padding-bottom: 8px;
   margin-bottom: 20px;
 }
+
+/* Franja de "equipos predichos que pasan", debajo del árbol (de octavos
+   en adelante el jugador predijo equipo por slot, no cruce a cruce) */
+.ko-qual-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-lg);
+}
+.ko-qual-block { display: flex; flex-direction: column; gap: 6px; }
+.ko-qual-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.ko-qual-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.ko-qual-chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid transparent;
+}
+.ko-qual-chip.pending { background: rgba(244,241,232,0.04); color: var(--chalk-dim); }
+.ko-qual-chip.alive { background: rgba(79,174,126,0.14); border-color: rgba(79,174,126,0.3); color: #6FCB9C; }
+.ko-qual-chip.miss { background: rgba(196,69,54,0.12); border-color: rgba(196,69,54,0.3); color: #E8746A; text-decoration: line-through; }
 
 .ko-legend {
   display: flex;
@@ -922,6 +995,6 @@ main {
 .ko-dot.miss { background: var(--rust); }
 
 @media (max-width: 640px) {
-  .ko-column { flex: 0 0 150px; }
+  .ko-round-col { flex: 0 0 120px; }
+  .ko-tree-center { flex: 0 0 110px; }
 }
-

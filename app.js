@@ -607,64 +607,174 @@ function renderProximosContent(date) {
   }).join('');
 }
 
-// ============ PAGE 6: ELIMINATORIA ============
-const KO_ROUND_ORDER = ['dieciseisavos', 'octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'];
+// ============ PAGE 6: ELIMINATORIA (bracket real de torneo) ============
 const KO_ROUND_LABELS = {
   dieciseisavos: 'Dieciseisavos',
   octavos: 'Octavos',
   cuartos: 'Cuartos',
   semis: 'Semis',
-  tercer_puesto: '3º puesto',
-  final: 'Final',
 };
+
+// Misma estructura de árbol que scripts/bracket_structure.py — dos mitades
+// que convergen hacia el centro (donde está la semifinal de cada lado,
+// y la final las une a ambas). Replicada aquí porque el navegador no
+// puede importar el módulo Python.
+const BRACKET_TREE = {
+  left: {
+    dieciseisavos: [73, 75, 74, 77, 83, 84, 81, 82],
+    octavos: [90, 89, 93, 94],
+    cuartos: [97, 98],
+    semis: [101],
+  },
+  right: {
+    dieciseisavos: [76, 78, 79, 80, 86, 88, 85, 87],
+    octavos: [91, 92, 95, 96],
+    cuartos: [99, 100],
+    semis: [102],
+  },
+};
+const ROUND_KEYS = ['dieciseisavos', 'octavos', 'cuartos', 'semis'];
 
 function koTeamLabel(team) {
   return team || '?';
 }
 
-// --- Bracket real (el que de verdad va pasando) ---
-function renderKoRealBracket() {
-  const el = document.getElementById('koRealBracket');
-  const ko = D.ko_stage;
-  if (!ko || !ko.rounds || Object.keys(ko.rounds).length === 0) {
-    el.innerHTML = '<p class="ko-empty">Esta sección se rellenará en cuanto termine la fase de grupos y se complete el cuadro de dieciseisavos en el Excel.</p>';
-    return;
-  }
-
-  const columns = KO_ROUND_ORDER.map(roundName => {
+function getKoMatchByNum(ko, num) {
+  for (const roundName of ROUND_KEYS) {
     const matches = (ko.rounds[roundName] && ko.rounds[roundName].matches) || [];
-    if (matches.length === 0) return '';
+    const found = matches.find(m => m.num === num);
+    if (found) return found;
+  }
+  return null;
+}
 
-    const cards = matches.map(m => {
-      const home = koTeamLabel(m.home_team);
-      const away = koTeamLabel(m.away_team);
-      const hasResult = !!m.actual;
-      let resultHtml = '<span class="ko-pending">vs</span>';
-      if (hasResult) {
-        const [, score] = m.actual.split('|');
-        resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
+// Construye el HTML de una "rama": columnas de izquierda a derecha (o
+// derecha a izquierda si side='right') con separación vertical creciente
+// para que cada partido quede centrado entre los dos que lo alimentan.
+// mode: 'real' (bracket oficial) o 'player' (predicciones de un jugador)
+function renderBracketHalf(ko, side, mode, player) {
+  const tree = BRACKET_TREE[side];
+  const roundsHtml = ROUND_KEYS.map((roundName, ri) => {
+    const nums = tree[roundName];
+    // Espaciado: cada ronda dobla el espacio vertical entre tarjetas
+    // respecto a la anterior, para que las líneas converjan visualmente.
+    const gapClass = `ko-gap-r${ri}`;
+    const cards = nums.map(num => {
+      const m = getKoMatchByNum(ko, num);
+      if (!m) return `<div class="ko-card-slot empty"></div>`;
+
+      if (mode === 'real') {
+        const home = koTeamLabel(m.home_team);
+        const away = koTeamLabel(m.away_team);
+        const hasResult = !!m.actual;
+        let resultHtml = '<span class="ko-pending">vs</span>';
+        if (hasResult) {
+          const [, score] = m.actual.split('|');
+          resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
+        }
+        const homeLost = hasResult && m.home_team && ko.eliminated_teams.includes(m.home_team);
+        const awayLost = hasResult && m.away_team && ko.eliminated_teams.includes(m.away_team);
+        return `
+          <div class="ko-card-slot">
+            <div class="ko-real-card ${hasResult ? 'played' : ''}">
+              <span class="ko-match-num">P${num}</span>
+              <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
+              ${resultHtml}
+              <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        // mode === 'player': en dieciseisavos mostramos la predicción del
+        // partido (con colores de acierto); de octavos en adelante no hay
+        // "partido" predicho como tal en este nivel (el jugador predijo
+        // equipos por slot, no por cruce), así que mostramos los dos
+        // equipos reales del cruce con su estado vivo/eliminado, y dejamos
+        // la franja de "clasificados predichos" aparte, debajo del árbol.
+        if (roundName === 'dieciseisavos') {
+          const pred = m.predictions[player];
+          const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
+          let cls = 'pending';
+          let label = pred ? pred.split('|')[1] : '—';
+          if (bd) cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
+          return `
+            <div class="ko-card-slot">
+              <div class="ko-pred-card ${cls} compact">
+                <span class="ko-pred-teams">${koTeamLabel(m.home_team)} – ${koTeamLabel(m.away_team)}</span>
+                <span class="ko-pred-guess">${label}${bd ? ` <b>+${bd.pts}</b>` : ''}</span>
+              </div>
+            </div>
+          `;
+        }
+        const home = koTeamLabel(m.home_team);
+        const away = koTeamLabel(m.away_team);
+        const homeLost = m.home_team && ko.eliminated_teams.includes(m.home_team);
+        const awayLost = m.away_team && ko.eliminated_teams.includes(m.away_team);
+        return `
+          <div class="ko-card-slot">
+            <div class="ko-real-card compact">
+              <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
+              <span class="ko-pending">vs</span>
+              <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
+            </div>
+          </div>
+        `;
       }
-      const numTag = m.num ? `<span class="ko-match-num">P${m.num}</span>` : '';
-      return `
-        <div class="ko-real-card ${hasResult ? 'played' : ''}">
-          ${numTag}
-          <div class="ko-real-team ${hasResult && m.home_team && D.ko_stage.eliminated_teams.includes(m.home_team) ? 'lost' : ''}">${home}</div>
-          ${resultHtml}
-          <div class="ko-real-team ${hasResult && m.away_team && D.ko_stage.eliminated_teams.includes(m.away_team) ? 'lost' : ''}">${away}</div>
-        </div>
-      `;
     }).join('');
 
+    return `<div class="ko-round-col ${gapClass}">${cards}</div>`;
+  });
+
+  return side === 'right' ? roundsHtml.reverse() : roundsHtml;
+}
+
+// La franja de "equipo predicho para esta ronda" (lo que el jugador puso
+// en Octavofinalista-N, Cuartofinalista-N, etc.), coloreada vivo/eliminado.
+function renderQualifiersStrip(ko, player) {
+  const rounds = ['octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'];
+  const labels = { octavos: 'Pasan a Cuartos', cuartos: 'Pasan a Semis', semis: 'Pasan a Final', tercer_puesto: '3º puesto', final: 'Campeón / Subcampeón' };
+  const blocks = rounds.map(roundName => {
+    const slots = ko.qualifiers[roundName] || [];
+    if (slots.length === 0) return '';
     return `
-      <div class="ko-column">
-        <div class="ko-column-title">${KO_ROUND_LABELS[roundName]}</div>
-        ${cards}
+      <div class="ko-qual-block">
+        <div class="ko-qual-title">${labels[roundName]}</div>
+        <div class="ko-qual-items">
+          ${slots.map(slot => {
+            const pred = slot.predictions[player];
+            if (!pred || !pred.team) {
+              return `<span class="ko-qual-chip pending">—</span>`;
+            }
+            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
+            return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
+          }).join('')}
+        </div>
       </div>
     `;
   }).join('');
+  return `<div class="ko-qual-strip">${blocks}</div>`;
+}
+
+function renderFinalCenter(ko, mode, player) {
+  const finalMatches = (ko.rounds.final && ko.rounds.final.matches) || [];
+  const thirdMatches = (ko.rounds.tercer_puesto && ko.rounds.tercer_puesto.matches) || [];
+  const fm = finalMatches[0];
+  const tm = thirdMatches[0];
+  if (!fm) return '';
+
+  const home = koTeamLabel(fm.home_team);
+  const away = koTeamLabel(fm.away_team);
+  const hasResult = !!fm.actual;
+  let resultHtml = '<span class="ko-pending">vs</span>';
+  if (hasResult) {
+    const [, score] = fm.actual.split('|');
+    resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
+  }
+  const homeLost = hasResult && fm.home_team && ko.eliminated_teams.includes(fm.home_team);
+  const awayLost = hasResult && fm.away_team && ko.eliminated_teams.includes(fm.away_team);
 
   const honor = ko.honor || {};
-  const honorHtml = (honor.champion || honor.runner_up || honor.third_place) ? `
+  const honorHtml = mode === 'real' && (honor.champion || honor.runner_up) ? `
     <div class="ko-honor">
       ${honor.champion ? `<div class="ko-honor-item gold">🥇 ${honor.champion}</div>` : ''}
       ${honor.runner_up ? `<div class="ko-honor-item silver">🥈 ${honor.runner_up}</div>` : ''}
@@ -672,10 +782,47 @@ function renderKoRealBracket() {
     </div>
   ` : '';
 
-  el.innerHTML = `<div class="ko-bracket-scroll">${columns}</div>${honorHtml}`;
+  return `
+    <div class="ko-final-center">
+      <div class="ko-final-label">🏆 FINAL</div>
+      <div class="ko-real-card final-card ${hasResult ? 'played' : ''}">
+        <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
+        ${resultHtml}
+        <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
+      </div>
+      ${honorHtml}
+    </div>
+  `;
 }
 
-// --- Bracket de un jugador concreto, con verde/rojo ---
+function renderFullBracket(ko, mode, player) {
+  const leftCols = renderBracketHalf(ko, 'left', mode, player);
+  const rightCols = renderBracketHalf(ko, 'right', mode, player);
+  const center = renderFinalCenter(ko, mode, player);
+
+  return `
+    <div class="ko-tree-scroll">
+      <div class="ko-tree">
+        <div class="ko-tree-half">${leftCols.join('')}</div>
+        <div class="ko-tree-center">${center}</div>
+        <div class="ko-tree-half right">${rightCols.join('')}</div>
+      </div>
+    </div>
+  `;
+}
+
+// --- Bracket real ---
+function renderKoRealBracket() {
+  const el = document.getElementById('koRealBracket');
+  const ko = D.ko_stage;
+  if (!ko || !ko.rounds || Object.keys(ko.rounds).length === 0) {
+    el.innerHTML = '<p class="ko-empty">Esta sección se rellenará en cuanto termine la fase de grupos y se complete el cuadro de dieciseisavos en el Excel.</p>';
+    return;
+  }
+  el.innerHTML = renderFullBracket(ko, 'real', null);
+}
+
+// --- Bracket de un jugador concreto ---
 let currentKoPlayer = null;
 
 function renderKoPlayerSelector() {
@@ -706,60 +853,20 @@ function renderKoPlayerBracket() {
     return;
   }
 
-  // Dieciseisavos se muestra como partidos (con signo/marcador), el resto
-  // como lista de "clasificados predichos" coloreada según si siguen vivos.
-  const dieciseisavosMatches = (ko.rounds.dieciseisavos && ko.rounds.dieciseisavos.matches) || [];
-  const dieciseisavosHtml = dieciseisavosMatches.length ? `
-    <div class="ko-column">
-      <div class="ko-column-title">Dieciseisavos</div>
-      ${dieciseisavosMatches.map(m => {
-        const pred = m.predictions[player];
-        const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
-        let cls = 'pending';
-        let label = pred ? pred.split('|')[1] : '—';
-        if (bd) {
-          cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
-        }
-        return `
-          <div class="ko-pred-card ${cls}">
-            <span class="ko-pred-teams">${koTeamLabel(m.home_team)} – ${koTeamLabel(m.away_team)}</span>
-            <span class="ko-pred-guess">${label}</span>
-            ${bd ? `<span class="ko-pred-pts">+${bd.pts}</span>` : ''}
-          </div>
-        `;
-      }).join('')}
-    </div>
-  ` : '';
+  const bracketHtml = renderFullBracket(ko, 'player', player);
+  const stripHtml = renderQualifiersStrip(ko, player);
 
-  const otherRounds = ['octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'].map(roundName => {
-    const slots = ko.qualifiers[roundName] || [];
-    if (slots.length === 0) return '';
-    return `
-      <div class="ko-column">
-        <div class="ko-column-title">${KO_ROUND_LABELS[roundName]}</div>
-        ${slots.map(slot => {
-          const pred = slot.predictions[player];
-          if (!pred || !pred.team) {
-            return `<div class="ko-pred-card pending"><span class="ko-pred-teams">—</span></div>`;
-          }
-          const statusClass = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
-          return `<div class="ko-pred-card ${statusClass}"><span class="ko-pred-teams">${pred.team}</span></div>`;
-        }).join('')}
-      </div>
-    `;
-  }).join('');
-
-  const honor = ko.honor || {};
-  const playerChampion = player && D.group_positions ? null : null; // placeholder, no usamos predicción de campeón aparte por ahora
-
-  el.innerHTML = `<div class="ko-bracket-scroll">${dieciseisavosHtml}${otherRounds}</div>
+  el.innerHTML = `
+    ${bracketHtml}
+    ${stripHtml}
     <div class="ko-legend">
-      <span class="ko-legend-item"><span class="ko-dot hit-exact"></span>Resultado exacto</span>
+      <span class="ko-legend-item"><span class="ko-dot hit-exact"></span>Resultado exacto (16avos)</span>
       <span class="ko-legend-item"><span class="ko-dot hit-diff"></span>Acierta diferencia</span>
       <span class="ko-legend-item"><span class="ko-dot hit-sign"></span>Acierta signo</span>
-      <span class="ko-legend-item"><span class="ko-dot alive"></span>Equipo aún vivo</span>
+      <span class="ko-legend-item"><span class="ko-dot alive"></span>Equipo predicho, aún vivo</span>
       <span class="ko-legend-item"><span class="ko-dot miss"></span>Fallo / equipo eliminado</span>
-    </div>`;
+    </div>
+  `;
 }
 
 function scoreKoMatch(predStr, actualStr) {
