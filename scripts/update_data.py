@@ -242,10 +242,10 @@ def fetch_real_results(api_key):
     diagnóstico (se vuelca en debug_api.json)."""
     if not api_key:
         print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, []
+        return {}, {}, [], []
     if not requests:
         print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, []
+        return {}, {}, [], []
     try:
         headers = {"X-Auth-Token": api_key}
         url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
@@ -255,7 +255,7 @@ def fetch_real_results(api_key):
         data = resp.json()
     except Exception as e:
         print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
-        return {}, {}, []
+        return {}, {}, [], []
 
     total_matches = len(data.get("matches", []))
     finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
@@ -269,6 +269,21 @@ def fetch_real_results(api_key):
             "utcDate": m.get("utcDate"),
         }
         for m in finished
+    ]
+
+    # Volcado de TODOS los partidos que la API devuelve (jugados o no), con
+    # su utcDate y status — para diagnosticar si la API simplemente no
+    # incluye un partido concreto en esta llamada (p.ej. por paginación o
+    # rango de fechas por defecto), que sería la causa de que su horario
+    # no se actualice nunca por mucho que arreglemos el código.
+    raw_all_matches_debug = [
+        {
+            "home_api": m["homeTeam"]["name"],
+            "away_api": m["awayTeam"]["name"],
+            "status": m["status"],
+            "utcDate": m.get("utcDate"),
+        }
+        for m in data.get("matches", [])
     ]
 
     results = {}
@@ -323,7 +338,7 @@ def fetch_real_results(api_key):
         print(f"AVISO: {len(schedule_unmapped)} partidos no jugados con nombre de equipo no mapeado (sin horario): {set(schedule_unmapped)}", file=sys.stderr)
     print(f"INFO: {len(results) // 2} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
     print(f"INFO: {len(schedule) // 2} horarios reales (fecha+hora España) obtenidos de la API.", file=sys.stderr)
-    return results, schedule, raw_finished_debug
+    return results, schedule, raw_finished_debug, raw_all_matches_debug
 
 
 def read_excel_data():
@@ -407,7 +422,7 @@ def sign_from_score(h, a):
 
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
-    api_results, api_schedule, api_raw_finished_debug = fetch_real_results(api_key)
+    api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
     processed = []
@@ -617,12 +632,12 @@ def build_dataset(api_key):
         "positions_by_day": positions_by_day,
         "standings": standings,
         "last_updated": date.today().isoformat(),
-    }, diagnostics, api_raw_finished_debug
+    }, diagnostics, api_raw_finished_debug, api_raw_all_debug
 
 
 def main():
     api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
-    dataset, diagnostics, api_raw_finished_debug = build_dataset(api_key)
+    dataset, diagnostics, api_raw_finished_debug, api_raw_all_debug = build_dataset(api_key)
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write("const PORRA_DATA = ")
@@ -663,6 +678,7 @@ def main():
             "conflictos": conflicts,
             "rellenados_por_api": from_api,
             "partidos_finalizados_segun_api": api_raw_finished_debug,
+            "TODOS_los_partidos_segun_api": api_raw_all_debug,
             "todos": diagnostics,
         }, f, ensure_ascii=False, indent=2)
 
