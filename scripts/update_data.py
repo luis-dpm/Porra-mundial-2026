@@ -134,13 +134,30 @@ def fetch_official_standings(api_key):
         print(f"AVISO: no se pudo consultar /standings ({e}). Se calculará localmente.", file=sys.stderr)
         return {}
 
+    raw_standings = data.get("standings", [])
+    print(f"INFO: la API devolvió {len(raw_standings)} bloques de standings.", file=sys.stderr)
+    if raw_standings:
+        # Volcamos la primera entrada tal cual para poder ver su forma real
+        # en el log, en vez de adivinar el formato a ciegas.
+        sample = {k: v for k, v in raw_standings[0].items() if k != "table"}
+        sample["table_sample"] = raw_standings[0].get("table", [])[:1]
+        print(f"INFO: estructura de ejemplo (1er bloque, sin tabla completa): {json.dumps(sample, ensure_ascii=False)}", file=sys.stderr)
+
     result = {}
     unmapped = []
-    for standing in data.get("standings", []):
-        group_raw = standing.get("group")  # p.ej. "GROUP_A"
-        if not group_raw or not group_raw.startswith("GROUP_"):
+    for standing in raw_standings:
+        group_raw = standing.get("group")  # puede venir como "GROUP_A", "A", o null
+        stage = standing.get("stage")
+        if not group_raw:
             continue
-        group_letter = group_raw.replace("GROUP_", "")
+        # Normalizamos: aceptamos "GROUP_A", "Group A", "A", etc. — nos
+        # quedamos con la última letra mayúscula A-L que aparezca.
+        letters = [c for c in str(group_raw).upper() if c.isalpha()]
+        group_letter = letters[-1] if letters else None
+        if not group_letter or group_letter not in "ABCDEFGHIJKL":
+            print(f"AVISO: valor de 'group' no reconocido, se ignora este bloque: {group_raw!r} (stage={stage!r})", file=sys.stderr)
+            continue
+
         rows = []
         for row in standing.get("table", []):
             team_en = row["team"]["name"]
