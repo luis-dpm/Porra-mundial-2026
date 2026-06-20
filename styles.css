@@ -866,7 +866,14 @@ main {
   text-align: center;
   line-height: 1.25;
 }
-.ko-real-team.lost { color: var(--rust); text-decoration: line-through; opacity: 0.7; }
+.ko-real-team.lost { color: var(--chalk); text-decoration: line-through; opacity: 0.6; }
+.ko-real-team-block { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; }
+.ko-ref-label {
+  font-size: 9px;
+  color: var(--chalk-dim);
+  text-align: center;
+  font-family: var(--font-mono);
+}
 .ko-pending { font-size: 9px; color: var(--chalk-dim); }
 .ko-score {
   font-family: var(--font-mono);
@@ -928,9 +935,9 @@ main {
 
 .ko-pred-card.pending { background: rgba(244,241,232,0.03); color: var(--chalk-dim); }
 .ko-pred-card.alive { background: rgba(79,174,126,0.10); border-color: rgba(79,174,126,0.25); }
-.ko-pred-card.alive .ko-pred-teams { color: #6FCB9C; }
+.ko-pred-card.alive .ko-pred-teams { color: var(--chalk); }
 .ko-pred-card.miss { background: rgba(196,69,54,0.10); border-color: rgba(196,69,54,0.3); }
-.ko-pred-card.miss .ko-pred-teams { color: #E8746A; text-decoration: line-through; }
+.ko-pred-card.miss .ko-pred-teams { color: var(--chalk); text-decoration: line-through; opacity: 0.6; }
 .ko-pred-card.hit-sign { background: rgba(111,168,220,0.12); border-color: rgba(111,168,220,0.3); }
 .ko-pred-card.hit-sign .ko-pred-guess b { color: var(--player-2); }
 .ko-pred-card.hit-diff { background: rgba(79,174,126,0.12); border-color: rgba(79,174,126,0.3); }

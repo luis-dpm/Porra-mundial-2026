@@ -548,7 +548,9 @@ function renderProximosSelector() {
 }
 
 function renderProximosContent(date) {
-  const matches = D.matches.filter(m => m.date === date && !m.actual);
+  const matches = D.matches
+    .filter(m => m.date === date && !m.actual)
+    .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
   const el = document.getElementById('proximosContent');
 
   if (matches.length === 0) {
@@ -639,6 +641,27 @@ function koTeamLabel(team) {
   return team || '?';
 }
 
+// Traduce una referencia de bracket ('2A', '1E', '3ABCDF', 'W73'...) a un
+// texto legible que explica de dónde sale ese equipo (p.ej. "2º Grupo A",
+// "Mejor 3º (varios grupos)", "Ganador P73").
+function koRefLabel(ref) {
+  if (!ref) return '';
+  let m = ref.match(/^([123])([A-L])$/);
+  if (m) {
+    const pos = { '1': '1º', '2': '2º', '3': '3º' }[m[1]];
+    return `${pos} Grupo ${m[2]}`;
+  }
+  m = ref.match(/^3([A-L]+)$/);
+  if (m) return `Mejor 3º (Grupos ${m[1].split('').join(', ')})`;
+  m = ref.match(/^W(\d+)$/);
+  if (m) return `Ganador P${m[1]}`;
+  m = ref.match(/^L(\d+)$/);
+  if (m) return `Perdedor P${m[1]}`;
+  if (ref === 'WF') return 'Ganador Final';
+  if (ref === 'LF') return 'Perdedor Final';
+  return ref;
+}
+
 function getKoMatchByNum(ko, num) {
   for (const roundName of ROUND_KEYS) {
     const matches = (ko.rounds[roundName] && ko.rounds[roundName].matches) || [];
@@ -674,13 +697,21 @@ function renderBracketHalf(ko, side, mode, player) {
         }
         const homeLost = hasResult && m.home_team && ko.eliminated_teams.includes(m.home_team);
         const awayLost = hasResult && m.away_team && ko.eliminated_teams.includes(m.away_team);
+        const homeCriteria = koRefLabel(m.home_ref);
+        const awayCriteria = koRefLabel(m.away_ref);
         return `
           <div class="ko-card-slot">
             <div class="ko-real-card ${hasResult ? 'played' : ''}">
               <span class="ko-match-num">P${num}</span>
-              <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
+              <div class="ko-real-team-block">
+                <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
+                <div class="ko-ref-label">${homeCriteria}</div>
+              </div>
               ${resultHtml}
-              <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
+              <div class="ko-real-team-block">
+                <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
+                <div class="ko-ref-label">${awayCriteria}</div>
+              </div>
             </div>
           </div>
         `;
@@ -725,7 +756,7 @@ function renderBracketHalf(ko, side, mode, player) {
     return `<div class="ko-round-col ${gapClass}">${cards}</div>`;
   });
 
-  return side === 'right' ? roundsHtml.reverse() : roundsHtml;
+  return roundsHtml;
 }
 
 // La franja de "equipo predicho para esta ronda" (lo que el jugador puso
