@@ -61,14 +61,35 @@ jobs:
         run: |
           git config user.name "Porra Bot"
           git config user.email "actions@github.com"
-          if git diff --quiet data.js; then
+          if git diff --quiet data.js debug_api.json; then
             echo "Sin cambios, nada que subir."
             echo "## ℹ️ Sin cambios" >> $GITHUB_STEP_SUMMARY
             echo "${{ steps.update.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
           else
-            git add data.js
+            git add data.js debug_api.json
             git commit -m "Actualización automática de resultados $(date -u +'%Y-%m-%d %H:%M UTC')"
             git push
             echo "## ✅ Actualizado correctamente" >> $GITHUB_STEP_SUMMARY
             echo "${{ steps.update.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Mostrar resumen de fuentes y posibles conflictos
+        if: always()
+        run: |
+          echo "## 📊 Resumen de fuentes" >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const d = require('./debug_api.json');
+            console.log('Total:', d.resumen.total_partidos);
+            console.log('Desde Excel:', d.resumen.desde_excel);
+            console.log('Desde API:', d.resumen.desde_api);
+            console.log('Sin jugar:', d.resumen.sin_jugar);
+            console.log('Conflictos:', d.resumen.conflictos_excel_vs_api);
+          " >> $GITHUB_STEP_SUMMARY
+          if node -e "const d = require('./debug_api.json'); process.exit(d.resumen.conflictos_excel_vs_api > 0 ? 0 : 1)"; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Conflictos Excel vs API (se usó el Excel)" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const d = require('./debug_api.json');
+              d.conflictos.forEach(c => console.log('-', c.match, ': Excel =', c.excel_actual, '| API =', c.api_actual));
+            " >> $GITHUB_STEP_SUMMARY
           fi
