@@ -387,7 +387,36 @@ function renderGroupPlayerSelector() {
     ? '<span class="gps-source ok">✓ clasificación oficial FIFA vía API (incluye fair-play y enfrentamiento directo)</span>'
     : '<span class="gps-source warn">⚠ clasificación calculada localmente (solo puntos/dif. goles/goles a favor — puede no coincidir con la oficial en empates muy cerrados)</span>';
 
-  el.innerHTML = `
+  // "Clasificación ficticia" — puntos reales de la porra (jornadas) + lo
+  // que cada jugador sumaría hoy mismo por la fase de grupos (posiciones +
+  // clasificados), para ver de un vistazo cómo quedaría el marcador total
+  // si la fase de grupos se cerrara ahora.
+  const realPointsByPlayer = {};
+  (D.standings || []).forEach(s => { realPointsByPlayer[s.player] = s.points; });
+
+  const projected = PLAYERS.map(p => {
+    const real = realPointsByPlayer[p] || 0;
+    const groupCalc = calcGroupPointsForPlayer(p);
+    return { player: p, real, group: groupCalc.total, total: real + groupCalc.total };
+  }).sort((a, b) => b.total - a.total);
+
+  const projectedHtml = `
+    <div class="group-pts-summary projected">
+      <span class="gps-title">🥩 Clasificación ficticia — puntos de jornadas + proyección de fase de grupos (si todo acabara hoy)</span>
+      <div class="projected-list">
+        ${projected.map((x, i) => `
+          <div class="projected-row ${i === 0 ? 'leader' : ''}">
+            <span class="proj-rank">${i + 1}</span>
+            <span class="proj-name" style="color:${PLAYER_COLORS[x.player]}">${x.player}</span>
+            <span class="proj-breakdown">${x.real} + ${x.group}</span>
+            <span class="proj-total">${x.total}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  el.innerHTML = projectedHtml + `
     <div class="group-pts-summary">
       <span class="gps-title">Puntos esperados: posiciones de grupo + equipos clasificados (sobre ${maxTotal}, con la clasificación actual)</span>
       <div class="gps-row">
@@ -442,12 +471,16 @@ function renderGroupsGrid() {
   const cards = groups.map(g => {
     const realStandings = D.group_standings_real[g] || [];
     const realByPos = {};
-    realStandings.forEach(row => { realByPos[row.position] = row.team; });
+    realStandings.forEach(row => { realByPos[row.position] = row; });
     const hasRealData = realStandings.length > 0;
 
     const rows = [1, 2, 3, 4].map(pos => {
-      const realTeam = realByPos[pos];
+      const realRow = realByPos[pos];
+      const realTeam = realRow ? realRow.team : null;
       const display = hasRealData ? (realTeam || '— sin datos —') : '— por jugar —';
+      const ptsTag = realRow && typeof realRow.pts === 'number'
+        ? `<span class="team-pts">${realRow.pts} pts</span>`
+        : '';
       const qualifiedTag = realTeam && advancing.has(realTeam)
         ? '<span class="qualified-tag" title="Clasificado a dieciseisavos">✓</span>'
         : '';
@@ -463,6 +496,7 @@ function renderGroupsGrid() {
         <div class="group-pos-row ${hasRealData ? '' : 'no-data'}">
           <span class="pos-num">${pos}</span>
           <span class="pos-team-real">${display} ${qualifiedTag}</span>
+          ${ptsTag}
           <div class="player-dots">${playerChecks}</div>
         </div>
       `;

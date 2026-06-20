@@ -514,7 +514,7 @@ main {
 }
 .group-pos-row {
   display: grid;
-  grid-template-columns: 20px 1fr auto;
+  grid-template-columns: 20px 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
@@ -530,6 +530,16 @@ main {
   text-align: center;
 }
 .pos-team-real { color: var(--chalk); font-weight: 500; }
+.team-pts {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-bright);
+  background: rgba(212,162,60,0.12);
+  padding: 1px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
 
 .player-dots { display: flex; gap: 3px; }
 .player-dot {
@@ -552,6 +562,62 @@ main {
   padding: 16px 18px;
   margin-bottom: 24px;
 }
+.group-pts-summary.projected {
+  background: linear-gradient(135deg, rgba(212,162,60,0.08), var(--panel) 60%);
+  border-color: rgba(212,162,60,0.3);
+}
+.projected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.projected-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(244,241,232,0.03);
+}
+.projected-row.leader {
+  background: rgba(212,162,60,0.12);
+  border: 1px solid rgba(212,162,60,0.35);
+}
+.proj-rank {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--chalk-dim);
+  text-align: center;
+  font-size: 13px;
+}
+.projected-row.leader .proj-rank { color: var(--gold-bright); }
+.proj-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+}
+.proj-breakdown {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--chalk-dim);
+  white-space: nowrap;
+}
+.proj-total {
+  font-family: var(--font-mono);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--chalk);
+  min-width: 36px;
+  text-align: right;
+}
+.projected-row.leader .proj-total { color: var(--gold-bright); }
+
+@media (max-width: 640px) {
+  .projected-row { grid-template-columns: 20px 1fr auto; }
+  .proj-breakdown { display: none; }
+}
+
 .gps-title {
   display: block;
   font-size: 12px;
