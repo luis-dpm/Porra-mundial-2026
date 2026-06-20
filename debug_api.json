@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-20T17:48:38.747925Z",
+  "generated_at": "2026-06-20T19:20:40.474993Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 4,
-    "sin_jugar": 40,
+    "desde_api": 5,
+    "sin_jugar": 39,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -44,6 +44,14 @@
       "excel_actual": null,
       "api_actual": "2|0-1",
       "used": "2|0-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Países Bajos-Suecia",
+      "excel_actual": null,
+      "api_actual": "1|5-1",
+      "used": "1|5-1",
       "source": "api",
       "conflict": false
     }
@@ -324,9 +332,9 @@
     {
       "match": "Países Bajos-Suecia",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|5-1",
+      "used": "1|5-1",
+      "source": "api",
       "conflict": false
     },
     {
