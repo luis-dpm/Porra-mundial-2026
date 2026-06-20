@@ -61,6 +61,27 @@ FINAL = {"home": "W101", "away": "W102"}
 
 ALL_KO_MATCHES = ROUND_OF_32 + ROUND_OF_16 + QUARTERS + SEMIS
 
+# Orden visual para dibujar el bracket en dos mitades que convergen al
+# centro (como un cuadro de torneo real), en vez de columnas sueltas.
+# Cada lista va de fuera hacia dentro (dieciseisavos -> ... -> semifinal),
+# y cada partido de una ronda ocupa la posición que corresponde a los dos
+# partidos de la ronda anterior que lo alimentan (para que las líneas de
+# conexión salgan rectas).
+BRACKET_TREE = {
+    "left": {
+        "dieciseisavos": [73, 75, 74, 77, 83, 84, 81, 82],
+        "octavos": [90, 89, 93, 94],
+        "cuartos": [97, 98],
+        "semis": [101],
+    },
+    "right": {
+        "dieciseisavos": [76, 78, 79, 80, 86, 88, 85, 87],
+        "octavos": [91, 92, 95, 96],
+        "cuartos": [99, 100],
+        "semis": [102],
+    },
+}
+
 # Filas exactas del Excel (columna ADMIN) para cada bloque, en el mismo
 # orden en que aparecen en ALL_KO_MATCHES / listas de arriba.
 EXCEL_ROWS = {
