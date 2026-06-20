@@ -599,7 +599,7 @@ function renderProximosContent(date) {
             <div class="match-group-tag">Grupo ${m.group}</div>
             <div class="match-teams">${home} – ${away}</div>
           </div>
-          <div class="match-result pending">Por jugar</div>
+          <div class="match-result pending">${m.time ? `${m.time} (España)` : 'Por jugar'}</div>
         </div>
         <div class="predictions-table">${predRows}</div>
       </div>
