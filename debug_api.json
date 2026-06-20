@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-20T08:29:30.779590Z",
+  "generated_at": "2026-06-20T08:35:50.630583Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -8,10 +8,10 @@
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
-    "usando_oficial_api": false,
-    "grupos_recibidos_de_api": 0,
-    "ranking_terceros_calculado": false,
-    "nota": "FALLBACK: clasificación calculada localmente (solo pts/gd/gf). El endpoint /standings de la API no respondió o falló — revisa el log completo del paso 'Actualizar data.js' en Actions para ver el motivo exacto."
+    "usando_oficial_api": true,
+    "grupos_recibidos_de_api": 12,
+    "ranking_terceros_calculado": true,
+    "nota": "Clasificación oficial de la API (con fair-play/enfrentamiento directo)."
   },
   "conflictos": [],
   "rellenados_por_api": [
