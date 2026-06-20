@@ -31,6 +31,7 @@ except ImportError:
     requests = None
 
 from match_dates_es import MATCH_DATES_ES
+from ko_stage import build_ko_dataset
 
 EXCEL_PATH = "source/predicciones.xlsx"
 OUTPUT_PATH = "data.js"
@@ -329,7 +330,7 @@ def read_excel_data():
             if team and isinstance(team, str) and team.strip():
                 qualified_predictions[player].add(team.strip())
 
-    return matches, group_positions, qualified_predictions
+    return matches, group_positions, qualified_predictions, ws
 
 
 def score_match(pred_str, actual_str):
@@ -358,7 +359,7 @@ def sign_from_score(h, a):
 
 
 def build_dataset(api_key):
-    matches, group_positions, qualified_predictions = read_excel_data()
+    matches, group_positions, qualified_predictions, ws = read_excel_data()
     api_results = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
@@ -528,6 +529,19 @@ def build_dataset(api_key):
         for p in players:
             positions_by_day[p].append(pos[p])
 
+    # --- Fase eliminatoria (dieciseisavos a final) ---
+    # Es opcional por ahora: si el Excel todavía no tiene rellena esa
+    # sección (fase de grupos en curso), build_ko_dataset simplemente
+    # devuelve listas vacías/sin resolver, sin romper nada.
+    try:
+        ko_data = build_ko_dataset(
+            ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions
+        )
+    except Exception as e:
+        print(f"AVISO: no se pudo procesar la fase eliminatoria ({e}). Se omite por ahora.", file=sys.stderr)
+        ko_data = {"rounds": {}, "qualifiers": {}, "honor": {}, "eliminated_teams": [],
+                   "winners_by_match": {}, "losers_by_match": {}}
+
     return {
         "matches": processed,
         "group_positions": group_positions,
@@ -537,6 +551,7 @@ def build_dataset(api_key):
         "real_qualified_teams": sorted(real_qualified_teams),
         "qualified_points": qualified_points,
         "qualified_hits": qualified_hits,
+        "ko_stage": ko_data,
         "players": players,
         "dates": dates,
         "daily_points": daily,
