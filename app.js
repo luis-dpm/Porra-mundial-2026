@@ -494,9 +494,11 @@ function renderGroupsGrid() {
 
       return `
         <div class="group-pos-row ${hasRealData ? '' : 'no-data'}">
-          <span class="pos-num">${pos}</span>
-          <span class="pos-team-real">${display} ${qualifiedTag}</span>
-          ${ptsTag}
+          <div class="gpr-top">
+            <span class="pos-num">${pos}</span>
+            <span class="pos-team-real">${display} ${qualifiedTag}</span>
+            ${ptsTag}
+          </div>
           <div class="player-dots">${playerChecks}</div>
         </div>
       `;
