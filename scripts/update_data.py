@@ -96,7 +96,12 @@ TEAM_NAME_MAP_REV.update(TEAM_NAME_ALIASES)
 
 def resolve_team_name(api_name):
     """Busca el nombre en español dado un nombre devuelto por la API,
-    probando coincidencia exacta y luego variantes con/sin tildes y mayúsculas."""
+    probando coincidencia exacta y luego variantes con/sin tildes y
+    mayúsculas. Devuelve None si no hay nombre (p.ej. partidos de
+    eliminatoria cuyo equipo aún no está determinado, donde la API
+    devuelve homeTeam/awayTeam como null o sin 'name')."""
+    if not api_name:
+        return None
     if api_name in TEAM_NAME_MAP_REV:
         return TEAM_NAME_MAP_REV[api_name]
     # Intento case-insensitive
@@ -278,8 +283,8 @@ def fetch_real_results(api_key):
     # no se actualice nunca por mucho que arreglemos el código.
     raw_all_matches_debug = [
         {
-            "home_api": m["homeTeam"]["name"],
-            "away_api": m["awayTeam"]["name"],
+            "home_api": (m.get("homeTeam") or {}).get("name"),
+            "away_api": (m.get("awayTeam") or {}).get("name"),
             "status": m["status"],
             "utcDate": m.get("utcDate"),
         }
@@ -292,8 +297,13 @@ def fetch_real_results(api_key):
     schedule_unmapped = []
 
     for m in data.get("matches", []):
-        home_en = m["homeTeam"]["name"]
-        away_en = m["awayTeam"]["name"]
+        home_en = (m.get("homeTeam") or {}).get("name")
+        away_en = (m.get("awayTeam") or {}).get("name")
+        if not home_en or not away_en:
+            # Partido de eliminatoria aún sin equipos determinados (la API
+            # ya tiene el hueco en el calendario pero homeTeam/awayTeam
+            # todavía son null) — no hay nada que mapear ni programar.
+            continue
         home_es = resolve_team_name(home_en)
         away_es = resolve_team_name(away_en)
         if not home_es or not away_es:
