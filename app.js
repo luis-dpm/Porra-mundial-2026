@@ -138,6 +138,75 @@ function buildDatasets(dataObj, isBar) {
   });
 }
 
+// Gráfico de posiciones construido con SVG puro (sin Chart.js).
+// Usamos un viewBox fijo y porcentajes, así no depende de medir el
+// contenedor en el momento de pintarlo — funciona aunque la pestaña
+// estuviera oculta justo antes, que era la causa de que Chart.js fallara aquí.
+function renderPositionChart() {
+  const container = document.getElementById('posChartContainer');
+  const dates = D.dates;
+  const n = PLAYERS.length;
+  if (dates.length === 0) {
+    container.innerHTML = '<p style="color:var(--chalk-dim);font-size:13px;">Aún no hay datos suficientes.</p>';
+    return;
+  }
+
+  const W = 900, H = 320;
+  const padL = 36, padR = 16, padT = 16, padB = 36;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const xFor = i => dates.length === 1 ? padL + plotW / 2 : padL + (i / (dates.length - 1)) * plotW;
+  const yFor = pos => padT + ((pos - 1) / Math.max(1, n - 1)) * plotH;
+
+  // Líneas horizontales guía (una por cada posición posible)
+  let gridLines = '';
+  for (let pos = 1; pos <= n; pos++) {
+    const y = yFor(pos);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(244,241,232,0.07)" stroke-width="1"/>`;
+    gridLines += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#C9D4C7" font-family="Space Mono, monospace">${pos}</text>`;
+  }
+
+  // Etiquetas de fecha en el eje X (todas si caben pocas, si no cada 2)
+  let xLabels = '';
+  const step = dates.length > 10 ? 2 : 1;
+  dates.forEach((d, i) => {
+    if (i % step !== 0 && i !== dates.length - 1) return;
+    const x = xFor(i);
+    xLabels += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="#C9D4C7" font-family="Inter, sans-serif">${fmtDate(d)}</text>`;
+  });
+
+  // Una polilínea + puntos por jugador
+  let seriesSvg = '';
+  PLAYERS.forEach((p, pi) => {
+    const positions = D.positions_by_day[p] || [];
+    const points = dates.map((d, i) => `${xFor(i)},${yFor(positions[i] || n)}`).join(' ');
+    const color = PLAYER_COLORS[p];
+    const dash = (PLAYER_DASH[p] || []).join(',');
+
+    seriesSvg += `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2.5"
+      stroke-dasharray="${dash}" stroke-linejoin="round" stroke-linecap="round" opacity="0.95"/>`;
+
+    dates.forEach((d, i) => {
+      const x = xFor(i);
+      const y = yFor(positions[i] || n);
+      seriesSvg += `<circle cx="${x}" cy="${y}" r="4" fill="${color}" stroke="var(--ink)" stroke-width="1.5">
+        <title>${p}: posición ${positions[i]} el ${fmtDateLong(d)}</title>
+      </circle>`;
+    });
+  });
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:280px;display:block" role="img"
+         aria-label="Gráfico de líneas mostrando la posición diaria de cada jugador">
+      ${gridLines}
+      ${xLabels}
+      ${seriesSvg}
+      <text x="${padL - 28}" y="${padT}" font-size="10" fill="#C9D4C7" font-family="Inter, sans-serif" transform="rotate(-90 ${padL-28} ${padT})" text-anchor="end"></text>
+    </svg>
+  `;
+}
+
 function renderCharts() {
   const labels = D.dates.map(fmtDate);
 
@@ -158,29 +227,11 @@ function renderCharts() {
     }
   });
 
-  const numPlayers = PLAYERS.length;
-  const c2 = new Chart(document.getElementById('posChart'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: buildDatasets(D.positions_by_day, false)
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: {
-          reverse: true,
-          min: 1,
-          max: numPlayers,
-          ticks: { stepSize: 1 },
-          title: { display: true, text: 'Posición', color: '#C9D4C7' }
-        },
-        x: { grid: { display: false } }
-      }
-    }
-  });
+  // El gráfico de posiciones se construye aparte con HTML/CSS puro (ver
+  // renderPositionChart) en vez de Chart.js, porque un canvas con eje
+  // invertido (1=arriba) dentro de una pestaña que empieza oculta daba
+  // problemas de renderizado poco fiables.
+  renderPositionChart();
 
   const c3 = new Chart(document.getElementById('cumChart'), {
     type: 'line',
@@ -195,7 +246,7 @@ function renderCharts() {
     }
   });
 
-  chartInstances = [c1, c2, c3];
+  chartInstances = [c1, c3];
 
   document.getElementById('legendStrip').innerHTML = PLAYERS.map(p => `
     <div class="legend-item">
@@ -283,48 +334,102 @@ function renderJornadaContent(date) {
 // Puntos por posición de grupo acertada (según sistema de puntuación acordado)
 const GROUP_POS_POINTS = { 1: 2, 2: 2, 3: 1, 4: 1 };
 
+function getAdvancingTeams() {
+  // 1º y 2º de cada grupo + los 8 mejores terceros
+  const advancing = new Set();
+  Object.values(D.group_standings_real || {}).forEach(rows => {
+    rows.forEach(r => {
+      if (r.position === 1 || r.position === 2) advancing.add(r.team);
+    });
+  });
+  (D.third_place_ranking || []).forEach(t => {
+    if (t.advances) advancing.add(t.team);
+  });
+  return advancing;
+}
+
 function calcGroupPointsForPlayer(player) {
-  let total = 0;
+  let posPts = 0;
   const groups = Object.keys(D.group_positions).sort();
+
   groups.forEach(g => {
     const realStandings = D.group_standings_real[g] || [];
     const realByPos = {};
-    realStandings.forEach((row, i) => { realByPos[i + 1] = row.team; });
+    realStandings.forEach(row => { realByPos[row.position] = row.team; });
+
     [1, 2, 3, 4].forEach(pos => {
       const predTeam = D.group_positions[g][pos][player];
       const realTeam = realByPos[pos];
       if (realTeam && realTeam === predTeam) {
-        total += GROUP_POS_POINTS[pos];
+        posPts += GROUP_POS_POINTS[pos];
       }
     });
   });
-  return total;
+
+  // Puntos de "equipo clasificado" calculados en el backend a partir de la
+  // lista de 32 "Dieciseisavofinalista-N" del Excel (filas 130-161) — esa
+  // es la fuente correcta, no una inferencia desde las posiciones de grupo.
+  const qualifiedPts = (D.qualified_points && D.qualified_points[player]) || 0;
+
+  return { posPts, qualifiedPts, total: posPts + qualifiedPts };
 }
 
 function renderGroupPlayerSelector() {
-  // Banner resumen de puntos esperados por los 7, en vez de selector de un jugador
   const el = document.getElementById('groupPlayerSelector');
-  const pts = PLAYERS.map(p => ({ player: p, pts: calcGroupPointsForPlayer(p) }))
-    .sort((a, b) => b.pts - a.pts);
-  const maxPts = Object.keys(D.group_positions).length * (GROUP_POS_POINTS[1] + GROUP_POS_POINTS[2] + GROUP_POS_POINTS[3] + GROUP_POS_POINTS[4]);
+  const results = PLAYERS.map(p => ({ player: p, ...calcGroupPointsForPlayer(p) }))
+    .sort((a, b) => b.total - a.total);
+
+  const maxPosPts = Object.keys(D.group_positions).length * (GROUP_POS_POINTS[1] + GROUP_POS_POINTS[2] + GROUP_POS_POINTS[3] + GROUP_POS_POINTS[4]);
+  const maxQualPts = 32; // 24 (1º+2º de 12 grupos) + 8 mejores terceros
+  const maxTotal = maxPosPts + maxQualPts;
+
+  const sourceNote = D.using_official_standings
+    ? '<span class="gps-source ok">✓ clasificación oficial FIFA vía API (incluye fair-play y enfrentamiento directo)</span>'
+    : '<span class="gps-source warn">⚠ clasificación calculada localmente (solo puntos/dif. goles/goles a favor — puede no coincidir con la oficial en empates muy cerrados)</span>';
 
   el.innerHTML = `
     <div class="group-pts-summary">
-      <span class="gps-title">Puntos esperados por posiciones de grupo (sobre ${maxPts}, con la clasificación actual)</span>
+      <span class="gps-title">Puntos esperados: posiciones de grupo + equipos clasificados (sobre ${maxTotal}, con la clasificación actual)</span>
       <div class="gps-row">
-        ${pts.map(x => `
+        ${results.map(x => `
           <div class="gps-item">
             <span class="gps-name" style="color:${PLAYER_COLORS[x.player]}">${x.player}</span>
-            <span class="gps-val">${x.pts}</span>
+            <span class="gps-val">${x.total}</span>
+            <span class="gps-breakdown">${x.posPts} pos. + ${x.qualifiedPts} clasif.</span>
           </div>
         `).join('')}
       </div>
       <p class="gps-disclaimer">
-        ⚠️ Solo se puntúan las posiciones <strong>1ª y 2ª</strong> de cada grupo (clasificación directa) y el orden <strong>3º/4º</strong> dentro del grupo.
-        Los <strong>mejores terceros</strong> que avanzan a dieciseisavos (8 de los 12 terceros) se calculan comparando puntos, diferencia de gol y goles a favor
-        <em>entre los 12 grupos</em> — esa comparación todavía no está implementada aquí porque cambia partido a partido mientras se completa la fase de grupos.
-        Se añadirá cuando estén jugados los 72 partidos.
+        ${sourceNote}<br><br>
+        Puntúan: posiciones <strong>1ª y 2ª</strong> de cada grupo (2 pts c/u), orden <strong>3º/4º</strong> (1 pt c/u),
+        y <strong>+1 pt</strong> por cada equipo de la lista de 32 "Dieciseisavofinalistas" de cada jugador que realmente
+        está entre los clasificados (los dos primeros de cada grupo, más los <strong>8 mejores terceros</strong> de los 12).
       </p>
+    </div>
+  `;
+}
+
+function renderThirdPlaceTable() {
+  const el = document.getElementById('thirdPlaceTable');
+  if (!el) return;
+  const thirds = D.third_place_ranking || [];
+  if (thirds.length === 0) {
+    el.innerHTML = '<p style="color:var(--chalk-dim);font-size:13px;">Aún no hay suficientes datos para calcular el ranking de terceros (requiere clasificación oficial vía API).</p>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="section-divider"><span>Ranking de mejores terceros</span></div>
+    <p class="page-sub" style="margin-bottom:16px;">Pasan a dieciseisavos los 8 mejores de los 12 — el orden entre ellos no importa para la porra, solo si están dentro o fuera de los 8</p>
+    <div class="third-place-list">
+      ${thirds.map(t => `
+        <div class="third-place-row ${t.advances ? 'advances' : 'out'}">
+          <span class="tp-rank">${t.ranking}</span>
+          <span class="tp-team">${t.team}</span>
+          <span class="tp-group">Grupo ${t.group}</span>
+          <span class="tp-stats">${t.pts} pts · ${t.gd > 0 ? '+' : ''}${t.gd} dif. · ${t.gf} GF</span>
+          <span class="tp-status">${t.advances ? '✓ clasifica' : '✗ eliminado'}</span>
+        </div>
+      `).join('')}
     </div>
   `;
 }
@@ -332,18 +437,21 @@ function renderGroupPlayerSelector() {
 function renderGroupsGrid() {
   const el = document.getElementById('groupsGrid');
   const groups = Object.keys(D.group_positions).sort();
+  const advancing = getAdvancingTeams();
 
   const cards = groups.map(g => {
     const realStandings = D.group_standings_real[g] || [];
     const realByPos = {};
-    realStandings.forEach((row, i) => { realByPos[i + 1] = row.team; });
+    realStandings.forEach(row => { realByPos[row.position] = row.team; });
     const hasRealData = realStandings.length > 0;
 
     const rows = [1, 2, 3, 4].map(pos => {
       const realTeam = realByPos[pos];
       const display = hasRealData ? realTeam : '— por jugar —';
+      const qualifiedTag = realTeam && advancing.has(realTeam)
+        ? '<span class="qualified-tag" title="Clasificado a dieciseisavos">✓</span>'
+        : '';
 
-      // Para cada jugador, comprobar si acertó esta posición
       const playerChecks = PLAYERS.map(p => {
         const predTeam = D.group_positions[g][pos][p];
         const isMatch = hasRealData && realTeam === predTeam;
@@ -354,7 +462,7 @@ function renderGroupsGrid() {
       return `
         <div class="group-pos-row ${hasRealData ? '' : 'no-data'}">
           <span class="pos-num">${pos}</span>
-          <span class="pos-team-real">${display}</span>
+          <span class="pos-team-real">${display} ${qualifiedTag}</span>
           <div class="player-dots">${playerChecks}</div>
         </div>
       `;
@@ -471,3 +579,4 @@ renderJornadaSelector();
 renderProximosSelector();
 renderGroupPlayerSelector();
 renderGroupsGrid();
+renderThirdPlaceTable();
