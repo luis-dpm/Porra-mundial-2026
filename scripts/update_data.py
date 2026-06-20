@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 """
 Actualiza data.js con los resultados reales del Mundial 2026.
-Lee las predicciones desde source/predicciones.xlsx, consulta
-football-data.org para los resultados ya jugados, calcula los
-puntos de cada jugador y regenera data.js para la web estática.
+
+Fuente principal de resultados: el propio Excel (predicciones.xlsx),
+que el administrador de la porra mantiene actualizado a mano.
+La API de football-data.org se usa solo como complemento, para
+rellenar resultados que falten en el Excel — nunca para sobreescribir
+lo que ya hay en el Excel.
+
+Las fechas de los partidos se toman del calendario oficial en horario
+de España peninsular (match_dates_es.py), no del Excel ni de la API,
+porque ambos pueden traer la fecha en huso horario de EE.UU./México.
 
 Variables de entorno requeridas:
-  FOOTBALL_DATA_API_KEY - clave de football-data.org
+  FOOTBALL_DATA_API_KEY - clave de football-data.org (opcional; si falta
+                            o falla, se usa solo lo que haya en el Excel)
 """
 import os
 import re
@@ -15,103 +23,146 @@ import sys
 from datetime import date
 from collections import defaultdict
 
-import requests
 from openpyxl import load_workbook
+
+try:
+    import requests
+except ImportError:
+    requests = None
+
+from match_dates_es import MATCH_DATES_ES
 
 EXCEL_PATH = "source/predicciones.xlsx"
 OUTPUT_PATH = "data.js"
-COMPETITION_CODE = "WC"  # FIFA World Cup en football-data.org
+COMPETITION_CODE = "WC"
 API_BASE = "https://api.football-data.org/v4"
 
 # Mapeo nombre del Excel (español) -> nombre usado por football-data.org (inglés)
 TEAM_NAME_MAP = {
-    "Alemania": "Germany",
-    "Arabia Saudita": "Saudi Arabia",
-    "Argelia": "Algeria",
-    "Argentina": "Argentina",
-    "Australia": "Australia",
-    "Austria": "Austria",
-    "Bosnia y Herzegovina": "Bosnia and Herzegovina",
-    "Brasil": "Brazil",
-    "Bélgica": "Belgium",
-    "Cabo Verde": "Cape Verde",
-    "Canadá": "Canada",
-    "Catar": "Qatar",
-    "Colombia": "Colombia",
-    "Corea del Sur": "South Korea",
-    "Costa de Marfil": "Ivory Coast",
-    "Croacia": "Croatia",
-    "Curazao": "Curacao",
-    "Ecuador": "Ecuador",
-    "Egipto": "Egypt",
-    "Escocia": "Scotland",
-    "España": "Spain",
-    "Estados Unidos": "United States",
-    "Francia": "France",
-    "Ghana": "Ghana",
-    "Haití": "Haiti",
-    "Inglaterra": "England",
-    "Irak": "Iraq",
-    "Irán": "Iran",
-    "Japón": "Japan",
-    "Jordania": "Jordan",
-    "Marruecos": "Morocco",
-    "México": "Mexico",
-    "Noruega": "Norway",
-    "Nueva Zelanda": "New Zealand",
-    "Panamá": "Panama",
-    "Paraguay": "Paraguay",
-    "Países Bajos": "Netherlands",
-    "Portugal": "Portugal",
-    "RD Congo": "DR Congo",
-    "República Checa": "Czech Republic",
-    "Senegal": "Senegal",
-    "Sudáfrica": "South Africa",
-    "Suecia": "Sweden",
-    "Suiza": "Switzerland",
-    "Turquía": "Turkey",
-    "Túnez": "Tunisia",
-    "Uruguay": "Uruguay",
-    "Uzbekistán": "Uzbekistan",
+    "Alemania": "Germany", "Arabia Saudita": "Saudi Arabia", "Argelia": "Algeria",
+    "Argentina": "Argentina", "Australia": "Australia", "Austria": "Austria",
+    "Bosnia y Herzegovina": "Bosnia and Herzegovina", "Brasil": "Brazil",
+    "Bélgica": "Belgium", "Cabo Verde": "Cape Verde", "Canadá": "Canada",
+    "Catar": "Qatar", "Colombia": "Colombia", "Corea del Sur": "South Korea",
+    "Costa de Marfil": "Ivory Coast", "Croacia": "Croatia", "Curazao": "Curacao",
+    "Ecuador": "Ecuador", "Egipto": "Egypt", "Escocia": "Scotland",
+    "España": "Spain", "Estados Unidos": "United States", "Francia": "France",
+    "Ghana": "Ghana", "Haití": "Haiti", "Inglaterra": "England", "Irak": "Iraq",
+    "Irán": "Iran", "Japón": "Japan", "Jordania": "Jordan", "Marruecos": "Morocco",
+    "México": "Mexico", "Noruega": "Norway", "Nueva Zelanda": "New Zealand",
+    "Panamá": "Panama", "Paraguay": "Paraguay", "Países Bajos": "Netherlands",
+    "Portugal": "Portugal", "RD Congo": "DR Congo", "República Checa": "Czech Republic",
+    "Senegal": "Senegal", "Sudáfrica": "South Africa", "Suecia": "Sweden",
+    "Suiza": "Switzerland", "Turquía": "Turkey", "Túnez": "Tunisia",
+    "Uruguay": "Uruguay", "Uzbekistán": "Uzbekistan",
 }
 TEAM_NAME_MAP_REV = {v: k for k, v in TEAM_NAME_MAP.items()}
 
+# Variantes adicionales que algunas APIs usan en vez del nombre "estándar" de
+# arriba. Se añaden aquí para que el matching no falle en silencio.
+TEAM_NAME_ALIASES = {
+    "Korea Republic": "Corea del Sur",
+    "Korea, South": "Corea del Sur",
+    "South Korea": "Corea del Sur",
+    "Czechia": "República Checa",
+    "Czech Republic": "República Checa",
+    "Côte d'Ivoire": "Costa de Marfil",
+    "Cote d'Ivoire": "Costa de Marfil",
+    "Ivory Coast": "Costa de Marfil",
+    "IR Iran": "Irán",
+    "Iran": "Irán",
+    "Türkiye": "Turquía",
+    "Turkiye": "Turquía",
+    "Turkey": "Turquía",
+    "USA": "Estados Unidos",
+    "United States": "Estados Unidos",
+    "United States of America": "Estados Unidos",
+    "Bosnia-Herzegovina": "Bosnia y Herzegovina",
+    "Bosnia & Herzegovina": "Bosnia y Herzegovina",
+    "Bosnia and Herzegovina": "Bosnia y Herzegovina",
+    "DR Congo": "RD Congo",
+    "Congo DR": "RD Congo",
+    "DRC": "RD Congo",
+    "Curacao": "Curazao",
+    "Curaçao": "Curazao",
+    "Cape Verde Islands": "Cabo Verde",
+    "Cape Verde": "Cabo Verde",
+    "Saudi Arabia": "Arabia Saudita",
+    "Republic of Ireland": "Irlanda",
+}
+TEAM_NAME_MAP_REV.update(TEAM_NAME_ALIASES)
+
+
+def resolve_team_name(api_name):
+    """Busca el nombre en español dado un nombre devuelto por la API,
+    probando coincidencia exacta y luego variantes con/sin tildes y mayúsculas."""
+    if api_name in TEAM_NAME_MAP_REV:
+        return TEAM_NAME_MAP_REV[api_name]
+    # Intento case-insensitive
+    lower_map = {k.lower(): v for k, v in TEAM_NAME_MAP_REV.items()}
+    return lower_map.get(api_name.lower())
+
+# Nombres EXACTOS tal y como aparecen en la fila 5 del Excel (columna ADMIN).
+# Si cambian de nombre en el Excel, hay que actualizarlos aquí también.
 PLAYER_COLUMNS = {
-    "LUIS": 19, "EL MATO": 22, "IVÁN": 25, "ADRIÁN": 28,
-    "JUAN": 31, "CARLOS": 34, "JAVI": 37,
+    "LUIS DPM": 19,
+    "EL MATO": 22,
+    "IVÁN DELGADO": 25,
+    "ADRIÁN": 28,
+    "JUAN": 31,
+    "CARLOS": 34,
+    "SU FLORENTINEZA": 37,
 }
 
 
 def fetch_real_results(api_key):
-    """Llama a football-data.org y devuelve dict {(home_es, away_es): (date_iso, home_goals, away_goals)}."""
-    headers = {"X-Auth-Token": api_key}
-    url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
-    resp = requests.get(url, headers=headers, timeout=30)
-    resp.raise_for_status()
-    data = resp.json()
+    """Llama a football-data.org. Si falla por cualquier motivo, devuelve {}
+    y el script sigue funcionando solo con lo que haya en el Excel."""
+    if not api_key:
+        print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
+        return {}
+    if not requests:
+        print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
+        return {}
+    try:
+        headers = {"X-Auth-Token": api_key}
+        url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
+        resp = requests.get(url, headers=headers, timeout=30)
+        print(f"INFO: API respondió con status {resp.status_code}", file=sys.stderr)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
+        return {}
+
+    total_matches = len(data.get("matches", []))
+    finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
+    print(f"INFO: la API devolvió {total_matches} partidos totales, {len(finished)} finalizados.", file=sys.stderr)
 
     results = {}
-    for m in data.get("matches", []):
-        if m["status"] != "FINISHED":
-            continue
+    unmapped = []
+    for m in finished:
         home_en = m["homeTeam"]["name"]
         away_en = m["awayTeam"]["name"]
-        home_es = TEAM_NAME_MAP_REV.get(home_en)
-        away_es = TEAM_NAME_MAP_REV.get(away_en)
+        home_es = resolve_team_name(home_en)
+        away_es = resolve_team_name(away_en)
         if not home_es or not away_es:
-            print(f"WARNING: equipo no mapeado: {home_en} vs {away_en}", file=sys.stderr)
+            unmapped.append(f"{home_en} vs {away_en}")
             continue
         hg = m["score"]["fullTime"]["home"]
         ag = m["score"]["fullTime"]["away"]
         if hg is None or ag is None:
             continue
-        match_date = m["utcDate"][:10]  # YYYY-MM-DD
-        results[(home_es, away_es)] = (match_date, hg, ag)
+        results[(home_es, away_es)] = (hg, ag)
+
+    if unmapped:
+        print(f"AVISO: {len(unmapped)} partidos finalizados con nombre de equipo no mapeado: {unmapped}", file=sys.stderr)
+    print(f"INFO: {len(results)} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
     return results
 
 
-def read_predictions():
-    """Lee predicciones de fase de grupos y posiciones desde el Excel."""
+def read_excel_data():
+    """Lee predicciones, resultados YA introducidos a mano y posiciones de grupo."""
     wb = load_workbook(EXCEL_PATH, data_only=True)
     ws = wb["ADMIN"]
 
@@ -126,8 +177,8 @@ def read_predictions():
         if not (phase_cell and re.match(r"^[A-L][123]$", str(phase_cell))):
             continue
 
-        date_val = ws.cell(row=row_idx, column=8).value
-        sched_date = date_val.date().isoformat() if date_val else None
+        excel_actual = ws.cell(row=row_idx, column=13).value
+        excel_actual = str(excel_actual).strip() if excel_actual and "|" in str(excel_actual) else None
 
         preds = {}
         for player, col in PLAYER_COLUMNS.items():
@@ -137,11 +188,10 @@ def read_predictions():
         matches.append({
             "match": match_name,
             "group": str(phase_cell)[0],
-            "scheduled_date": sched_date,
+            "excel_actual": excel_actual,
             "predictions": preds,
         })
 
-    # Posiciones de grupo pronosticadas (filas 80-127)
     group_positions = {}
     row = 80
     for g in "ABCDEFGHIJKL":
@@ -180,56 +230,90 @@ def sign_from_score(h, a):
 
 
 def build_dataset(api_key):
-    matches, group_positions = read_predictions()
-    real_results = fetch_real_results(api_key)
+    matches, group_positions = read_excel_data()
+    api_results = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
     processed = []
     group_team_stats = defaultdict(lambda: defaultdict(lambda: {"pj": 0, "g": 0, "e": 0, "p": 0, "gf": 0, "gc": 0}))
+    matches_missing_date = []
+
+    diagnostics = []
 
     for m in matches:
         home, away = m["match"].split("-", 1)
-        key = (home, away)
-        result = real_results.get(key)
 
-        m2 = dict(m)
-        m2["date"] = m["scheduled_date"]
+        official_date = MATCH_DATES_ES.get(m["match"])
+        if not official_date:
+            matches_missing_date.append(m["match"])
 
-        if result:
-            real_date, hg, ag = result
-            m2["date"] = real_date  # usa la fecha real de juego, no la programada
-            actual_sign = sign_from_score(hg, ag)
-            m2["actual"] = f"{actual_sign}|{hg}-{ag}"
+        api_res = api_results.get((home, away))
+        api_actual = None
+        if api_res:
+            hg, ag = api_res
+            api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+
+        # Prioridad: 1) Excel (verificado a mano), 2) API si el Excel no lo tiene
+        source = None
+        actual = None
+        if m["excel_actual"]:
+            actual = m["excel_actual"]
+            source = "excel"
+        elif api_actual:
+            actual = api_actual
+            source = "api"
+
+        conflict = bool(m["excel_actual"] and api_actual and m["excel_actual"] != api_actual)
+
+        diagnostics.append({
+            "match": m["match"],
+            "excel_actual": m["excel_actual"],
+            "api_actual": api_actual,
+            "used": actual,
+            "source": source,
+            "conflict": conflict,
+        })
+
+        m2 = {
+            "match": m["match"],
+            "group": m["group"],
+            "date": official_date,
+            "actual": actual,
+            "predictions": m["predictions"],
+        }
+
+        if actual:
+            asign, ascore = actual.split("|")
+            ah, ag = map(int, ascore.split("-"))
 
             breakdown = {}
             for p in players:
-                breakdown[p] = score_match(m["predictions"].get(p), m2["actual"])
+                breakdown[p] = score_match(m["predictions"].get(p), actual)
             m2["breakdown"] = breakdown
 
             t_h = group_team_stats[m["group"]][home]
             t_a = group_team_stats[m["group"]][away]
             t_h["pj"] += 1
             t_a["pj"] += 1
-            t_h["gf"] += hg
+            t_h["gf"] += ah
             t_h["gc"] += ag
             t_a["gf"] += ag
-            t_a["gc"] += hg
-            if hg > ag:
+            t_a["gc"] += ah
+            if ah > ag:
                 t_h["g"] += 1
                 t_a["p"] += 1
-            elif hg < ag:
+            elif ah < ag:
                 t_a["g"] += 1
                 t_h["p"] += 1
             else:
                 t_h["e"] += 1
                 t_a["e"] += 1
-        else:
-            m2["actual"] = None
 
-        del m2["scheduled_date"]
         processed.append(m2)
 
-    # Clasificación real de grupo
+    if matches_missing_date:
+        print(f"AVISO: sin fecha oficial para: {matches_missing_date}", file=sys.stderr)
+
     group_standings_real = {}
     for g, teams in group_team_stats.items():
         rows = []
@@ -240,7 +324,6 @@ def build_dataset(api_key):
         rows.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
         group_standings_real[g] = rows
 
-    # Agregados diarios
     by_date = defaultdict(list)
     for m in processed:
         if m.get("date") and m.get("actual"):
@@ -287,25 +370,51 @@ def build_dataset(api_key):
         "positions_by_day": positions_by_day,
         "standings": standings,
         "last_updated": date.today().isoformat(),
-    }
+    }, diagnostics
 
 
 def main():
     api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
-    if not api_key:
-        print("ERROR: falta la variable de entorno FOOTBALL_DATA_API_KEY", file=sys.stderr)
-        sys.exit(1)
-
-    dataset = build_dataset(api_key)
+    dataset, diagnostics = build_dataset(api_key)
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write("const PORRA_DATA = ")
         json.dump(dataset, f, ensure_ascii=False)
         f.write(";")
 
+    # Archivo de diagnóstico legible: qué fuente se usó para cada partido y
+    # si hubo conflicto entre el Excel y la API. Útil para depurar sin tener
+    # que rebuscar en los logs de GitHub Actions — basta con abrir este
+    # archivo directamente en el repo.
+    conflicts = [d for d in diagnostics if d["conflict"]]
+    from_api = [d for d in diagnostics if d["source"] == "api"]
+    from_excel = [d for d in diagnostics if d["source"] == "excel"]
+    not_played = [d for d in diagnostics if d["source"] is None]
+
+    with open("debug_api.json", "w", encoding="utf-8") as f:
+        json.dump({
+            "generated_at": date.today().isoformat(),
+            "resumen": {
+                "total_partidos": len(diagnostics),
+                "desde_excel": len(from_excel),
+                "desde_api": len(from_api),
+                "sin_jugar": len(not_played),
+                "conflictos_excel_vs_api": len(conflicts),
+            },
+            "conflictos": conflicts,
+            "rellenados_por_api": from_api,
+            "todos": diagnostics,
+        }, f, ensure_ascii=False, indent=2)
+
     played = sum(1 for m in dataset["matches"] if m["actual"])
     print(f"OK: data.js actualizado. {played}/{len(dataset['matches'])} partidos jugados. "
           f"Líder: {dataset['standings'][0]['player']} ({dataset['standings'][0]['points']} pts)")
+    print(f"Fuentes: {len(from_excel)} del Excel, {len(from_api)} de la API.")
+    if conflicts:
+        print(f"⚠️  ATENCIÓN: {len(conflicts)} partido(s) con resultado distinto entre Excel y API "
+              f"(se usó el del Excel). Revisa debug_api.json -> 'conflictos'.")
+        for c in conflicts:
+            print(f"   - {c['match']}: Excel={c['excel_actual']} | API={c['api_actual']}")
 
 
 if __name__ == "__main__":
