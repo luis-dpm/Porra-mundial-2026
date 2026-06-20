@@ -20,7 +20,7 @@ import os
 import re
 import json
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from collections import defaultdict
 
 from openpyxl import load_workbook
@@ -235,15 +235,17 @@ def fetch_third_place_ranking(api_key):
 
 def fetch_real_results(api_key):
     """Llama a football-data.org. Si falla por cualquier motivo, devuelve
-    ({}, []) y el script sigue funcionando solo con lo que haya en el Excel.
-    Devuelve (results, raw_finished_list) — la segunda es solo para
+    ({}, {}, []) y el script sigue funcionando solo con lo que haya en el
+    Excel y las fechas de respaldo. Devuelve (results, schedule,
+    raw_finished_list): schedule trae fecha+hora real en España para
+    construir la pestaña "Próximos"; raw_finished_list es solo para
     diagnóstico (se vuelca en debug_api.json)."""
     if not api_key:
         print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
-        return {}, []
+        return {}, {}, []
     if not requests:
         print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
-        return {}, []
+        return {}, {}, []
     try:
         headers = {"X-Auth-Token": api_key}
         url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
@@ -253,7 +255,7 @@ def fetch_real_results(api_key):
         data = resp.json()
     except Exception as e:
         print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
-        return {}, []
+        return {}, {}, []
 
     total_matches = len(data.get("matches", []))
     finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
@@ -270,15 +272,40 @@ def fetch_real_results(api_key):
     ]
 
     results = {}
+    schedule = {}  # (home_es, away_es) -> (fecha_iso_españa, hora_es "HH:MM")
     unmapped = []
-    for m in finished:
+    schedule_unmapped = []
+
+    for m in data.get("matches", []):
         home_en = m["homeTeam"]["name"]
         away_en = m["awayTeam"]["name"]
         home_es = resolve_team_name(home_en)
         away_es = resolve_team_name(away_en)
         if not home_es or not away_es:
-            unmapped.append(f"{home_en} vs {away_en}")
+            if m["status"] == "FINISHED":
+                unmapped.append(f"{home_en} vs {away_en}")
+            else:
+                schedule_unmapped.append(f"{home_en} vs {away_en}")
             continue
+
+        # Horario real en España (CEST = UTC+2 en junio-julio) a partir del
+        # utcDate que da la API. Sustituye a la tabla escrita a mano, que
+        # tenía varios errores de fecha respecto al calendario oficial real.
+        utc_date_str = m.get("utcDate")
+        if utc_date_str:
+            try:
+                utc_dt = datetime.fromisoformat(utc_date_str.replace("Z", "+00:00"))
+                spain_dt = utc_dt + timedelta(hours=2)  # CEST (horario de verano España)
+                spain_date = spain_dt.date().isoformat()
+                spain_time = spain_dt.strftime("%H:%M")
+                schedule[(home_es, away_es)] = (spain_date, spain_time)
+                schedule[(away_es, home_es)] = (spain_date, spain_time)
+            except (ValueError, TypeError):
+                pass
+
+        if m["status"] != "FINISHED":
+            continue
+
         hg = m["score"]["fullTime"]["home"]
         ag = m["score"]["fullTime"]["away"]
         if hg is None or ag is None:
@@ -292,8 +319,11 @@ def fetch_real_results(api_key):
 
     if unmapped:
         print(f"AVISO: {len(unmapped)} partidos finalizados con nombre de equipo no mapeado: {unmapped}", file=sys.stderr)
+    if schedule_unmapped:
+        print(f"AVISO: {len(schedule_unmapped)} partidos no jugados con nombre de equipo no mapeado (sin horario): {set(schedule_unmapped)}", file=sys.stderr)
     print(f"INFO: {len(results) // 2} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
-    return results, raw_finished_debug
+    print(f"INFO: {len(schedule) // 2} horarios reales (fecha+hora España) obtenidos de la API.", file=sys.stderr)
+    return results, schedule, raw_finished_debug
 
 
 def read_excel_data():
@@ -377,7 +407,7 @@ def sign_from_score(h, a):
 
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
-    api_results, api_raw_finished_debug = fetch_real_results(api_key)
+    api_results, api_schedule, api_raw_finished_debug = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
     processed = []
@@ -389,9 +419,19 @@ def build_dataset(api_key):
     for m in matches:
         home, away = m["match"].split("-", 1)
 
-        official_date = MATCH_DATES_ES.get(m["match"])
-        if not official_date:
-            matches_missing_date.append(m["match"])
+        # Prioridad de fecha/hora: 1) la API (fecha+hora real, siempre que
+        # la tenga), 2) la tabla escrita a mano como respaldo si la API no
+        # devuelve ese partido por algún motivo (p.ej. fallo de mapeo de
+        # nombre). La tabla manual se construyó antes de empezar el
+        # torneo y tenía algún desfase de un día en varios partidos.
+        api_sched = api_schedule.get((home, away))
+        if api_sched:
+            official_date, official_time = api_sched
+        else:
+            official_date = MATCH_DATES_ES.get(m["match"])
+            official_time = None
+            if not official_date:
+                matches_missing_date.append(m["match"])
 
         api_res = api_results.get((home, away))
         api_actual = None
@@ -424,6 +464,7 @@ def build_dataset(api_key):
             "match": m["match"],
             "group": m["group"],
             "date": official_date,
+            "time": official_time,
             "actual": actual,
             "predictions": m["predictions"],
         }
