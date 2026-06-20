@@ -20,7 +20,7 @@ import os
 import re
 import json
 import sys
-from datetime import date
+from datetime import date, datetime
 from collections import defaultdict
 
 from openpyxl import load_workbook
@@ -115,6 +115,85 @@ PLAYER_COLUMNS = {
 }
 
 
+def fetch_official_standings(api_key):
+    """Consulta /competitions/WC/standings: la clasificación de cada grupo ya
+    calculada por football-data.org aplicando los criterios oficiales FIFA
+    (incluye fair-play si está disponible, no solo pts/gd/gf como un cálculo
+    casero). Devuelve {group_letter: [{'team': nombre_es, 'position': int,
+    'points': int, ...}, ...]} o {} si no se puede consultar."""
+    if not api_key or not requests:
+        return {}
+    try:
+        headers = {"X-Auth-Token": api_key}
+        url = f"{API_BASE}/competitions/{COMPETITION_CODE}/standings"
+        resp = requests.get(url, headers=headers, timeout=30)
+        print(f"INFO: API standings respondió con status {resp.status_code}", file=sys.stderr)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"AVISO: no se pudo consultar /standings ({e}). Se calculará localmente.", file=sys.stderr)
+        return {}
+
+    result = {}
+    unmapped = []
+    for standing in data.get("standings", []):
+        group_raw = standing.get("group")  # p.ej. "GROUP_A"
+        if not group_raw or not group_raw.startswith("GROUP_"):
+            continue
+        group_letter = group_raw.replace("GROUP_", "")
+        rows = []
+        for row in standing.get("table", []):
+            team_en = row["team"]["name"]
+            team_es = resolve_team_name(team_en)
+            if not team_es:
+                unmapped.append(team_en)
+                team_es = team_en  # fallback: mostrar el nombre tal cual antes que perder el dato
+            rows.append({
+                "team": team_es,
+                "position": row.get("position"),
+                "pj": row.get("playedGames", 0),
+                "g": row.get("won", 0),
+                "e": row.get("draw", 0),
+                "p": row.get("lost", 0),
+                "gf": row.get("goalsFor", 0),
+                "gc": row.get("goalsAgainst", 0),
+                "gd": row.get("goalDifference", 0),
+                "pts": row.get("points", 0),
+            })
+        result[group_letter] = rows
+
+    if unmapped:
+        print(f"AVISO: equipos sin mapear en /standings: {set(unmapped)}", file=sys.stderr)
+    print(f"INFO: clasificación oficial recibida para {len(result)} grupos.", file=sys.stderr)
+    return result
+
+
+def fetch_third_place_ranking(api_key):
+    """Construye el ranking de los 12 terceros de grupo, usando la clasificación
+    oficial de la API (no un cálculo local), para determinar los 8 mejores que
+    avanzan a dieciseisavos según el criterio FIFA: pts, gd, gf, fair play."""
+    standings = fetch_official_standings(api_key)
+    if not standings:
+        return [], standings
+
+    thirds = []
+    for group_letter, rows in standings.items():
+        third = next((r for r in rows if r["position"] == 3), None)
+        if third:
+            thirds.append({**third, "group": group_letter})
+
+    # La propia API ya nos da pts/gd/gf con los criterios FIFA aplicados a
+    # nivel de grupo; para el ranking *entre* terceros de distintos grupos
+    # ordenamos por esos mismos campos (pts, gd, gf) que es el criterio
+    # documentado para esta fase del desempate.
+    thirds.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
+    for i, t in enumerate(thirds):
+        t["ranking"] = i + 1
+        t["advances"] = i < 8
+
+    return thirds, standings
+
+
 def fetch_real_results(api_key):
     """Llama a football-data.org. Si falla por cualquier motivo, devuelve {}
     y el script sigue funcionando solo con lo que haya en el Excel."""
@@ -201,7 +280,18 @@ def read_excel_data():
             group_positions[g][pos] = preds
             row += 1
 
-    return matches, group_positions
+    # Equipos que cada jugador predijo como clasificados a dieciseisavos
+    # (filas 130-161, "Dieciseisavofinalista-1" a "-32"). Es una lista plana
+    # de 32 equipos por jugador, sin más estructura — no hace falta saber a
+    # qué cruce del bracket corresponde cada fila, solo qué 32 equipos eligió.
+    qualified_predictions = {p: set() for p in PLAYER_COLUMNS}
+    for row_idx in range(130, 162):
+        for player, col in PLAYER_COLUMNS.items():
+            team = ws.cell(row=row_idx, column=col).value
+            if team and isinstance(team, str) and team.strip():
+                qualified_predictions[player].add(team.strip())
+
+    return matches, group_positions, qualified_predictions
 
 
 def score_match(pred_str, actual_str):
@@ -230,7 +320,7 @@ def sign_from_score(h, a):
 
 
 def build_dataset(api_key):
-    matches, group_positions = read_excel_data()
+    matches, group_positions, qualified_predictions = read_excel_data()
     api_results = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
@@ -314,7 +404,9 @@ def build_dataset(api_key):
     if matches_missing_date:
         print(f"AVISO: sin fecha oficial para: {matches_missing_date}", file=sys.stderr)
 
-    group_standings_real = {}
+    # Clasificación local (cálculo propio: pts, gd, gf — sin fair play porque
+    # esos datos no están disponibles en el plan gratuito de la API).
+    group_standings_local = {}
     for g, teams in group_team_stats.items():
         rows = []
         for team, s in teams.items():
@@ -322,7 +414,46 @@ def build_dataset(api_key):
             gd = s["gf"] - s["gc"]
             rows.append({"team": team, **s, "gd": gd, "pts": pts})
         rows.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
-        group_standings_real[g] = rows
+        group_standings_local[g] = rows
+
+    # Clasificación oficial vía API (aplica los criterios FIFA reales,
+    # incluyendo enfrentamiento directo y fair play cuando hace falta).
+    # Si la API falla, usamos la calculada localmente como respaldo.
+    third_place_ranking, group_standings_api = fetch_third_place_ranking(api_key)
+    using_official_standings = bool(group_standings_api)
+    group_standings_real = group_standings_api if using_official_standings else group_standings_local
+
+    if using_official_standings:
+        print("INFO: usando clasificación OFICIAL de la API (criterios FIFA completos).", file=sys.stderr)
+    else:
+        print("AVISO: usando clasificación LOCAL (solo pts/gd/gf, sin fair play). "
+              "Puede diferir de la oficial en empates resueltos por tarjetas o enfrentamiento directo.", file=sys.stderr)
+
+    # Equipos realmente clasificados a dieciseisavos: 1º y 2º de cada grupo
+    # (según la clasificación que estemos usando, oficial o local) + los 8
+    # mejores terceros. Si la fase de grupos no ha terminado, esta lista
+    # refleja "quién clasificaría si todo acabara hoy" — es una proyección,
+    # no un hecho consumado, hasta que se jueguen los 72 partidos.
+    real_qualified_teams = set()
+    for g, rows in group_standings_real.items():
+        for r in rows:
+            if r.get("position") in (1, 2):
+                real_qualified_teams.add(r["team"])
+    for t in third_place_ranking:
+        if t.get("advances"):
+            real_qualified_teams.add(t["team"])
+
+    # Puntos por acertar equipos clasificados: +1 por cada equipo que el
+    # jugador incluyó en su lista de 32 "Dieciseisavofinalista" y que
+    # efectivamente está en la lista real de clasificados (proyectada o
+    # confirmada, según el estado actual del torneo).
+    qualified_points = {}
+    qualified_hits = {}
+    for p in players:
+        predicted = qualified_predictions.get(p, set())
+        hits = predicted & real_qualified_teams
+        qualified_points[p] = len(hits)
+        qualified_hits[p] = sorted(hits)
 
     by_date = defaultdict(list)
     for m in processed:
@@ -363,6 +494,11 @@ def build_dataset(api_key):
         "matches": processed,
         "group_positions": group_positions,
         "group_standings_real": group_standings_real,
+        "third_place_ranking": third_place_ranking,
+        "using_official_standings": using_official_standings,
+        "real_qualified_teams": sorted(real_qualified_teams),
+        "qualified_points": qualified_points,
+        "qualified_hits": qualified_hits,
         "players": players,
         "dates": dates,
         "daily_points": daily,
@@ -393,13 +529,25 @@ def main():
 
     with open("debug_api.json", "w", encoding="utf-8") as f:
         json.dump({
-            "generated_at": date.today().isoformat(),
+            "generated_at": datetime.utcnow().isoformat() + "Z",
             "resumen": {
                 "total_partidos": len(diagnostics),
                 "desde_excel": len(from_excel),
                 "desde_api": len(from_api),
                 "sin_jugar": len(not_played),
                 "conflictos_excel_vs_api": len(conflicts),
+            },
+            "clasificacion_de_grupos": {
+                "usando_oficial_api": dataset["using_official_standings"],
+                "grupos_recibidos_de_api": len(dataset["group_standings_real"]) if dataset["using_official_standings"] else 0,
+                "ranking_terceros_calculado": len(dataset["third_place_ranking"]) > 0,
+                "nota": (
+                    "Clasificación oficial de la API (con fair-play/enfrentamiento directo)."
+                    if dataset["using_official_standings"]
+                    else "FALLBACK: clasificación calculada localmente (solo pts/gd/gf). "
+                         "El endpoint /standings de la API no respondió o falló — revisa el log "
+                         "completo del paso 'Actualizar data.js' en Actions para ver el motivo exacto."
+                ),
             },
             "conflictos": conflicts,
             "rellenados_por_api": from_api,
@@ -410,6 +558,11 @@ def main():
     print(f"OK: data.js actualizado. {played}/{len(dataset['matches'])} partidos jugados. "
           f"Líder: {dataset['standings'][0]['player']} ({dataset['standings'][0]['points']} pts)")
     print(f"Fuentes: {len(from_excel)} del Excel, {len(from_api)} de la API.")
+    if dataset["using_official_standings"]:
+        print(f"✅ Clasificación de grupos: OFICIAL vía API ({len(dataset['group_standings_real'])} grupos).")
+    else:
+        print(f"⚠️  Clasificación de grupos: LOCAL (fallback) — el endpoint /standings no respondió. "
+              f"Revisa los mensajes 'AVISO: no se pudo consultar /standings' más arriba en este mismo log.")
     if conflicts:
         print(f"⚠️  ATENCIÓN: {len(conflicts)} partido(s) con resultado distinto entre Excel y API "
               f"(se usó el del Excel). Revisa debug_api.json -> 'conflictos'.")
