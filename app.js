@@ -607,6 +607,177 @@ function renderProximosContent(date) {
   }).join('');
 }
 
+// ============ PAGE 6: ELIMINATORIA ============
+const KO_ROUND_ORDER = ['dieciseisavos', 'octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'];
+const KO_ROUND_LABELS = {
+  dieciseisavos: 'Dieciseisavos',
+  octavos: 'Octavos',
+  cuartos: 'Cuartos',
+  semis: 'Semis',
+  tercer_puesto: '3º puesto',
+  final: 'Final',
+};
+
+function koTeamLabel(team) {
+  return team || '?';
+}
+
+// --- Bracket real (el que de verdad va pasando) ---
+function renderKoRealBracket() {
+  const el = document.getElementById('koRealBracket');
+  const ko = D.ko_stage;
+  if (!ko || !ko.rounds || Object.keys(ko.rounds).length === 0) {
+    el.innerHTML = '<p class="ko-empty">Esta sección se rellenará en cuanto termine la fase de grupos y se complete el cuadro de dieciseisavos en el Excel.</p>';
+    return;
+  }
+
+  const columns = KO_ROUND_ORDER.map(roundName => {
+    const matches = (ko.rounds[roundName] && ko.rounds[roundName].matches) || [];
+    if (matches.length === 0) return '';
+
+    const cards = matches.map(m => {
+      const home = koTeamLabel(m.home_team);
+      const away = koTeamLabel(m.away_team);
+      const hasResult = !!m.actual;
+      let resultHtml = '<span class="ko-pending">vs</span>';
+      if (hasResult) {
+        const [, score] = m.actual.split('|');
+        resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
+      }
+      const numTag = m.num ? `<span class="ko-match-num">P${m.num}</span>` : '';
+      return `
+        <div class="ko-real-card ${hasResult ? 'played' : ''}">
+          ${numTag}
+          <div class="ko-real-team ${hasResult && m.home_team && D.ko_stage.eliminated_teams.includes(m.home_team) ? 'lost' : ''}">${home}</div>
+          ${resultHtml}
+          <div class="ko-real-team ${hasResult && m.away_team && D.ko_stage.eliminated_teams.includes(m.away_team) ? 'lost' : ''}">${away}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="ko-column">
+        <div class="ko-column-title">${KO_ROUND_LABELS[roundName]}</div>
+        ${cards}
+      </div>
+    `;
+  }).join('');
+
+  const honor = ko.honor || {};
+  const honorHtml = (honor.champion || honor.runner_up || honor.third_place) ? `
+    <div class="ko-honor">
+      ${honor.champion ? `<div class="ko-honor-item gold">🥇 ${honor.champion}</div>` : ''}
+      ${honor.runner_up ? `<div class="ko-honor-item silver">🥈 ${honor.runner_up}</div>` : ''}
+      ${honor.third_place ? `<div class="ko-honor-item bronze">🥉 ${honor.third_place}</div>` : ''}
+    </div>
+  ` : '';
+
+  el.innerHTML = `<div class="ko-bracket-scroll">${columns}</div>${honorHtml}`;
+}
+
+// --- Bracket de un jugador concreto, con verde/rojo ---
+let currentKoPlayer = null;
+
+function renderKoPlayerSelector() {
+  const el = document.getElementById('koPlayerSelector');
+  if (!currentKoPlayer) currentKoPlayer = PLAYERS[0];
+
+  el.innerHTML = PLAYERS.map(p =>
+    `<button class="player-pill ${p === currentKoPlayer ? 'active' : ''}" data-player="${p}">${p}</button>`
+  ).join('');
+
+  el.querySelectorAll('.player-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentKoPlayer = btn.dataset.player;
+      el.querySelectorAll('.player-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderKoPlayerBracket();
+    });
+  });
+}
+
+function renderKoPlayerBracket() {
+  const el = document.getElementById('koPlayerBracket');
+  const ko = D.ko_stage;
+  const player = currentKoPlayer;
+
+  if (!ko || !ko.qualifiers || Object.keys(ko.qualifiers).length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  // Dieciseisavos se muestra como partidos (con signo/marcador), el resto
+  // como lista de "clasificados predichos" coloreada según si siguen vivos.
+  const dieciseisavosMatches = (ko.rounds.dieciseisavos && ko.rounds.dieciseisavos.matches) || [];
+  const dieciseisavosHtml = dieciseisavosMatches.length ? `
+    <div class="ko-column">
+      <div class="ko-column-title">Dieciseisavos</div>
+      ${dieciseisavosMatches.map(m => {
+        const pred = m.predictions[player];
+        const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
+        let cls = 'pending';
+        let label = pred ? pred.split('|')[1] : '—';
+        if (bd) {
+          cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
+        }
+        return `
+          <div class="ko-pred-card ${cls}">
+            <span class="ko-pred-teams">${koTeamLabel(m.home_team)} – ${koTeamLabel(m.away_team)}</span>
+            <span class="ko-pred-guess">${label}</span>
+            ${bd ? `<span class="ko-pred-pts">+${bd.pts}</span>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  ` : '';
+
+  const otherRounds = ['octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'].map(roundName => {
+    const slots = ko.qualifiers[roundName] || [];
+    if (slots.length === 0) return '';
+    return `
+      <div class="ko-column">
+        <div class="ko-column-title">${KO_ROUND_LABELS[roundName]}</div>
+        ${slots.map(slot => {
+          const pred = slot.predictions[player];
+          if (!pred || !pred.team) {
+            return `<div class="ko-pred-card pending"><span class="ko-pred-teams">—</span></div>`;
+          }
+          const statusClass = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
+          return `<div class="ko-pred-card ${statusClass}"><span class="ko-pred-teams">${pred.team}</span></div>`;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+
+  const honor = ko.honor || {};
+  const playerChampion = player && D.group_positions ? null : null; // placeholder, no usamos predicción de campeón aparte por ahora
+
+  el.innerHTML = `<div class="ko-bracket-scroll">${dieciseisavosHtml}${otherRounds}</div>
+    <div class="ko-legend">
+      <span class="ko-legend-item"><span class="ko-dot hit-exact"></span>Resultado exacto</span>
+      <span class="ko-legend-item"><span class="ko-dot hit-diff"></span>Acierta diferencia</span>
+      <span class="ko-legend-item"><span class="ko-dot hit-sign"></span>Acierta signo</span>
+      <span class="ko-legend-item"><span class="ko-dot alive"></span>Equipo aún vivo</span>
+      <span class="ko-legend-item"><span class="ko-dot miss"></span>Fallo / equipo eliminado</span>
+    </div>`;
+}
+
+function scoreKoMatch(predStr, actualStr) {
+  const [psign, pscore] = predStr.split('|');
+  const [ph, pa] = pscore.split('-').map(Number);
+  const [asign, ascore] = actualStr.split('|');
+  const [ah, aa] = ascore.split('-').map(Number);
+  let pts = 0;
+  const sign = psign === asign;
+  let diff = false, exact = false;
+  if (sign) {
+    pts += 1;
+    if (Math.abs(ph - pa) === Math.abs(ah - aa)) { diff = true; pts += 1; }
+    if (ph === ah && pa === aa) { exact = true; pts += 2; }
+  }
+  return { pts, sign, diff, exact };
+}
+
 // ============ INIT ============
 renderScoreboard();
 renderDaySelector();
@@ -616,3 +787,6 @@ renderProximosSelector();
 renderGroupPlayerSelector();
 renderGroupsGrid();
 renderThirdPlaceTable();
+renderKoRealBracket();
+renderKoPlayerSelector();
+renderKoPlayerBracket();
