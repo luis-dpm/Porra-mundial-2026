@@ -2,7 +2,7 @@ name: Actualizar resultados Mundial
 
 on:
   schedule:
-    # Cada 6 horas (UTC). Ajusta si quieres más o menos frecuencia.
+    # Cada 2 horas (UTC).
     - cron: '0 */2 * * *'
   workflow_dispatch: {}  # permite lanzarlo a mano desde la pestaña Actions
 
@@ -16,6 +16,22 @@ jobs:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
+      - name: Comprobar que existen todos los archivos necesarios
+        run: |
+          missing=0
+          for f in "scripts/update_data.py" "scripts/match_dates_es.py" "source/predicciones.xlsx"; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Falta el archivo $f — el script no puede ejecutarse sin él."
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo "## ❌ Faltan archivos necesarios" >> $GITHUB_STEP_SUMMARY
+            echo "Revisa que scripts/update_data.py, scripts/match_dates_es.py y source/predicciones.xlsx existen en el repositorio." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "Todos los archivos necesarios están presentes."
+
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
@@ -25,9 +41,21 @@ jobs:
         run: pip install requests openpyxl
 
       - name: Actualizar data.js con resultados reales
+        id: update
         env:
           FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
-        run: python scripts/update_data.py
+        run: |
+          python scripts/update_data.py | tee update_output.txt
+          echo "summary=$(tail -1 update_output.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Comprobar que data.js es JSON válido tras la actualización
+        run: |
+          node -e "
+            const fs = require('fs');
+            let c = fs.readFileSync('data.js', 'utf8').replace('const PORRA_DATA = ', '').replace(/;\\s*$/, '');
+            JSON.parse(c);
+            console.log('data.js verificado: JSON válido.');
+          "
 
       - name: Commit y push si hay cambios
         run: |
@@ -35,8 +63,12 @@ jobs:
           git config user.email "actions@github.com"
           if git diff --quiet data.js; then
             echo "Sin cambios, nada que subir."
+            echo "## ℹ️ Sin cambios" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.update.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
           else
             git add data.js
             git commit -m "Actualización automática de resultados $(date -u +'%Y-%m-%d %H:%M UTC')"
             git push
+            echo "## ✅ Actualizado correctamente" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.update.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
           fi
