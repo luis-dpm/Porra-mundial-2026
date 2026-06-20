@@ -447,7 +447,7 @@ function renderGroupsGrid() {
 
     const rows = [1, 2, 3, 4].map(pos => {
       const realTeam = realByPos[pos];
-      const display = hasRealData ? realTeam : '— por jugar —';
+      const display = hasRealData ? (realTeam || '— sin datos —') : '— por jugar —';
       const qualifiedTag = realTeam && advancing.has(realTeam)
         ? '<span class="qualified-tag" title="Clasificado a dieciseisavos">✓</span>'
         : '';
