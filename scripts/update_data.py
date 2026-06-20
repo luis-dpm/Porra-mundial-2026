@@ -234,14 +234,16 @@ def fetch_third_place_ranking(api_key):
 
 
 def fetch_real_results(api_key):
-    """Llama a football-data.org. Si falla por cualquier motivo, devuelve {}
-    y el script sigue funcionando solo con lo que haya en el Excel."""
+    """Llama a football-data.org. Si falla por cualquier motivo, devuelve
+    ({}, []) y el script sigue funcionando solo con lo que haya en el Excel.
+    Devuelve (results, raw_finished_list) — la segunda es solo para
+    diagnóstico (se vuelca en debug_api.json)."""
     if not api_key:
         print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
-        return {}
+        return {}, []
     if not requests:
         print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
-        return {}
+        return {}, []
     try:
         headers = {"X-Auth-Token": api_key}
         url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
@@ -251,11 +253,21 @@ def fetch_real_results(api_key):
         data = resp.json()
     except Exception as e:
         print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
-        return {}
+        return {}, []
 
     total_matches = len(data.get("matches", []))
     finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
     print(f"INFO: la API devolvió {total_matches} partidos totales, {len(finished)} finalizados.", file=sys.stderr)
+
+    raw_finished_debug = [
+        {
+            "home_api": m["homeTeam"]["name"],
+            "away_api": m["awayTeam"]["name"],
+            "score": f"{m['score']['fullTime']['home']}-{m['score']['fullTime']['away']}",
+            "utcDate": m.get("utcDate"),
+        }
+        for m in finished
+    ]
 
     results = {}
     unmapped = []
@@ -271,12 +283,17 @@ def fetch_real_results(api_key):
         ag = m["score"]["fullTime"]["away"]
         if hg is None or ag is None:
             continue
+        # Guardamos en ambas orientaciones (normal e invertida) para que el
+        # resultado se encuentre aunque el Excel tenga el partido anotado
+        # con local/visitante distinto a como lo da la API — algo que puede
+        # pasar si alguien se equivocó al transcribir el fixture a mano.
         results[(home_es, away_es)] = (hg, ag)
+        results[(away_es, home_es)] = (ag, hg)
 
     if unmapped:
         print(f"AVISO: {len(unmapped)} partidos finalizados con nombre de equipo no mapeado: {unmapped}", file=sys.stderr)
-    print(f"INFO: {len(results)} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
-    return results
+    print(f"INFO: {len(results) // 2} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
+    return results, raw_finished_debug
 
 
 def read_excel_data():
@@ -360,7 +377,7 @@ def sign_from_score(h, a):
 
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
-    api_results = fetch_real_results(api_key)
+    api_results, api_raw_finished_debug = fetch_real_results(api_key)
     players = list(PLAYER_COLUMNS.keys())
 
     processed = []
@@ -559,12 +576,12 @@ def build_dataset(api_key):
         "positions_by_day": positions_by_day,
         "standings": standings,
         "last_updated": date.today().isoformat(),
-    }, diagnostics
+    }, diagnostics, api_raw_finished_debug
 
 
 def main():
     api_key = os.environ.get("FOOTBALL_DATA_API_KEY")
-    dataset, diagnostics = build_dataset(api_key)
+    dataset, diagnostics, api_raw_finished_debug = build_dataset(api_key)
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write("const PORRA_DATA = ")
@@ -604,6 +621,7 @@ def main():
             },
             "conflictos": conflicts,
             "rellenados_por_api": from_api,
+            "partidos_finalizados_segun_api": api_raw_finished_debug,
             "todos": diagnostics,
         }, f, ensure_ascii=False, indent=2)
 
