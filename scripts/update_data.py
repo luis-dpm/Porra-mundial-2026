@@ -159,15 +159,21 @@ def fetch_official_standings(api_key):
             continue
 
         rows = []
-        for row in standing.get("table", []):
+        for idx, row in enumerate(standing.get("table", [])):
             team_en = row["team"]["name"]
             team_es = resolve_team_name(team_en)
             if not team_es:
                 unmapped.append(team_en)
                 team_es = team_en  # fallback: mostrar el nombre tal cual antes que perder el dato
+            # Usamos la posición que da la API si parece válida (1-4 y no
+            # repetida dentro de este grupo); si no, recurrimos al orden en
+            # que vino la fila — la API casi siempre devuelve las filas ya
+            # ordenadas aunque el campo 'position' falle en algún empate.
+            api_pos = row.get("position")
             rows.append({
                 "team": team_es,
-                "position": row.get("position"),
+                "_api_position": api_pos,
+                "position": api_pos if api_pos else idx + 1,
                 "pj": row.get("playedGames", 0),
                 "g": row.get("won", 0),
                 "e": row.get("draw", 0),
@@ -177,6 +183,21 @@ def fetch_official_standings(api_key):
                 "gd": row.get("goalDifference", 0),
                 "pts": row.get("points", 0),
             })
+
+        # Normalizamos las posiciones: si la API repitió o se saltó algún
+        # número (típico en empates sin desempatar), reasignamos 1,2,3,4
+        # respetando el orden en que la API ya trae las filas (que suele
+        # venir bien ordenado aunque el campo 'position' individual falle).
+        seen_positions = [r["position"] for r in rows]
+        positions_ok = sorted(seen_positions) == list(range(1, len(rows) + 1))
+        if not positions_ok and rows:
+            print(f"AVISO: posiciones inconsistentes en grupo {group_letter} "
+                  f"({seen_positions}), reasignando 1..{len(rows)} por orden de llegada.", file=sys.stderr)
+            for i, r in enumerate(rows):
+                r["position"] = i + 1
+        for r in rows:
+            del r["_api_position"]
+
         result[group_letter] = rows
 
     if unmapped:
