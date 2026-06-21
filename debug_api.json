@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T20:30:53.579348Z",
+  "generated_at": "2026-06-21T21:00:58.561856Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -89,7 +89,7 @@
     },
     {
       "match": "España-Arabia Saudita",
-      "api_verification": "conflicto_se_usa_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|4-0",
       "used": "1|4-0",
@@ -317,7 +317,7 @@
     {
       "home_api": "Spain",
       "away_api": "Saudi Arabia",
-      "score": "5-0",
+      "score": "4-0",
       "utcDate": "2026-06-21T16:00:00Z"
     }
   ],
@@ -1292,7 +1292,7 @@
     },
     {
       "match": "España-Arabia Saudita",
-      "api_verification": "conflicto_se_usa_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|4-0",
       "used": "1|4-0",
