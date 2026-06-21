@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T20:05:49.361872Z",
+  "generated_at": "2026-06-21T20:30:53.579348Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -547,7 +547,7 @@
     {
       "home_api": "Belgium",
       "away_api": "Iran",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-21T19:00:00Z"
     },
     {
