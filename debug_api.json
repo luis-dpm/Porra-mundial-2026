@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-20T20:52:09.194855Z",
+  "generated_at": "2026-06-21T06:57:05.115377Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 5,
-    "sin_jugar": 39,
+    "desde_api": 8,
+    "sin_jugar": 36,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -48,10 +48,34 @@
       "conflict": false
     },
     {
+      "match": "Alemania-Costa de Marfil",
+      "excel_actual": null,
+      "api_actual": "1|2-1",
+      "used": "1|2-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Ecuador-Curazao",
+      "excel_actual": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
       "match": "Países Bajos-Suecia",
       "excel_actual": null,
       "api_actual": "1|5-1",
       "used": "1|5-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Túnez-Japón",
+      "excel_actual": null,
+      "api_actual": "2|0-4",
+      "used": "2|0-4",
       "source": "api",
       "conflict": false
     }
@@ -254,6 +278,24 @@
       "away_api": "Sweden",
       "score": "5-1",
       "utcDate": "2026-06-20T17:00:00Z"
+    },
+    {
+      "home_api": "Germany",
+      "away_api": "Ivory Coast",
+      "score": "2-1",
+      "utcDate": "2026-06-20T20:00:00Z"
+    },
+    {
+      "home_api": "Ecuador",
+      "away_api": "Curaçao",
+      "score": "0-0",
+      "utcDate": "2026-06-21T00:00:00Z"
+    },
+    {
+      "home_api": "Tunisia",
+      "away_api": "Japan",
+      "score": "0-4",
+      "utcDate": "2026-06-21T04:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -458,19 +500,19 @@
     {
       "home_api": "Germany",
       "away_api": "Ivory Coast",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-20T20:00:00Z"
     },
     {
       "home_api": "Ecuador",
       "away_api": "Curaçao",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-21T00:00:00Z"
     },
     {
       "home_api": "Tunisia",
       "away_api": "Japan",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-21T04:00:00Z"
     },
     {
@@ -1142,17 +1184,17 @@
     {
       "match": "Alemania-Costa de Marfil",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|2-1",
+      "used": "1|2-1",
+      "source": "api",
       "conflict": false
     },
     {
       "match": "Ecuador-Curazao",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
+      "source": "api",
       "conflict": false
     },
     {
@@ -1166,9 +1208,9 @@
     {
       "match": "Túnez-Japón",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "2|0-4",
+      "used": "2|0-4",
+      "source": "api",
       "conflict": false
     },
     {
