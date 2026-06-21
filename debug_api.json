@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T19:53:51.860340Z",
+  "generated_at": "2026-06-21T20:01:01.672651Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -308,7 +308,7 @@
     {
       "home_api": "Spain",
       "away_api": "Saudi Arabia",
-      "score": "4-0",
+      "score": "5-0",
       "utcDate": "2026-06-21T16:00:00Z"
     }
   ],
@@ -538,7 +538,7 @@
     {
       "home_api": "Belgium",
       "away_api": "Iran",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-21T19:00:00Z"
     },
     {
