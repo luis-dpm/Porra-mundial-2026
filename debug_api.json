@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-21T18:01:02.757438Z",
+  "generated_at": "2026-06-21T18:30:58.903353Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 8,
-    "sin_jugar": 36,
+    "desde_api": 9,
+    "sin_jugar": 35,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -76,6 +76,14 @@
       "excel_actual": null,
       "api_actual": "2|0-4",
       "used": "2|0-4",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "España-Arabia Saudita",
+      "excel_actual": null,
+      "api_actual": "1|5-0",
+      "used": "1|5-0",
       "source": "api",
       "conflict": false
     }
@@ -296,6 +304,12 @@
       "away_api": "Japan",
       "score": "0-4",
       "utcDate": "2026-06-21T04:00:00Z"
+    },
+    {
+      "home_api": "Spain",
+      "away_api": "Saudi Arabia",
+      "score": "5-0",
+      "utcDate": "2026-06-21T16:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -518,7 +532,7 @@
     {
       "home_api": "Spain",
       "away_api": "Saudi Arabia",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-21T16:00:00Z"
     },
     {
@@ -1232,9 +1246,9 @@
     {
       "match": "España-Arabia Saudita",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|5-0",
+      "used": "1|5-0",
+      "source": "api",
       "conflict": false
     },
     {
