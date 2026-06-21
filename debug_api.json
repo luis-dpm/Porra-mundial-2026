@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-21T17:00:57.574464Z",
+  "generated_at": "2026-06-21T17:12:30.712212Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -96,7 +96,7 @@
     {
       "home_api": "Canada",
       "away_api": "Bosnia-Herzegovina",
-      "score": "1-1",
+      "score": "None-None",
       "utcDate": "2026-06-12T19:00:00Z"
     },
     {
@@ -944,7 +944,7 @@
     {
       "match": "Canadá-Bosnia y Herzegovina",
       "excel_actual": "X|1-1",
-      "api_actual": "X|1-1",
+      "api_actual": null,
       "used": "X|1-1",
       "source": "excel",
       "conflict": false
