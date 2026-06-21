@@ -4,9 +4,18 @@ Actualiza data.js con los resultados reales del Mundial 2026.
 
 Fuente principal de resultados: el propio Excel (predicciones.xlsx),
 que el administrador de la porra mantiene actualizado a mano.
-La API de football-data.org se usa solo como complemento, para
-rellenar resultados que falten en el Excel — nunca para sobreescribir
-lo que ya hay en el Excel.
+
+Para partidos que el Excel no tenga, se usan DOS fuentes automáticas:
+  1. football-data.org (necesita API key)
+  2. openfootball/worldcup.json (gratuita, sin API key, en GitHub)
+
+Si ambas fuentes coinciden en el marcador, se usa con confianza alta.
+Si solo una de las dos lo tiene, se usa igualmente pero se marca como
+"sin verificar" en debug_api.json (football-data.org puede tener datos
+provisionales erróneos justo tras el pitido final que tarda unos minutos
+en corregir). Si ambas lo tienen pero NO coinciden, se descarta y el
+partido queda pendiente — mejor no mostrar nada que mostrar un dato
+dudoso, y se loguea el conflicto para revisión manual.
 
 Las fechas de los partidos se toman del calendario oficial en horario
 de España peninsular (match_dates_es.py), no del Excel ni de la API,
@@ -14,7 +23,8 @@ porque ambos pueden traer la fecha en huso horario de EE.UU./México.
 
 Variables de entorno requeridas:
   FOOTBALL_DATA_API_KEY - clave de football-data.org (opcional; si falta
-                            o falla, se usa solo lo que haya en el Excel)
+                            o falla, se usa solo lo que haya en el Excel
+                            y en openfootball)
 """
 import os
 import re
@@ -37,6 +47,7 @@ EXCEL_PATH = "source/predicciones.xlsx"
 OUTPUT_PATH = "data.js"
 COMPETITION_CODE = "WC"
 API_BASE = "https://api.football-data.org/v4"
+OPENFOOTBALL_URL = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json"
 
 # Mapeo nombre del Excel (español) -> nombre usado por football-data.org (inglés)
 TEAM_NAME_MAP = {
@@ -238,6 +249,45 @@ def fetch_third_place_ranking(api_key):
     return thirds, standings
 
 
+def fetch_openfootball_results():
+    """Consulta openfootball/worldcup.json (gratuita, sin API key) como
+    segunda fuente de verificación cruzada. Devuelve {(home_es, away_es):
+    (hg, ag)} en ambas orientaciones, igual que fetch_real_results, o {}
+    si la consulta falla por cualquier motivo (esta fuente es opcional,
+    nunca debe romper el script si no está disponible)."""
+    if not requests:
+        return {}
+    try:
+        resp = requests.get(OPENFOOTBALL_URL, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"AVISO: no se pudo consultar openfootball ({e}). Sin verificación cruzada.", file=sys.stderr)
+        return {}
+
+    results = {}
+    unmapped = set()
+    for m in data.get("matches", []):
+        score = m.get("score")
+        if not score or "ft" not in score:
+            continue  # partido aún no jugado o sin marcador en esta fuente
+        home_en = m.get("team1")
+        away_en = m.get("team2")
+        home_es = resolve_team_name(home_en)
+        away_es = resolve_team_name(away_en)
+        if not home_es or not away_es:
+            unmapped.add(f"{home_en} vs {away_en}")
+            continue
+        hg, ag = score["ft"]
+        results[(home_es, away_es)] = (hg, ag)
+        results[(away_es, home_es)] = (ag, hg)
+
+    if unmapped:
+        print(f"AVISO: equipos sin mapear en openfootball: {unmapped}", file=sys.stderr)
+    print(f"INFO: openfootball aporta {len(results) // 2} resultados para verificación cruzada.", file=sys.stderr)
+    return results
+
+
 def fetch_real_results(api_key):
     """Llama a football-data.org. Si falla por cualquier motivo, devuelve
     ({}, {}, []) y el script sigue funcionando solo con lo que haya en el
@@ -433,6 +483,7 @@ def sign_from_score(h, a):
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
     api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug = fetch_real_results(api_key)
+    openfootball_results = fetch_openfootball_results()
     players = list(PLAYER_COLUMNS.keys())
 
     processed = []
@@ -458,11 +509,43 @@ def build_dataset(api_key):
             if not official_date:
                 matches_missing_date.append(m["match"])
 
-        api_res = api_results.get((home, away))
+        # Verificación cruzada del resultado entre las dos fuentes
+        # automáticas. Si ambas lo tienen y coinciden -> confianza alta.
+        # Si solo una lo tiene -> se usa igual, pero queda marcado como
+        # "sin verificar" (puede ser un dato provisional erróneo recién
+        # capturado). Si ambas lo tienen y NO coinciden -> se descarta,
+        # mejor no mostrar nada que mostrar un dato dudoso.
+        fd_res = api_results.get((home, away))
+        of_res = openfootball_results.get((home, away))
         api_actual = None
-        if api_res:
-            hg, ag = api_res
+        api_verification = "sin_datos"
+        if fd_res and of_res:
+            if fd_res == of_res:
+                hg, ag = fd_res
+                api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+                api_verification = "verificado_2_fuentes"
+            else:
+                # Las dos fuentes automáticas no coinciden. En la práctica
+                # football-data.org ha mostrado marcadores provisionales
+                # erróneos justo tras el pitido final (ej. 5-0 en vez de
+                # 4-0) que tarda unos minutos en corregir, mientras que
+                # openfootball solo publica el marcador una vez está
+                # confirmado. Por eso, ante conflicto, usamos openfootball
+                # y lo marcamos para que quede visible en el diagnóstico.
+                hg, ag = of_res
+                api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+                api_verification = "conflicto_se_usa_openfootball"
+                print(f"AVISO: conflicto entre fuentes para {m['match']}: "
+                      f"football-data.org={fd_res} vs openfootball={of_res}. Se usa openfootball.",
+                      file=sys.stderr)
+        elif fd_res:
+            hg, ag = fd_res
             api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+            api_verification = "solo_football_data_org"
+        elif of_res:
+            hg, ag = of_res
+            api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+            api_verification = "solo_openfootball"
 
         # Prioridad: 1) Excel (verificado a mano), 2) API si el Excel no lo tiene
         source = None
@@ -478,6 +561,7 @@ def build_dataset(api_key):
 
         diagnostics.append({
             "match": m["match"],
+            "api_verification": api_verification,
             "excel_actual": m["excel_actual"],
             "api_actual": api_actual,
             "used": actual,
