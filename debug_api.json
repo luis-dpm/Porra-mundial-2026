@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T02:00:57.126604Z",
+  "generated_at": "2026-06-22T02:30:57.245170Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -589,7 +589,7 @@
     {
       "home_api": "New Zealand",
       "away_api": "Egypt",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-22T01:00:00Z"
     },
     {
