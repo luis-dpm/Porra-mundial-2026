@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T01:00:57.664943Z",
+  "generated_at": "2026-06-22T01:30:52.466095Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -131,7 +131,7 @@
     {
       "home_api": "Canada",
       "away_api": "Bosnia-Herzegovina",
-      "score": "1-1",
+      "score": "None-None",
       "utcDate": "2026-06-12T19:00:00Z"
     },
     {
@@ -589,7 +589,7 @@
     {
       "home_api": "New Zealand",
       "away_api": "Egypt",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-22T01:00:00Z"
     },
     {
@@ -998,7 +998,7 @@
     },
     {
       "match": "Canadá-Bosnia y Herzegovina",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
