@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-22T00:01:01.700545Z",
+  "generated_at": "2026-06-22T00:30:53.455307Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 10,
-    "sin_jugar": 34,
+    "desde_api": 11,
+    "sin_jugar": 33,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -102,6 +102,15 @@
       "excel_actual": null,
       "api_actual": "1|4-0",
       "used": "1|4-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Uruguay-Cabo Verde",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "X|2-2",
+      "used": "X|2-2",
       "source": "api",
       "conflict": false
     }
@@ -334,6 +343,12 @@
       "away_api": "Iran",
       "score": "0-0",
       "utcDate": "2026-06-21T19:00:00Z"
+    },
+    {
+      "home_api": "Uruguay",
+      "away_api": "Cape Verde Islands",
+      "score": "2-2",
+      "utcDate": "2026-06-21T22:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -568,7 +583,7 @@
     {
       "home_api": "Uruguay",
       "away_api": "Cape Verde Islands",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-21T22:00:00Z"
     },
     {
@@ -1316,11 +1331,11 @@
     },
     {
       "match": "Uruguay-Cabo Verde",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "X|2-2",
+      "used": "X|2-2",
+      "source": "api",
       "conflict": false
     },
     {
