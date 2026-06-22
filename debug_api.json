@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-22T03:01:00.839852Z",
+  "generated_at": "2026-06-22T03:30:50.043067Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 11,
-    "sin_jugar": 33,
+    "desde_api": 12,
+    "sin_jugar": 32,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -93,6 +93,15 @@
       "excel_actual": null,
       "api_actual": "X|0-0",
       "used": "X|0-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Nueva Zelanda-Egipto",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "2|1-3",
+      "used": "2|1-3",
       "source": "api",
       "conflict": false
     },
@@ -349,6 +358,12 @@
       "away_api": "Cape Verde Islands",
       "score": "2-2",
       "utcDate": "2026-06-21T22:00:00Z"
+    },
+    {
+      "home_api": "New Zealand",
+      "away_api": "Egypt",
+      "score": "1-3",
+      "utcDate": "2026-06-22T01:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -589,7 +604,7 @@
     {
       "home_api": "New Zealand",
       "away_api": "Egypt",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-22T01:00:00Z"
     },
     {
@@ -1313,11 +1328,11 @@
     },
     {
       "match": "Nueva Zelanda-Egipto",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "2|1-3",
+      "used": "2|1-3",
+      "source": "api",
       "conflict": false
     },
     {
