@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T03:00:57.776014Z",
+  "generated_at": "2026-06-23T03:30:54.629928Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -673,7 +673,7 @@
     {
       "home_api": "Jordan",
       "away_api": "Algeria",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-23T03:00:00Z"
     },
     {
@@ -857,7 +857,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Germany",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -881,7 +881,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Mexico",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -899,7 +899,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "United States",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
