@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-23T02:01:00.559582Z",
+  "generated_at": "2026-06-23T02:30:51.579466Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 14,
-    "sin_jugar": 30,
+    "desde_api": 15,
+    "sin_jugar": 29,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -129,6 +129,15 @@
       "excel_actual": null,
       "api_actual": "1|3-0",
       "used": "1|3-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Noruega-Senegal",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "1|3-2",
+      "used": "1|3-2",
       "source": "api",
       "conflict": false
     },
@@ -394,6 +403,12 @@
       "away_api": "Iraq",
       "score": "3-0",
       "utcDate": "2026-06-22T21:00:00Z"
+    },
+    {
+      "home_api": "Norway",
+      "away_api": "Senegal",
+      "score": "3-2",
+      "utcDate": "2026-06-23T00:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -652,7 +667,7 @@
     {
       "home_api": "Norway",
       "away_api": "Senegal",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-23T00:00:00Z"
     },
     {
@@ -842,7 +857,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Germany",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -866,7 +881,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Mexico",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -884,7 +899,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "United States",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
@@ -1394,11 +1409,11 @@
     },
     {
       "match": "Noruega-Senegal",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|3-2",
+      "used": "1|3-2",
+      "source": "api",
       "conflict": false
     },
     {
