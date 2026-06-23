@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T00:01:02.313170Z",
+  "generated_at": "2026-06-23T00:30:51.618649Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -631,13 +631,13 @@
     {
       "home_api": "France",
       "away_api": "Iraq",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-22T21:00:00Z"
     },
     {
       "home_api": "Norway",
       "away_api": "Senegal",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-23T00:00:00Z"
     },
     {
