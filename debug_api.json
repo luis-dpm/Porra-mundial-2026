@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T01:01:04.729903Z",
+  "generated_at": "2026-06-23T01:30:49.620425Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -125,7 +125,7 @@
     },
     {
       "match": "Francia-Irak",
-      "api_verification": "solo_football_data_org",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|3-0",
       "used": "1|3-0",
@@ -158,7 +158,7 @@
     {
       "home_api": "Canada",
       "away_api": "Bosnia-Herzegovina",
-      "score": "1-1",
+      "score": "None-None",
       "utcDate": "2026-06-12T19:00:00Z"
     },
     {
@@ -652,7 +652,7 @@
     {
       "home_api": "Norway",
       "away_api": "Senegal",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-23T00:00:00Z"
     },
     {
@@ -1043,7 +1043,7 @@
     },
     {
       "match": "Canadá-Bosnia y Herzegovina",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1385,7 +1385,7 @@
     },
     {
       "match": "Francia-Irak",
-      "api_verification": "solo_football_data_org",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|3-0",
       "used": "1|3-0",
