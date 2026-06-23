@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-23T22:01:07.330328Z",
+  "generated_at": "2026-06-23T22:31:00.911424Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 17,
-    "sin_jugar": 27,
+    "desde_api": 18,
+    "sin_jugar": 26,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -165,6 +165,15 @@
       "excel_actual": null,
       "api_actual": "1|5-0",
       "used": "1|5-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Inglaterra-Ghana",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
       "source": "api",
       "conflict": false
     }
@@ -439,6 +448,12 @@
       "away_api": "Uzbekistan",
       "score": "5-0",
       "utcDate": "2026-06-23T17:00:00Z"
+    },
+    {
+      "home_api": "England",
+      "away_api": "Ghana",
+      "score": "0-0",
+      "utcDate": "2026-06-23T20:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -715,7 +730,7 @@
     {
       "home_api": "England",
       "away_api": "Ghana",
-      "status": "LIVE",
+      "status": "FINISHED",
       "utcDate": "2026-06-23T20:00:00Z"
     },
     {
@@ -1484,11 +1499,11 @@
     },
     {
       "match": "Inglaterra-Ghana",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
+      "source": "api",
       "conflict": false
     },
     {
