@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T21:01:11.004179Z",
+  "generated_at": "2026-06-23T21:31:01.995168Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -715,7 +715,7 @@
     {
       "home_api": "England",
       "away_api": "Ghana",
-      "status": "PAUSED",
+      "status": "LIVE",
       "utcDate": "2026-06-23T20:00:00Z"
     },
     {
