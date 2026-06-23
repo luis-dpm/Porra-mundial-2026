@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T17:30:58.367972Z",
+  "generated_at": "2026-06-23T18:01:16.519368Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -694,7 +694,7 @@
     {
       "home_api": "Portugal",
       "away_api": "Uzbekistan",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-23T17:00:00Z"
     },
     {
