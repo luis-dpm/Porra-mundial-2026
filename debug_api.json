@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T20:01:04.000835Z",
+  "generated_at": "2026-06-24T20:30:56.234396Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -778,13 +778,13 @@
     {
       "home_api": "Switzerland",
       "away_api": "Canada",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-24T19:00:00Z"
     },
     {
       "home_api": "Bosnia-Herzegovina",
       "away_api": "Qatar",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-24T19:00:00Z"
     },
     {
