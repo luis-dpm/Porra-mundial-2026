@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-24T21:01:09.869686Z",
+  "generated_at": "2026-06-24T21:30:53.491277Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 21,
-    "sin_jugar": 23,
+    "desde_api": 22,
+    "sin_jugar": 22,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -201,6 +201,15 @@
       "excel_actual": null,
       "api_actual": "1|2-1",
       "used": "1|2-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Bosnia y Herzegovina-Catar",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "1|3-1",
+      "used": "1|3-1",
       "source": "api",
       "conflict": false
     }
@@ -498,6 +507,12 @@
       "home_api": "Switzerland",
       "away_api": "Canada",
       "score": "2-1",
+      "utcDate": "2026-06-24T19:00:00Z"
+    },
+    {
+      "home_api": "Bosnia-Herzegovina",
+      "away_api": "Qatar",
+      "score": "3-1",
       "utcDate": "2026-06-24T19:00:00Z"
     }
   ],
@@ -799,7 +814,7 @@
     {
       "home_api": "Bosnia-Herzegovina",
       "away_api": "Qatar",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-24T19:00:00Z"
     },
     {
@@ -947,7 +962,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Germany",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -971,7 +986,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Mexico",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -989,7 +1004,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "United States",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
@@ -1019,7 +1034,7 @@
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
-      "home_api": null,
+      "home_api": "Argentina",
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T22:00:00Z"
@@ -1589,11 +1604,11 @@
     },
     {
       "match": "Bosnia y Herzegovina-Catar",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|3-1",
+      "used": "1|3-1",
+      "source": "api",
       "conflict": false
     },
     {
