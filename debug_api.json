@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-24T20:30:56.234396Z",
+  "generated_at": "2026-06-24T21:01:09.869686Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 20,
-    "sin_jugar": 24,
+    "desde_api": 21,
+    "sin_jugar": 23,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -192,6 +192,15 @@
       "excel_actual": null,
       "api_actual": "2|0-1",
       "used": "2|0-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Suiza-Canadá",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "1|2-1",
+      "used": "1|2-1",
       "source": "api",
       "conflict": false
     }
@@ -484,6 +493,12 @@
       "away_api": "Congo DR",
       "score": "1-0",
       "utcDate": "2026-06-24T02:00:00Z"
+    },
+    {
+      "home_api": "Switzerland",
+      "away_api": "Canada",
+      "score": "2-1",
+      "utcDate": "2026-06-24T19:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -778,7 +793,7 @@
     {
       "home_api": "Switzerland",
       "away_api": "Canada",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-24T19:00:00Z"
     },
     {
@@ -1565,11 +1580,11 @@
     },
     {
       "match": "Suiza-Canadá",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|2-1",
+      "used": "1|2-1",
+      "source": "api",
       "conflict": false
     },
     {
