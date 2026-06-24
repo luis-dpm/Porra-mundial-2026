@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T00:01:01.042897Z",
+  "generated_at": "2026-06-24T00:30:53.857918Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -736,7 +736,7 @@
     {
       "home_api": "Panama",
       "away_api": "Croatia",
-      "status": "PAUSED",
+      "status": "LIVE",
       "utcDate": "2026-06-23T23:00:00Z"
     },
     {
@@ -902,7 +902,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": "Germany",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -926,7 +926,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": "Mexico",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -944,7 +944,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": "United States",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
