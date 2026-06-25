@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-24T23:52:45.860290Z",
+  "generated_at": "2026-06-25T00:01:03.595193Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -962,7 +962,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": "Germany",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -986,7 +986,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": "Mexico",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -1004,7 +1004,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": "United States",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
@@ -1034,7 +1034,7 @@
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
-      "home_api": "Argentina",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T22:00:00Z"
