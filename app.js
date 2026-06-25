@@ -60,17 +60,20 @@ function renderScoreboard() {
   const groupPosPts = D.group_pos_points || {};
   const finishedGroups = D.finished_groups || [];
 
+  // s.points ya incluye los bonus de grupo (vienen del backend así).
+  // match_only = points - group_pos_points para mostrar solo partidos.
   const enriched = D.standings.map(s => ({
     ...s,
     group_pos_points: groupPosPts[s.player] || 0,
-    total_points: s.points + (groupPosPts[s.player] || 0),
+    match_only: s.points - (groupPosPts[s.player] || 0),
+    total_points: s.points,  // ya es el total real
   }));
 
-  const byMatch  = [...enriched].sort((a, b) => b.points - a.points);
+  const byMatch  = [...enriched].sort((a, b) => b.match_only - a.match_only);
   const byGroup  = [...enriched].sort((a, b) => b.group_pos_points - a.group_pos_points);
   const byTotal  = [...enriched].sort((a, b) => b.total_points - a.total_points);
 
-  const maxMatch = Math.max(...enriched.map(s => s.points), 1);
+  const maxMatch = Math.max(...enriched.map(s => s.match_only), 1);
   const maxGroup = Math.max(...enriched.map(s => s.group_pos_points), 1);
   const maxTotal = Math.max(...enriched.map(s => s.total_points), 1);
 
@@ -96,13 +99,13 @@ function renderScoreboard() {
         <div class="sb-col-header">🎯 Partidos</div>
         <div class="sb-col-sub">Aciertos de resultados</div>
         ${byMatch.map(s => {
-          const pct = (s.points / maxMatch * 100);
-          const rank = getRank(byMatch, 'points', s.points);
+          const pct = (s.match_only / maxMatch * 100);
+          const rank = getRank(byMatch, 'match_only', s.match_only);
           return `<div class="sb-col-row rank-${rank}">
             <span class="sb-col-rank">${rank}</span>
             <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
             <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.points}</span>
+            <span class="sb-col-pts">${s.match_only}</span>
           </div>`;
         }).join('')}
       </div>
@@ -132,7 +135,7 @@ function renderScoreboard() {
             <span class="sb-col-rank">${rank}</span>
             <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
             <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">(${s.points}+${s.group_pos_points})</span></span>
+            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">(${s.match_only}+${s.group_pos_points})</span></span>
           </div>`;
         }).join('')}
       </div>
