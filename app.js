@@ -56,26 +56,94 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ============ PAGE 1: CLASIFICACIÓN ============
 function renderScoreboard() {
   const el = document.getElementById('scoreboard');
-  const maxPts = D.standings[0].points;
-  el.innerHTML = D.standings.map(s => {
-    const pct = maxPts > 0 ? (s.points / maxPts * 100) : 0;
-    return `
-      <div class="score-row rank-${s.rank}">
-        <div class="score-rank">${s.rank}</div>
-        <div class="score-name-block">
-          <span class="score-name">${s.player}</span>
-          <div class="score-bar-bg">
-            <div class="score-bar-fill" style="width:${pct}%; background:${PLAYER_COLORS[s.player]}"></div>
-          </div>
-        </div>
-        <div class="score-pts">${s.points}<span>PUNTOS</span></div>
+
+  const groupPosPts = D.group_pos_points || {};
+  const finishedGroups = D.finished_groups || [];
+
+  const enriched = D.standings.map(s => ({
+    ...s,
+    group_pos_points: groupPosPts[s.player] || 0,
+    total_points: s.points + (groupPosPts[s.player] || 0),
+  }));
+
+  const byMatch  = [...enriched].sort((a, b) => b.points - a.points);
+  const byGroup  = [...enriched].sort((a, b) => b.group_pos_points - a.group_pos_points);
+  const byTotal  = [...enriched].sort((a, b) => b.total_points - a.total_points);
+
+  const maxMatch = Math.max(...enriched.map(s => s.points), 1);
+  const maxGroup = Math.max(...enriched.map(s => s.group_pos_points), 1);
+  const maxTotal = Math.max(...enriched.map(s => s.total_points), 1);
+
+  function getRank(arr, field, val) {
+    let r = 1;
+    arr.forEach(o => { if (o[field] > val) r++; });
+    return r;
+  }
+
+  const finishedNote = finishedGroups.length > 0
+    ? `Se incluyen puntos por posiciones de grupos ya finalizados: <strong>${finishedGroups.join(', ')}</strong>`
+    : 'Aún no hay grupos completamente finalizados';
+
+  el.innerHTML = `
+    <div class="sb-notes">
+      <p class="sb-note ok">📊 ${finishedNote}</p>
+      <p class="sb-note warn">⚠️ Los puntos por equipos clasificados <strong>no se suman todavía</strong> — se añadirán cuando se conozcan todos los mejores terceros (al final de la fase de grupos)</p>
+    </div>
+
+    <div class="sb-columns">
+
+      <div class="sb-col">
+        <div class="sb-col-header">🎯 Partidos</div>
+        <div class="sb-col-sub">Aciertos de resultados</div>
+        ${byMatch.map(s => {
+          const pct = (s.points / maxMatch * 100);
+          const rank = getRank(byMatch, 'points', s.points);
+          return `<div class="sb-col-row rank-${rank}">
+            <span class="sb-col-rank">${rank}</span>
+            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
+            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
+            <span class="sb-col-pts">${s.points}</span>
+          </div>`;
+        }).join('')}
       </div>
-    `;
-  }).join('');
+
+      <div class="sb-col">
+        <div class="sb-col-header">🏆 Grupos</div>
+        <div class="sb-col-sub">Posiciones 1º–4º acertadas</div>
+        ${byGroup.map(s => {
+          const pct = (s.group_pos_points / maxGroup * 100);
+          const rank = getRank(byGroup, 'group_pos_points', s.group_pos_points);
+          return `<div class="sb-col-row rank-${rank}">
+            <span class="sb-col-rank">${rank}</span>
+            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
+            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
+            <span class="sb-col-pts">${s.group_pos_points}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="sb-col sb-col-total">
+        <div class="sb-col-header">🥇 Total</div>
+        <div class="sb-col-sub">Partidos + grupos</div>
+        ${byTotal.map(s => {
+          const pct = (s.total_points / maxTotal * 100);
+          const rank = getRank(byTotal, 'total_points', s.total_points);
+          return `<div class="sb-col-row rank-${rank}">
+            <span class="sb-col-rank">${rank}</span>
+            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
+            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
+            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">(${s.points}+${s.group_pos_points})</span></span>
+          </div>`;
+        }).join('')}
+      </div>
+
+    </div>
+  `;
 
   document.getElementById('matchesPlayedCount').textContent =
     D.matches.filter(m => m.actual).length;
 }
+
 
 function renderDaySelector() {
   const sel = document.getElementById('daySelect');
