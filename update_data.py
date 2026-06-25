@@ -457,20 +457,35 @@ def build_dataset(api_key):
 
     # ── Puntos por acertar posiciones en grupos FINALIZADOS ──────────────────
     # Un grupo se considera finalizado cuando todos sus equipos han jugado 3
-    # partidos (pj == 3 en la clasificación real). Solo se puntúan esos grupos.
+    # partidos. Se detecta la fecha del último partido del grupo para sumar
+    # los puntos de posición ese mismo día en daily/cumulative.
     GROUP_POS_POINTS = {1: 2, 2: 2, 3: 1, 4: 1}
 
+    # Fecha del último partido jugado por grupo
+    group_finish_date = {}
+    for m in processed:
+        if m.get("actual") and m.get("date") and m.get("group"):
+            g = m["group"]
+            d = m["date"]
+            if g not in group_finish_date or d > group_finish_date[g]:
+                group_finish_date[g] = d
+
+    # Grupos donde todos los equipos han jugado 3 partidos
     finished_groups = set()
     for g, rows in group_standings_real.items():
         if rows and all(r.get("pj", 0) >= 3 for r in rows):
             finished_groups.add(g)
 
+    # Puntos de posición por jugador y grupo, con la fecha en que se asignan
     group_pos_points = {p: 0 for p in players}
     group_pos_detail = {p: {} for p in players}   # {grupo: pts_obtenidos}
+    # {fecha: {jugador: pts_extra}} — bonus a sumar en daily ese día
+    group_bonus_by_date = defaultdict(lambda: {p: 0 for p in players})
 
     for g in finished_groups:
         rows = group_standings_real[g]
         real_by_pos = {r["position"]: r["team"] for r in rows}
+        finish_date = group_finish_date.get(g)
         for p in players:
             pts_g = 0
             for pos in [1, 2, 3, 4]:
@@ -481,6 +496,8 @@ def build_dataset(api_key):
                     pts_g += GROUP_POS_POINTS[pos]
             group_pos_points[p] += pts_g
             group_pos_detail[p][g] = pts_g
+            if finish_date:
+                group_bonus_by_date[finish_date][p] += pts_g
 
     print(f"INFO: grupos finalizados para puntuar posiciones: {sorted(finished_groups)}", file=sys.stderr)
 
@@ -496,6 +513,7 @@ def build_dataset(api_key):
     for d in dates:
         for p in players:
             day_pts = sum(m["breakdown"][p]["pts"] for m in by_date[d])
+            day_pts += group_bonus_by_date.get(d, {}).get(p, 0)
             daily[p][d] = day_pts
             running[p] += day_pts
             cum[p][d] = running[p]
