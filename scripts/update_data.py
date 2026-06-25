@@ -661,6 +661,48 @@ def build_dataset(api_key):
         qualified_points[p] = len(hits)
         qualified_hits[p] = sorted(hits)
 
+    # ── Puntos por acertar posiciones en grupos FINALIZADOS ──────────────────
+    GROUP_POS_POINTS = {1: 2, 2: 2, 3: 1, 4: 1}
+
+    # Fecha del último partido jugado por grupo
+    group_finish_date = {}
+    for m in processed:
+        if m.get("actual") and m.get("date") and m.get("group"):
+            g = m["group"]
+            d = m["date"]
+            if g not in group_finish_date or d > group_finish_date[g]:
+                group_finish_date[g] = d
+
+    # Grupos donde todos los equipos han jugado 3 partidos
+    finished_groups = set()
+    for g, rows in group_standings_real.items():
+        if rows and all(r.get("pj", 0) >= 3 for r in rows):
+            finished_groups.add(g)
+
+    group_pos_points = {p: 0 for p in players}
+    group_pos_detail = {p: {} for p in players}
+    group_bonus_by_date = {}  # {fecha: {jugador: pts}}
+
+    for g in finished_groups:
+        rows = group_standings_real[g]
+        real_by_pos = {r["position"]: r["team"] for r in rows}
+        finish_date = group_finish_date.get(g)
+        if finish_date and finish_date not in group_bonus_by_date:
+            group_bonus_by_date[finish_date] = {p: 0 for p in players}
+        for p in players:
+            pts_g = 0
+            for pos in [1, 2, 3, 4]:
+                pred = group_positions.get(g, {}).get(str(pos), {}).get(p)                     or group_positions.get(g, {}).get(pos, {}).get(p)
+                real = real_by_pos.get(pos)
+                if pred and real and pred == real:
+                    pts_g += GROUP_POS_POINTS[pos]
+            group_pos_points[p] += pts_g
+            group_pos_detail[p][g] = pts_g
+            if finish_date:
+                group_bonus_by_date[finish_date][p] += pts_g
+
+    print(f"INFO: grupos finalizados para puntuar posiciones: {sorted(finished_groups)}", file=sys.stderr)
+
     by_date = defaultdict(list)
     for m in processed:
         if m.get("date") and m.get("actual"):
@@ -673,12 +715,15 @@ def build_dataset(api_key):
     for d in dates:
         for p in players:
             day_pts = sum(m["breakdown"][p]["pts"] for m in by_date[d])
+            day_pts += group_bonus_by_date.get(d, {}).get(p, 0)
             daily[p][d] = day_pts
             running[p] += day_pts
             cum[p][d] = running[p]
 
     standings = sorted(
-        ({"player": p, "points": running[p]} for p in players),
+        ({"player": p, "points": running[p],
+          "group_pos_points": group_pos_points[p],
+          "total_points": running[p]} for p in players),
         key=lambda x: -x["points"],
     )
     for i, s in enumerate(standings):
@@ -718,6 +763,9 @@ def build_dataset(api_key):
         "real_qualified_teams": sorted(real_qualified_teams),
         "qualified_points": qualified_points,
         "qualified_hits": qualified_hits,
+        "finished_groups": sorted(finished_groups),
+        "group_pos_points": group_pos_points,
+        "group_pos_detail": group_pos_detail,
         "ko_stage": ko_data,
         "players": players,
         "dates": dates,
