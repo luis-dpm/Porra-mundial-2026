@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-25T03:00:56.083222Z",
+  "generated_at": "2026-06-25T03:30:49.376641Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 24,
-    "sin_jugar": 20,
+    "desde_api": 26,
+    "sin_jugar": 18,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -192,6 +192,24 @@
       "excel_actual": null,
       "api_actual": "2|0-1",
       "used": "2|0-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "República Checa-México",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "2|0-3",
+      "used": "2|0-3",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Sudáfrica-Corea del Sur",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "1|1-0",
+      "used": "1|1-0",
       "source": "api",
       "conflict": false
     },
@@ -544,6 +562,18 @@
       "away_api": "Brazil",
       "score": "0-3",
       "utcDate": "2026-06-24T22:00:00Z"
+    },
+    {
+      "home_api": "Czechia",
+      "away_api": "Mexico",
+      "score": "0-3",
+      "utcDate": "2026-06-25T01:00:00Z"
+    },
+    {
+      "home_api": "South Africa",
+      "away_api": "South Korea",
+      "score": "1-0",
+      "utcDate": "2026-06-25T01:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -862,13 +892,13 @@
     {
       "home_api": "Czechia",
       "away_api": "Mexico",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T01:00:00Z"
     },
     {
       "home_api": "South Africa",
       "away_api": "South Korea",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T01:00:00Z"
     },
     {
@@ -1607,20 +1637,20 @@
     },
     {
       "match": "República Checa-México",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "2|0-3",
+      "used": "2|0-3",
+      "source": "api",
       "conflict": false
     },
     {
       "match": "Sudáfrica-Corea del Sur",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "1|1-0",
+      "used": "1|1-0",
+      "source": "api",
       "conflict": false
     },
     {
