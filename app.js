@@ -159,10 +159,9 @@ function renderDayStandings() {
   const date = D.dates[idx];
   const prevDate = idx > 0 ? D.dates[idx-1] : null;
 
-  const groupBonus = D.group_pos_points || {};
   const rows = PLAYERS.map(p => ({
     player: p,
-    pts: (D.cumulative_points[p][date] || 0) + (groupBonus[p] || 0),
+    pts: D.cumulative_points[p][date],
     delta: D.daily_points[p][date],
   })).sort((a,b) => b.pts - a.pts);
 
@@ -185,44 +184,6 @@ function renderDayStandings() {
 }
 
 // ============ PAGE 2: GRÁFICOS ============
-
-// Versiones enriquecidas de cumulative/daily que incluyen group_pos_points.
-// Los puntos de posiciones de grupo se suman como bloque fijo sobre todos
-// los días (no tienen fecha concreta, son un bonus por grupo finalizado).
-function enrichedCumulative() {
-  const groupBonus = D.group_pos_points || {};
-  const result = {};
-  PLAYERS.forEach(p => {
-    result[p] = {};
-    D.dates.forEach(d => {
-      result[p][d] = (D.cumulative_points[p][d] || 0) + (groupBonus[p] || 0);
-    });
-  });
-  return result;
-}
-
-// Para el gráfico de barras diario no cambiamos nada (los bonus de grupo
-// no son de un día concreto), pero recalculamos posiciones basadas en total.
-function enrichedPositionsByDay() {
-  const groupBonus = D.group_pos_points || {};
-  const positions = {};
-  PLAYERS.forEach(p => { positions[p] = []; });
-  D.dates.forEach(d => {
-    const sorted = [...PLAYERS].sort((a, b) => {
-      const ta = (D.cumulative_points[a][d] || 0) + (groupBonus[a] || 0);
-      const tb = (D.cumulative_points[b][d] || 0) + (groupBonus[b] || 0);
-      return tb - ta;
-    });
-    let rank = 1, prev = null;
-    sorted.forEach((p, i) => {
-      const pts = (D.cumulative_points[p][d] || 0) + (groupBonus[p] || 0);
-      if (pts !== prev) rank = i + 1;
-      positions[p].push(rank);
-      prev = pts;
-    });
-  });
-  return positions;
-}
 
 function buildDatasets(dataObj, isBar) {
   return PLAYERS.map((name, i) => {
@@ -286,9 +247,8 @@ function renderPositionChart() {
 
   // Una polilínea + puntos por jugador
   let seriesSvg = '';
-  const enrichedPos = enrichedPositionsByDay();
   PLAYERS.forEach((p, pi) => {
-    const positions = enrichedPos[p] || [];
+    const positions = D.positions_by_day[p] || [];
     const points = dates.map((d, i) => `${xFor(i)},${yFor(positions[i] || n)}`).join(' ');
     const color = PLAYER_COLORS[p];
     const dash = (PLAYER_DASH[p] || []).join(',');
@@ -344,7 +304,7 @@ function renderCharts() {
 
   const c3 = new Chart(document.getElementById('cumChart'), {
     type: 'line',
-    data: { labels, datasets: buildDatasets(enrichedCumulative(), false) },
+    data: { labels, datasets: buildDatasets(D.cumulative_points, false) },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
