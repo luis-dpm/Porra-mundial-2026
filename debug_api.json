@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T21:00:58.716276Z",
+  "generated_at": "2026-06-25T21:30:50.697882Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -904,13 +904,13 @@
     {
       "home_api": "Ecuador",
       "away_api": "Germany",
-      "status": "PAUSED",
+      "status": "TIMED",
       "utcDate": "2026-06-25T20:00:00Z"
     },
     {
       "home_api": "Curaçao",
       "away_api": "Ivory Coast",
-      "status": "PAUSED",
+      "status": "TIMED",
       "utcDate": "2026-06-25T20:00:00Z"
     },
     {
