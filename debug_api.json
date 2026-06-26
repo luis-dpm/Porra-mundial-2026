@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T02:30:52.342316Z",
+  "generated_at": "2026-06-26T03:00:59.811776Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -988,13 +988,13 @@
     {
       "home_api": "Turkey",
       "away_api": "United States",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
       "home_api": "Paraguay",
       "away_api": "Australia",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
