@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T02:01:00.977752Z",
+  "generated_at": "2026-06-26T02:30:52.342316Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -197,7 +197,7 @@
     },
     {
       "match": "República Checa-México",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|0-3",
       "used": "2|0-3",
@@ -206,7 +206,7 @@
     },
     {
       "match": "Sudáfrica-Corea del Sur",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -251,7 +251,7 @@
     },
     {
       "match": "Curazao-Costa de Marfil",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|0-2",
       "used": "2|0-2",
@@ -260,7 +260,7 @@
     },
     {
       "match": "Ecuador-Alemania",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -269,7 +269,7 @@
     },
     {
       "match": "Japón-Suecia",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -278,7 +278,7 @@
     },
     {
       "match": "Túnez-Países Bajos",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|1-3",
       "used": "2|1-3",
@@ -598,6 +598,42 @@
       "away_api": "Brazil",
       "score": "0-3",
       "utcDate": "2026-06-24T22:00:00Z"
+    },
+    {
+      "home_api": "Czechia",
+      "away_api": "Mexico",
+      "score": "0-3",
+      "utcDate": "2026-06-25T01:00:00Z"
+    },
+    {
+      "home_api": "South Africa",
+      "away_api": "South Korea",
+      "score": "1-0",
+      "utcDate": "2026-06-25T01:00:00Z"
+    },
+    {
+      "home_api": "Ecuador",
+      "away_api": "Germany",
+      "score": "2-1",
+      "utcDate": "2026-06-25T20:00:00Z"
+    },
+    {
+      "home_api": "Curaçao",
+      "away_api": "Ivory Coast",
+      "score": "0-2",
+      "utcDate": "2026-06-25T20:00:00Z"
+    },
+    {
+      "home_api": "Tunisia",
+      "away_api": "Netherlands",
+      "score": "1-3",
+      "utcDate": "2026-06-25T23:00:00Z"
+    },
+    {
+      "home_api": "Japan",
+      "away_api": "Sweden",
+      "score": "1-1",
+      "utcDate": "2026-06-25T23:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -916,49 +952,49 @@
     {
       "home_api": "Czechia",
       "away_api": "Mexico",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T01:00:00Z"
     },
     {
       "home_api": "South Africa",
       "away_api": "South Korea",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T01:00:00Z"
     },
     {
       "home_api": "Ecuador",
       "away_api": "Germany",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T20:00:00Z"
     },
     {
       "home_api": "Curaçao",
       "away_api": "Ivory Coast",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T20:00:00Z"
     },
     {
       "home_api": "Tunisia",
       "away_api": "Netherlands",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T23:00:00Z"
     },
     {
       "home_api": "Japan",
       "away_api": "Sweden",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T23:00:00Z"
     },
     {
       "home_api": "Turkey",
       "away_api": "United States",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
       "home_api": "Paraguay",
       "away_api": "Australia",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
@@ -1661,7 +1697,7 @@
     },
     {
       "match": "República Checa-México",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|0-3",
       "used": "2|0-3",
@@ -1670,7 +1706,7 @@
     },
     {
       "match": "Sudáfrica-Corea del Sur",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1733,7 +1769,7 @@
     },
     {
       "match": "Curazao-Costa de Marfil",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|0-2",
       "used": "2|0-2",
@@ -1742,7 +1778,7 @@
     },
     {
       "match": "Ecuador-Alemania",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -1751,7 +1787,7 @@
     },
     {
       "match": "Japón-Suecia",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1760,7 +1796,7 @@
     },
     {
       "match": "Túnez-Países Bajos",
-      "api_verification": "solo_openfootball",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
       "api_actual": "2|1-3",
       "used": "2|1-3",
