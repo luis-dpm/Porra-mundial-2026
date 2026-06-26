@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-26T03:00:59.811776Z",
+  "generated_at": "2026-06-26T03:30:55.932154Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -988,13 +988,13 @@
     {
       "home_api": "Turkey",
       "away_api": "United States",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
       "home_api": "Paraguay",
       "away_api": "Australia",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-26T02:00:00Z"
     },
     {
@@ -1082,7 +1082,7 @@
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": "Germany",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
@@ -1106,7 +1106,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": "Mexico",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -1124,7 +1124,7 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": "United States",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
@@ -1154,7 +1154,7 @@
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
-      "home_api": "Argentina",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T22:00:00Z"
