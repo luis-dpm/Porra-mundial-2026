@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-26T00:30:47.799573Z",
+  "generated_at": "2026-06-26T01:00:56.340737Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 28,
-    "sin_jugar": 16,
+    "desde_api": 29,
+    "sin_jugar": 15,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -264,6 +264,15 @@
       "excel_actual": null,
       "api_actual": "1|2-1",
       "used": "1|2-1",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Túnez-Países Bajos",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "2|1-3",
+      "used": "2|1-3",
       "source": "api",
       "conflict": false
     }
@@ -604,6 +613,12 @@
       "away_api": "Ivory Coast",
       "score": "0-2",
       "utcDate": "2026-06-25T20:00:00Z"
+    },
+    {
+      "home_api": "Tunisia",
+      "away_api": "Netherlands",
+      "score": "1-3",
+      "utcDate": "2026-06-25T23:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -946,7 +961,7 @@
     {
       "home_api": "Tunisia",
       "away_api": "Netherlands",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-25T23:00:00Z"
     },
     {
@@ -1766,11 +1781,11 @@
     },
     {
       "match": "Túnez-Países Bajos",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "2|1-3",
+      "used": "2|1-3",
+      "source": "api",
       "conflict": false
     },
     {
