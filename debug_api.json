@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T04:00:55.089446Z",
+  "generated_at": "2026-06-27T04:30:49.618899Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -323,7 +323,7 @@
     },
     {
       "match": "Noruega-Francia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": null,
       "api_actual": "2|1-4",
       "used": "2|1-4",
@@ -332,7 +332,7 @@
     },
     {
       "match": "Senegal-Irak",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": null,
       "api_actual": "1|5-0",
       "used": "1|5-0",
@@ -700,18 +700,6 @@
       "away_api": "Australia",
       "score": "0-0",
       "utcDate": "2026-06-26T02:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "France",
-      "score": "1-4",
-      "utcDate": "2026-06-26T19:00:00Z"
-    },
-    {
-      "home_api": "Senegal",
-      "away_api": "Iraq",
-      "score": "5-0",
-      "utcDate": "2026-06-26T19:00:00Z"
     },
     {
       "home_api": "Uruguay",
@@ -1090,13 +1078,13 @@
     {
       "home_api": "Norway",
       "away_api": "France",
-      "status": "FINISHED",
+      "status": "TIMED",
       "utcDate": "2026-06-26T19:00:00Z"
     },
     {
       "home_api": "Senegal",
       "away_api": "Iraq",
-      "status": "FINISHED",
+      "status": "TIMED",
       "utcDate": "2026-06-26T19:00:00Z"
     },
     {
@@ -1114,13 +1102,13 @@
     {
       "home_api": "New Zealand",
       "away_api": "Belgium",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-27T03:00:00Z"
     },
     {
       "home_api": "Egypt",
       "away_api": "Iran",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-27T03:00:00Z"
     },
     {
@@ -1931,7 +1919,7 @@
     },
     {
       "match": "Noruega-Francia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": null,
       "api_actual": "2|1-4",
       "used": "2|1-4",
@@ -1940,7 +1928,7 @@
     },
     {
       "match": "Senegal-Irak",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": null,
       "api_actual": "1|5-0",
       "used": "1|5-0",
