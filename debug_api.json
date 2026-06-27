@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T21:00:57.686063Z",
+  "generated_at": "2026-06-27T21:30:50.323707Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -1156,13 +1156,13 @@
     {
       "home_api": "Panama",
       "away_api": "England",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-27T21:00:00Z"
     },
     {
       "home_api": "Croatia",
       "away_api": "Ghana",
-      "status": "TIMED",
+      "status": "LIVE",
       "utcDate": "2026-06-27T21:00:00Z"
     },
     {
@@ -1190,31 +1190,31 @@
       "utcDate": "2026-06-28T02:00:00Z"
     },
     {
-      "home_api": "South Africa",
-      "away_api": "Canada",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-28T19:00:00Z"
     },
     {
-      "home_api": "Brazil",
-      "away_api": "Japan",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": "Germany",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
     },
     {
-      "home_api": "Netherlands",
-      "away_api": "Morocco",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-30T01:00:00Z"
     },
     {
-      "home_api": "Ivory Coast",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-30T17:00:00Z"
@@ -1226,7 +1226,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": "Mexico",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -1244,8 +1244,8 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": "United States",
-      "away_api": "Bosnia-Herzegovina",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
     },
@@ -1262,19 +1262,19 @@
       "utcDate": "2026-07-02T23:00:00Z"
     },
     {
-      "home_api": "Switzerland",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T03:00:00Z"
     },
     {
-      "home_api": "Australia",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
-      "home_api": "Argentina",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T22:00:00Z"
