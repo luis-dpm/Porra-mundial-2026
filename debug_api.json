@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T03:30:50.900683Z",
+  "generated_at": "2026-06-27T04:00:55.089446Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -1114,13 +1114,13 @@
     {
       "home_api": "New Zealand",
       "away_api": "Belgium",
-      "status": "LIVE",
+      "status": "PAUSED",
       "utcDate": "2026-06-27T03:00:00Z"
     },
     {
       "home_api": "Egypt",
       "away_api": "Iran",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-27T03:00:00Z"
     },
     {
