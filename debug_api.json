@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T00:00:59.038285Z",
+  "generated_at": "2026-06-27T00:30:47.515549Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -1072,13 +1072,13 @@
     {
       "home_api": "Uruguay",
       "away_api": "Spain",
-      "status": "TIMED",
+      "status": "LIVE",
       "utcDate": "2026-06-27T00:00:00Z"
     },
     {
       "home_api": "Cape Verde Islands",
       "away_api": "Saudi Arabia",
-      "status": "TIMED",
+      "status": "LIVE",
       "utcDate": "2026-06-27T00:00:00Z"
     },
     {
