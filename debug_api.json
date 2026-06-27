@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-27T02:00:57.772145Z",
+  "generated_at": "2026-06-27T02:30:49.597926Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
-    "desde_api": 34,
-    "sin_jugar": 10,
+    "desde_api": 36,
+    "sin_jugar": 8,
     "conflictos_excel_vs_api": 0
   },
   "clasificacion_de_grupos": {
@@ -300,6 +300,24 @@
       "excel_actual": null,
       "api_actual": "2|1-3",
       "used": "2|1-3",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Cabo Verde-Arabia Saudita",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
+      "source": "api",
+      "conflict": false
+    },
+    {
+      "match": "Uruguay-España",
+      "api_verification": "verificado_2_fuentes",
+      "excel_actual": null,
+      "api_actual": "2|0-1",
+      "used": "2|0-1",
       "source": "api",
       "conflict": false
     },
@@ -694,6 +712,18 @@
       "away_api": "Iraq",
       "score": "5-0",
       "utcDate": "2026-06-26T19:00:00Z"
+    },
+    {
+      "home_api": "Uruguay",
+      "away_api": "Spain",
+      "score": "0-1",
+      "utcDate": "2026-06-27T00:00:00Z"
+    },
+    {
+      "home_api": "Cape Verde Islands",
+      "away_api": "Saudi Arabia",
+      "score": "0-0",
+      "utcDate": "2026-06-27T00:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1072,13 +1102,13 @@
     {
       "home_api": "Uruguay",
       "away_api": "Spain",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-27T00:00:00Z"
     },
     {
       "home_api": "Cape Verde Islands",
       "away_api": "Saudi Arabia",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-27T00:00:00Z"
     },
     {
@@ -1130,26 +1160,26 @@
       "utcDate": "2026-06-28T02:00:00Z"
     },
     {
-      "home_api": "South Africa",
-      "away_api": "Canada",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-28T19:00:00Z"
     },
     {
-      "home_api": "Brazil",
-      "away_api": "Japan",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
-      "home_api": "Germany",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-29T20:30:00Z"
     },
     {
-      "home_api": "Netherlands",
-      "away_api": "Morocco",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-06-30T01:00:00Z"
     },
@@ -1166,7 +1196,7 @@
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
-      "home_api": "Mexico",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-01T01:00:00Z"
@@ -1184,8 +1214,8 @@
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
-      "home_api": "United States",
-      "away_api": "Bosnia-Herzegovina",
+      "home_api": null,
+      "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-02T00:00:00Z"
     },
@@ -1202,19 +1232,19 @@
       "utcDate": "2026-07-02T23:00:00Z"
     },
     {
-      "home_api": "Switzerland",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T03:00:00Z"
     },
     {
-      "home_api": "Australia",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
-      "home_api": "Argentina",
+      "home_api": null,
       "away_api": null,
       "status": "TIMED",
       "utcDate": "2026-07-03T22:00:00Z"
@@ -1883,20 +1913,20 @@
     },
     {
       "match": "Cabo Verde-Arabia Saudita",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "X|0-0",
+      "used": "X|0-0",
+      "source": "api",
       "conflict": false
     },
     {
       "match": "Uruguay-España",
-      "api_verification": "sin_datos",
+      "api_verification": "verificado_2_fuentes",
       "excel_actual": null,
-      "api_actual": null,
-      "used": null,
-      "source": null,
+      "api_actual": "2|0-1",
+      "used": "2|0-1",
+      "source": "api",
       "conflict": false
     },
     {
