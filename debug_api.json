@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-28T02:30:49.762993Z",
+  "generated_at": "2026-06-28T03:00:57.289331Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -1240,13 +1240,13 @@
     {
       "home_api": "Jordan",
       "away_api": "Argentina",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-28T02:00:00Z"
     },
     {
       "home_api": "Algeria",
       "away_api": "Austria",
-      "status": "LIVE",
+      "status": "PAUSED",
       "utcDate": "2026-06-28T02:00:00Z"
     },
     {
