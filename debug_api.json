@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-28T21:01:03.659107Z",
+  "generated_at": "2026-06-28T21:30:51.308025Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -844,6 +844,12 @@
       "away_api": "Austria",
       "score": "3-3",
       "utcDate": "2026-06-28T02:00:00Z"
+    },
+    {
+      "home_api": "South Africa",
+      "away_api": "Canada",
+      "score": "0-1",
+      "utcDate": "2026-06-28T19:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1282,7 +1288,7 @@
     {
       "home_api": "South Africa",
       "away_api": "Canada",
-      "status": "PAUSED",
+      "status": "FINISHED",
       "utcDate": "2026-06-28T19:00:00Z"
     },
     {
