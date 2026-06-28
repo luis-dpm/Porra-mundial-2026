@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-28T00:00:59.306940Z",
+  "generated_at": "2026-06-28T00:30:48.675806Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 28,
@@ -1198,13 +1198,13 @@
     {
       "home_api": "Colombia",
       "away_api": "Portugal",
-      "status": "LIVE",
+      "status": "PAUSED",
       "utcDate": "2026-06-27T23:30:00Z"
     },
     {
       "home_api": "Congo DR",
       "away_api": "Uzbekistan",
-      "status": "LIVE",
+      "status": "PAUSED",
       "utcDate": "2026-06-27T23:30:00Z"
     },
     {
