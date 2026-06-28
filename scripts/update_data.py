@@ -703,6 +703,14 @@ def build_dataset(api_key):
 
     print(f"INFO: grupos finalizados para puntuar posiciones: {sorted(finished_groups)}", file=sys.stderr)
 
+    # Si todos los grupos están finalizados, los qualified_points se pueden
+    # sumar. Se asignan en la fecha del último partido de todos los grupos.
+    all_groups_finished = len(finished_groups) == len(group_standings_real) and len(finished_groups) > 0
+    qualified_bonus_date = max(group_finish_date.values()) if all_groups_finished and group_finish_date else None
+
+    if qualified_bonus_date:
+        print(f"INFO: todos los grupos finalizados — sumando qualified_points en {qualified_bonus_date}", file=sys.stderr)
+
     by_date = defaultdict(list)
     for m in processed:
         if m.get("date") and m.get("actual"):
@@ -716,6 +724,8 @@ def build_dataset(api_key):
         for p in players:
             day_pts = sum(m["breakdown"][p]["pts"] for m in by_date[d])
             day_pts += group_bonus_by_date.get(d, {}).get(p, 0)
+            if qualified_bonus_date and d == qualified_bonus_date:
+                day_pts += qualified_points.get(p, 0)
             daily[p][d] = day_pts
             running[p] += day_pts
             cum[p][d] = running[p]
@@ -723,6 +733,7 @@ def build_dataset(api_key):
     standings = sorted(
         ({"player": p, "points": running[p],
           "group_pos_points": group_pos_points[p],
+          "qualified_points": qualified_points.get(p, 0),
           "total_points": running[p]} for p in players),
         key=lambda x: -x["points"],
     )
