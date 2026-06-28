@@ -60,13 +60,17 @@ function renderScoreboard() {
   const groupPosPts = D.group_pos_points || {};
   const finishedGroups = D.finished_groups || [];
 
-  // s.points ya incluye los bonus de grupo (vienen del backend así).
-  // match_only = points - group_pos_points para mostrar solo partidos.
+  // s.points ya incluye bonus de grupo Y equipos clasificados (del backend).
+  // Desglosamos para mostrar cada columna por separado.
+  const qualPts = {};
+  D.standings.forEach(s => { qualPts[s.player] = s.qualified_points || 0; });
+
   const enriched = D.standings.map(s => ({
     ...s,
     group_pos_points: groupPosPts[s.player] || 0,
-    match_only: s.points - (groupPosPts[s.player] || 0),
-    total_points: s.points,  // ya es el total real
+    qualified_points: qualPts[s.player] || 0,
+    match_only: s.points - (groupPosPts[s.player] || 0) - (qualPts[s.player] || 0),
+    total_points: s.points,
   }));
 
   const byMatch  = [...enriched].sort((a, b) => b.match_only - a.match_only);
@@ -90,7 +94,7 @@ function renderScoreboard() {
   el.innerHTML = `
     <div class="sb-notes">
       <p class="sb-note ok">📊 ${finishedNote}</p>
-      <p class="sb-note warn">⚠️ Los puntos por equipos clasificados <strong>no se suman todavía</strong> — se añadirán cuando se conozcan todos los mejores terceros (al final de la fase de grupos)</p>
+      <p class="sb-note ok">✅ Fase de grupos completada — puntos de partidos, posiciones de grupo y equipos clasificados (1/16) incluidos</p>
     </div>
 
     <div class="sb-columns">
@@ -135,7 +139,7 @@ function renderScoreboard() {
             <span class="sb-col-rank">${rank}</span>
             <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
             <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">(${s.match_only}+${s.group_pos_points})</span></span>
+            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">${s.match_only}+${s.group_pos_points}+${s.qualified_points}</span></span>
           </div>`;
         }).join('')}
       </div>
@@ -420,94 +424,10 @@ function getAdvancingTeams() {
   return advancing;
 }
 
-function calcGroupPointsForPlayer(player) {
-  let posPts = 0;
-  const groups = Object.keys(D.group_positions).sort();
-
-  groups.forEach(g => {
-    const realStandings = D.group_standings_real[g] || [];
-    const realByPos = {};
-    realStandings.forEach(row => { realByPos[row.position] = row.team; });
-
-    [1, 2, 3, 4].forEach(pos => {
-      const predTeam = D.group_positions[g][pos][player];
-      const realTeam = realByPos[pos];
-      if (realTeam && realTeam === predTeam) {
-        posPts += GROUP_POS_POINTS[pos];
-      }
-    });
-  });
-
-  // Puntos de "equipo clasificado" calculados en el backend a partir de la
-  // lista de 32 "Dieciseisavofinalista-N" del Excel (filas 130-161) — esa
-  // es la fuente correcta, no una inferencia desde las posiciones de grupo.
-  const qualifiedPts = (D.qualified_points && D.qualified_points[player]) || 0;
-
-  return { posPts, qualifiedPts, total: posPts + qualifiedPts };
-}
-
 function renderGroupPlayerSelector() {
+  // La clasificación de fase de grupos ya está consolidada en la pestaña Clasificación.
   const el = document.getElementById('groupPlayerSelector');
-  const results = PLAYERS.map(p => ({ player: p, ...calcGroupPointsForPlayer(p) }))
-    .sort((a, b) => b.total - a.total);
-
-  const maxPosPts = Object.keys(D.group_positions).length * (GROUP_POS_POINTS[1] + GROUP_POS_POINTS[2] + GROUP_POS_POINTS[3] + GROUP_POS_POINTS[4]);
-  const maxQualPts = 32; // 24 (1º+2º de 12 grupos) + 8 mejores terceros
-  const maxTotal = maxPosPts + maxQualPts;
-
-  const sourceNote = D.using_official_standings
-    ? '<span class="gps-source ok">✓ clasificación oficial FIFA vía API (incluye fair-play y enfrentamiento directo)</span>'
-    : '<span class="gps-source warn">⚠ clasificación calculada localmente (solo puntos/dif. goles/goles a favor — puede no coincidir con la oficial en empates muy cerrados)</span>';
-
-  // "Clasificación ficticia" — puntos reales de la porra (jornadas) + lo
-  // que cada jugador sumaría hoy mismo por la fase de grupos (posiciones +
-  // clasificados), para ver de un vistazo cómo quedaría el marcador total
-  // si la fase de grupos se cerrara ahora.
-  const realPointsByPlayer = {};
-  (D.standings || []).forEach(s => { realPointsByPlayer[s.player] = s.points; });
-
-  const projected = PLAYERS.map(p => {
-    const real = realPointsByPlayer[p] || 0;
-    const groupCalc = calcGroupPointsForPlayer(p);
-    return { player: p, real, group: groupCalc.total, total: real + groupCalc.total };
-  }).sort((a, b) => b.total - a.total);
-
-  const projectedHtml = `
-    <div class="group-pts-summary projected">
-      <span class="gps-title">🥩 Clasificación ficticia — puntos de jornadas + proyección de fase de grupos (si todo acabara hoy)</span>
-      <div class="projected-list">
-        ${projected.map((x, i) => `
-          <div class="projected-row ${i === 0 ? 'leader' : ''}">
-            <span class="proj-rank">${i + 1}</span>
-            <span class="proj-name" style="color:${PLAYER_COLORS[x.player]}">${x.player}</span>
-            <span class="proj-breakdown">${x.real} + ${x.group}</span>
-            <span class="proj-total">${x.total}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-
-  el.innerHTML = projectedHtml + `
-    <div class="group-pts-summary">
-      <span class="gps-title">Puntos esperados: posiciones de grupo + equipos clasificados (sobre ${maxTotal}, con la clasificación actual)</span>
-      <div class="gps-row">
-        ${results.map(x => `
-          <div class="gps-item">
-            <span class="gps-name" style="color:${PLAYER_COLORS[x.player]}">${x.player}</span>
-            <span class="gps-val">${x.total}</span>
-            <span class="gps-breakdown">${x.posPts} pos. + ${x.qualifiedPts} clasif.</span>
-          </div>
-        `).join('')}
-      </div>
-      <p class="gps-disclaimer">
-        ${sourceNote}<br><br>
-        Puntúan: posiciones <strong>1ª y 2ª</strong> de cada grupo (2 pts c/u), orden <strong>3º/4º</strong> (1 pt c/u),
-        y <strong>+1 pt</strong> por cada equipo de la lista de 32 "Dieciseisavofinalistas" de cada jugador que realmente
-        está entre los clasificados (los dos primeros de cada grupo, más los <strong>8 mejores terceros</strong> de los 12).
-      </p>
-    </div>
-  `;
+  if (el) el.innerHTML = '';
 }
 
 function renderThirdPlaceTable() {
