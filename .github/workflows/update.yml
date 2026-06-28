@@ -52,7 +52,7 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            let c = fs.readFileSync('data.js', 'utf8').replace('const PORRA_DATA = ', '').replace(/;\\s*$/, '');
+            let c = fs.readFileSync('data.js', 'utf8').replace('const PORRA_DATA = ', '').replace(/;\s*$/, '');
             JSON.parse(c);
             console.log('data.js verificado: JSON válido.');
           "
@@ -68,7 +68,7 @@ jobs:
           else
             git add data.js debug_api.json
             git commit -m "Actualización automática de resultados $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push
+            git pull --rebase && git push
             echo "## ✅ Actualizado correctamente" >> $GITHUB_STEP_SUMMARY
             echo "${{ steps.update.outputs.summary }}" >> $GITHUB_STEP_SUMMARY
           fi
