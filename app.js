@@ -77,10 +77,12 @@ function renderScoreboard() {
 
   const byMatch  = [...enriched].sort((a, b) => b.match_only - a.match_only);
   const byGroup  = [...enriched].sort((a, b) => b.group_pos_points - a.group_pos_points);
+  const byKO     = [...enriched].sort((a, b) => b.ko_points - a.ko_points);
   const byTotal  = [...enriched].sort((a, b) => b.total_points - a.total_points);
 
   const maxMatch = Math.max(...enriched.map(s => s.match_only), 1);
   const maxGroup = Math.max(...enriched.map(s => s.group_pos_points), 1);
+  const maxKO    = Math.max(...enriched.map(s => s.ko_points), 1);
   const maxTotal = Math.max(...enriched.map(s => s.total_points), 1);
 
   function getRank(arr, field, val) {
@@ -99,7 +101,7 @@ function renderScoreboard() {
       <p class="sb-note ok">✅ Fase de grupos completada — puntos de partidos, posiciones de grupo y equipos clasificados (1/16) incluidos</p>
     </div>
 
-    <div class="sb-columns">
+    <div class="sb-columns ${enriched.some(s=>s.ko_points>0)?'sb-columns-4':''}">
 
       <div class="sb-col">
         <div class="sb-col-header">🎯 Partidos</div>
@@ -131,9 +133,24 @@ function renderScoreboard() {
         }).join('')}
       </div>
 
+      <div class="sb-col">
+        <div class="sb-col-header">⚔️ KO</div>
+        <div class="sb-col-sub">Eliminatorias</div>
+        ${byKO.map(s => {
+          const pct = maxKO > 0 ? (s.ko_points / maxKO * 100) : 0;
+          const rank = getRank(byKO, 'ko_points', s.ko_points);
+          return `<div class="sb-col-row rank-${rank}">
+            <span class="sb-col-rank">${rank}</span>
+            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
+            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
+            <span class="sb-col-pts">${s.ko_points}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
       <div class="sb-col sb-col-total">
         <div class="sb-col-header">🥇 Total</div>
-        <div class="sb-col-sub">Partidos + grupos</div>
+        <div class="sb-col-sub">Partidos + grupos + KO</div>
         ${byTotal.map(s => {
           const pct = (s.total_points / maxTotal * 100);
           const rank = getRank(byTotal, 'total_points', s.total_points);
@@ -880,14 +897,17 @@ function renderKoListView(ko, mode, player) {
           const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
           let cls = 'pending', label = pred ? pred.split('|')[1] : '—';
           if (bd) cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
+          const predSign = pred ? pred.split('|')[0] : null;
+          const predWin = predSign === '1' ? home : (predSign === '2' ? away : 'Empate');
           return `
             <div class="kol-match ${cls}">
               <span class="kol-num">P${m.num}</span>
               <div class="kol-teams">
                 <span class="kol-team ${homeLost ? 'lost' : ''}">${home}</span>
-                <span class="kol-pred">${label}${bd ? ' +'+bd.pts+'pts' : ''}</span>
+                <span class="kol-pred">${label}${bd ? ' <b>+'+bd.pts+'</b>' : ''}</span>
                 <span class="kol-team ${awayLost ? 'lost' : ''}">${away}</span>
               </div>
+              <div class="kol-winner-pred">👉 <b style="color:${predSign==='1'?PLAYER_COLORS[player]:'var(--chalk-dim)'}">${predWin}</b>${bd && bd.sign ? ' ✓' : (bd ? ' ✗' : '')}</div>
             </div>`;
         }
         return `
@@ -1021,6 +1041,14 @@ function renderKoPlayerBracket() {
       <span class="ko-legend-item"><span class="ko-dot miss"></span>Fallo / equipo eliminado</span>
     </div>
   `;
+}
+
+function predWinner(pred, home, away) {
+  if (!pred) return '?';
+  const sign = pred.split('|')[0];
+  if (sign === '1') return home;
+  if (sign === '2') return away;
+  return 'Empate';
 }
 
 function scoreKoMatch(predStr, actualStr) {
