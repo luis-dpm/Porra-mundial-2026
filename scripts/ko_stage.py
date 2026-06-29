@@ -65,8 +65,24 @@ def sign_from_score(h, a):
     return "1" if h > a else ("X" if h == a else "2")
 
 
-def score_match(pred_str, actual_str):
-    """Mismo criterio que en fase de grupos: signo +1, diferencia +1, exacto +2."""
+# Puntos por ronda según el Excel (columna 4 de las reglas)
+KO_ROUND_POINTS = {
+    "dieciseisavos": {"sign": 2, "diff": 2, "exact": 4},
+    "octavos":       {"sign": 0, "diff": 0, "exact": 0},  # solo cuenta equipo clasificado
+    "cuartos":       {"sign": 0, "diff": 0, "exact": 0},
+    "semis":         {"sign": 0, "diff": 0, "exact": 0},
+    "final":         {"sign": 0, "diff": 0, "exact": 0},
+}
+KO_QUALIFIER_POINTS = {
+    "octavos":       3,   # equipo clasificado para octavos
+    "cuartos":       6,   # equipo clasificado para cuartos
+    "semis":         12,  # equipo clasificado para semis
+    "tercer_puesto": 12,  # equipo clasificado para 3º/4º
+    "final":         12,  # equipo clasificado para final (mismo que semis)
+}
+
+def score_match(pred_str, actual_str, round_name="dieciseisavos"):
+    """Puntúa un partido según la ronda. En 1/16: signo 2pts, diferencia 2pts, exacto 4pts."""
     if not pred_str or not actual_str:
         return {"pts": 0, "sign": False, "diff": False, "exact": False}
     try:
@@ -76,17 +92,18 @@ def score_match(pred_str, actual_str):
         ah, aa = map(int, ascore.split("-"))
     except (ValueError, AttributeError):
         return {"pts": 0, "sign": False, "diff": False, "exact": False}
+    rpts = KO_ROUND_POINTS.get(round_name, {"sign": 2, "diff": 2, "exact": 4})
     pts = 0
     sign_ok = psign == asign
     diff_ok = exact_ok = False
     if sign_ok:
-        pts += 1
+        pts += rpts["sign"]
         if abs(ph - pa) == abs(ah - aa):
             diff_ok = True
-            pts += 1
+            pts += rpts["diff"]
         if ph == ah and pa == aa:
             exact_ok = True
-            pts += 2
+            pts += rpts["exact"]
     return {"pts": pts, "sign": sign_ok, "diff": diff_ok, "exact": exact_ok}
 
 
@@ -239,13 +256,8 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
             actual = m["excel_actual"]
 
             breakdown = None
-            if actual and round_name == "dieciseisavos":
-                breakdown = {p: score_match(m["predictions"].get(p), actual) for p in players}
-            elif actual:
-                # De octavos en adelante el "acierto" no depende del marcador
-                # exacto sino de qué equipo predijo cada jugador para la
-                # ronda siguiente — eso se calcula aparte (ver paso 3).
-                breakdown = None
+            if actual:
+                breakdown = {p: score_match(m["predictions"].get(p), actual, round_name) for p in players}
 
             if actual and home_team and away_team:
                 asign, ascore = actual.split("|")
@@ -298,23 +310,50 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         }]}
 
     # --- Paso 3: para cada ronda y cada jugador, ¿qué equipo predijo en
-    # cada "slot" de clasificados, y sigue vivo ese equipo? ---
+    # cada "slot" de clasificados, y sigue vivo ese equipo?
+    # También calculamos puntos por equipo clasificado correctamente. ---
+
+    # Equipos que realmente pasaron a cada ronda (ganadores de la ronda anterior)
+    # dieciseisavos -> octavos: los 16 ganadores de 1/16
+    # octavos -> cuartos: los 8 ganadores de octavos, etc.
+    teams_in_round = {
+        "dieciseisavos": set(),   # los 32 clasificados de grupos (no puntuamos aquí, ya está en qualified_points)
+        "octavos": set(winners.get(str(m["num"]), None) for m in raw["dieciseisavos"].get("matches", []) if winners.get(str(m["num"]))),
+        "cuartos": set(winners.get(str(m["num"]), None) for m in raw["octavos"].get("matches", []) if winners.get(str(m["num"]))),
+        "semis": set(winners.get(str(m["num"]), None) for m in raw["cuartos"].get("matches", []) if winners.get(str(m["num"]))),
+        "final": set(winners.get(str(m["num"]), None) for m in raw["semis"].get("matches", []) if winners.get(str(m["num"]))),
+        "tercer_puesto": set(losers.get(str(m["num"]), None) for m in raw["semis"].get("matches", []) if losers.get(str(m["num"]))),
+    }
+    # Remove None values
+    for k in teams_in_round:
+        teams_in_round[k].discard(None)
+
     qualifiers_output = {}
+    qualifier_pts = {p: 0 for p in players}  # puntos totales por equipos clasificados
+
     for round_name in ROUND_NAMES + ["tercer_puesto"]:
         slots = raw[round_name]["qualifiers"]
+        real_teams = teams_in_round.get(round_name, set())
+        q_pts = KO_QUALIFIER_POINTS.get(round_name, 0)
         slot_rows = []
         for slot in slots:
             row = {"slot": slot["slot"], "predictions": {}}
             for p in players:
                 team = slot["predictions"].get(p)
                 if not team:
-                    row["predictions"][p] = {"team": None, "status": "sin_apuesta"}
+                    row["predictions"][p] = {"team": None, "status": "sin_apuesta", "pts": 0}
                     continue
                 if team in eliminated_teams:
                     status = "eliminado"
+                    pts = 0
+                elif real_teams and team in real_teams:
+                    status = "clasificado"
+                    pts = q_pts
+                    qualifier_pts[p] += q_pts
                 else:
                     status = "vivo"
-                row["predictions"][p] = {"team": team, "status": status}
+                    pts = 0
+                row["predictions"][p] = {"team": team, "status": status, "pts": pts}
             slot_rows.append(row)
         qualifiers_output[round_name] = slot_rows
 
@@ -335,4 +374,5 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         "eliminated_teams": sorted(eliminated_teams),
         "winners_by_match": dict(winners),
         "losers_by_match": dict(losers),
+        "qualifier_pts": qualifier_pts,
     }
