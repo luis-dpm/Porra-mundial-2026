@@ -753,10 +753,10 @@ def build_dataset(api_key):
                    "winners_by_match": {}, "losers_by_match": {}}
 
     # --- Puntos de fase eliminatoria ---
-    # Suma los puntos ganados en cada ronda de KO (leídos de ko_data)
-    # y los añade al daily/cumulative en la fecha del partido.
+    # Suma puntos de partidos KO (breakdown) + puntos por equipos clasificados
     ko_points = {p: 0 for p in players}
     try:
+        # 1. Puntos por aciertos de partido (signo/diferencia/exacto en 1/16)
         for round_name, rdata in ko_data.get("rounds", {}).items():
             for m in rdata.get("matches", []):
                 if not m.get("actual") or not m.get("breakdown"):
@@ -765,14 +765,21 @@ def build_dataset(api_key):
                 for p in players:
                     bd = m["breakdown"].get(p, {})
                     pts = bd.get("pts", 0) if bd else 0
-                    ko_points[p] += pts
-                    if match_date and match_date in daily.get(p, {}):
-                        daily[p][match_date] += pts
-                        # Recalculate cumulative from this date forward
-                        for d2 in sorted(dates):
-                            if d2 >= match_date:
-                                pass  # will recalc below
-        # Recalculate cumulative with ko_points
+                    if pts > 0:
+                        ko_points[p] += pts
+                        if match_date and match_date in daily.get(p, {}):
+                            daily[p][match_date] += pts
+
+        # 2. Puntos por equipos clasificados correctamente (qualifier_pts de ko_stage)
+        for p, pts in ko_data.get("qualifier_pts", {}).items():
+            if pts > 0:
+                ko_points[p] += pts
+                # Add on last known date
+                if dates:
+                    last_date = dates[-1]
+                    daily[p][last_date] = daily[p].get(last_date, 0) + pts
+
+        # Recalculate cumulative
         if any(v > 0 for v in ko_points.values()):
             running2 = {p: 0 for p in players}
             for d in dates:
