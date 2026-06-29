@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T23:00:53.583820Z",
+  "generated_at": "2026-06-29T23:30:48.940629Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -459,6 +459,12 @@
       "away_api": "Japan",
       "score": "2-1",
       "utcDate": "2026-06-29T17:00:00Z"
+    },
+    {
+      "home_api": "Germany",
+      "away_api": "Paraguay",
+      "score": "5-6",
+      "utcDate": "2026-06-29T20:30:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -909,7 +915,7 @@
     {
       "home_api": "Germany",
       "away_api": "Paraguay",
-      "status": "PAUSED",
+      "status": "FINISHED",
       "utcDate": "2026-06-29T20:30:00Z"
     },
     {
