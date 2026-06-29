@@ -111,8 +111,19 @@ def read_ko_predictions(ws, player_columns):
             match_defs = MATCH_LISTS[round_name]
             matches = []
             for match_def, row_idx in zip(match_defs, match_rows):
-                excel_actual = ws.cell(row=row_idx, column=13).value
-                excel_actual = str(excel_actual).strip() if excel_actual and "|" in str(excel_actual) else None
+                # El resultado real en dieciseisavos usa columna 12 (signo: 1/X/2)
+                # y columna 13 (marcador: "goles-goles"), a diferencia de grupos
+                # que usa col 13 con formato completo "signo|goles-goles".
+                excel_actual = None
+                col12 = ws.cell(row=row_idx, column=12).value
+                col13 = ws.cell(row=row_idx, column=13).value
+                col12s = str(col12).strip() if col12 is not None else ""
+                col13s = str(col13).strip() if col13 is not None else ""
+                if col12s in ("1", "X", "2") and "-" in col13s and col13s != "-":
+                    excel_actual = f"{col12s}|{col13s}"
+                elif col13s and "|" in col13s:
+                    # fallback: formato completo en col13 (grupos o manual)
+                    excel_actual = col13s
                 preds = {}
                 for player, col in player_columns.items():
                     val = ws.cell(row=row_idx, column=col).value
