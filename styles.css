@@ -1156,3 +1156,120 @@ main {
   }
   .sb-col-name { font-size: 11px; }
 }
+
+/* ============ KNOCKOUT LIST VIEW (móvil) ============ */
+.ko-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px 0;
+}
+.kol-section {
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.kol-final {
+  border-color: var(--gold);
+}
+.kol-round-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--chalk-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px 6px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.kol-match {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(244,241,232,0.05);
+}
+.kol-match:last-of-type { border-bottom: none; }
+.kol-match.played { background: rgba(80,180,100,0.04); }
+.kol-match.played-final { padding: 14px; background: rgba(212,162,60,0.06); }
+.kol-match.hit-exact { background: rgba(80,200,80,0.10); }
+.kol-match.hit-diff  { background: rgba(80,200,80,0.06); }
+.kol-match.hit-sign  { background: rgba(200,180,80,0.08); }
+.kol-match.miss      { background: rgba(200,80,80,0.06); }
+.kol-match.pending   { background: transparent; }
+.kol-num {
+  font-size: 10px;
+  color: var(--chalk-dim);
+  min-width: 28px;
+  opacity: 0.6;
+}
+.kol-teams {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.kol-team {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--chalk);
+}
+.kol-team.lost {
+  text-decoration: line-through;
+  color: var(--rust);
+  opacity: 0.7;
+}
+.kol-vs {
+  font-size: 11px;
+  color: var(--chalk-dim);
+  opacity: 0.5;
+}
+.kol-score {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  background: rgba(212,162,60,0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.kol-pred {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--chalk-dim);
+  background: rgba(244,241,232,0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.kol-qual-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 14px;
+  background: rgba(244,241,232,0.03);
+  border-top: 1px solid var(--panel-line);
+}
+.kol-qual-label {
+  font-size: 10px;
+  color: var(--chalk-dim);
+  opacity: 0.6;
+  margin-right: 4px;
+}
+.kol-honor {
+  font-size: 13px;
+  color: var(--gold-bright);
+  padding: 8px 14px;
+  border-top: 1px solid var(--panel-line);
+}
+
+/* On large screens, keep the tree; hide list; on mobile, flip */
+@media (min-width: 900px) {
+  .ko-list-view { display: none; }
+}
+@media (max-width: 899px) {
+  .ko-tree-scroll { display: none; }
+}
