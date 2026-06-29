@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-29T17:00:56.815050Z",
+  "generated_at": "2026-06-29T17:30:48.964493Z",
   "resumen": {
     "total_partidos": 72,
-    "desde_excel": 28,
-    "desde_api": 44,
+    "desde_excel": 72,
+    "desde_api": 0,
     "sin_jugar": 0,
     "conflictos_excel_vs_api": 0
   },
@@ -14,404 +14,7 @@
     "nota": "Clasificación oficial de la API (con fair-play/enfrentamiento directo)."
   },
   "conflictos": [],
-  "rellenados_por_api": [
-    {
-      "match": "Escocia-Marruecos",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-1",
-      "used": "2|0-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Brasil-Haití",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-0",
-      "used": "1|3-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Estados Unidos-Australia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-0",
-      "used": "1|2-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Turquía-Paraguay",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-1",
-      "used": "2|0-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Alemania-Costa de Marfil",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-1",
-      "used": "1|2-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Ecuador-Curazao",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Países Bajos-Suecia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|5-1",
-      "used": "1|5-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Túnez-Japón",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-4",
-      "used": "2|0-4",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Bélgica-Irán",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Nueva Zelanda-Egipto",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-3",
-      "used": "2|1-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "España-Arabia Saudita",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|4-0",
-      "used": "1|4-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Uruguay-Cabo Verde",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|2-2",
-      "used": "X|2-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Francia-Irak",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-0",
-      "used": "1|3-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Noruega-Senegal",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-2",
-      "used": "1|3-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Argentina-Austria",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-0",
-      "used": "1|2-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Jordania-Argelia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-2",
-      "used": "2|1-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Portugal-Uzbekistán",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|5-0",
-      "used": "1|5-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Colombia-RD Congo",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|1-0",
-      "used": "1|1-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Inglaterra-Ghana",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Panamá-Croacia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-1",
-      "used": "2|0-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "República Checa-México",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-3",
-      "used": "2|0-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Sudáfrica-Corea del Sur",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|1-0",
-      "used": "1|1-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Suiza-Canadá",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-1",
-      "used": "1|2-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Bosnia y Herzegovina-Catar",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-1",
-      "used": "1|3-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Escocia-Brasil",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-3",
-      "used": "2|0-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Marruecos-Haití",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|4-2",
-      "used": "1|4-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Turquía-Estados Unidos",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-2",
-      "used": "1|3-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Paraguay-Australia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Curazao-Costa de Marfil",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-2",
-      "used": "2|0-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Ecuador-Alemania",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-1",
-      "used": "1|2-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Japón-Suecia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|1-1",
-      "used": "X|1-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Túnez-Países Bajos",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-3",
-      "used": "2|1-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Egipto-Irán",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|1-1",
-      "used": "X|1-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Nueva Zelanda-Bélgica",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-5",
-      "used": "2|1-5",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Cabo Verde-Arabia Saudita",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Uruguay-España",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-1",
-      "used": "2|0-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Noruega-Francia",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-4",
-      "used": "2|1-4",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Senegal-Irak",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|5-0",
-      "used": "1|5-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Argelia-Austria",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|3-3",
-      "used": "X|3-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Jordania-Argentina",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|1-3",
-      "used": "2|1-3",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Colombia-Portugal",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "X|0-0",
-      "used": "X|0-0",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "RD Congo-Uzbekistán",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|3-1",
-      "used": "1|3-1",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Panamá-Inglaterra",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "2|0-2",
-      "used": "2|0-2",
-      "source": "api",
-      "conflict": false
-    },
-    {
-      "match": "Croacia-Ghana",
-      "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
-      "api_actual": "1|2-1",
-      "used": "1|2-1",
-      "source": "api",
-      "conflict": false
-    }
-  ],
+  "rellenados_por_api": [],
   "partidos_finalizados_segun_api": [
     {
       "home_api": "Mexico",
@@ -1294,7 +897,7 @@
     {
       "home_api": "Brazil",
       "away_api": "Japan",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
@@ -1734,397 +1337,397 @@
     {
       "match": "Escocia-Marruecos",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Brasil-Haití",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-0",
       "api_actual": "1|3-0",
       "used": "1|3-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Estados Unidos-Australia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Turquía-Paraguay",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Alemania-Costa de Marfil",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Ecuador-Curazao",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Países Bajos-Suecia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|5-1",
       "api_actual": "1|5-1",
       "used": "1|5-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Túnez-Japón",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-4",
       "api_actual": "2|0-4",
       "used": "2|0-4",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Bélgica-Irán",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Nueva Zelanda-Egipto",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "España-Arabia Saudita",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|4-0",
       "api_actual": "1|4-0",
       "used": "1|4-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Uruguay-Cabo Verde",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|2-2",
       "api_actual": "X|2-2",
       "used": "X|2-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Francia-Irak",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-0",
       "api_actual": "1|3-0",
       "used": "1|3-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Noruega-Senegal",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-2",
       "api_actual": "1|3-2",
       "used": "1|3-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Argentina-Austria",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Jordania-Argelia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-2",
       "api_actual": "2|1-2",
       "used": "2|1-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Portugal-Uzbekistán",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|5-0",
       "api_actual": "1|5-0",
       "used": "1|5-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Colombia-RD Congo",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Inglaterra-Ghana",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Panamá-Croacia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "República Checa-México",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-3",
       "api_actual": "2|0-3",
       "used": "2|0-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Sudáfrica-Corea del Sur",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Suiza-Canadá",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Bosnia y Herzegovina-Catar",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Escocia-Brasil",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-3",
       "api_actual": "2|0-3",
       "used": "2|0-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Marruecos-Haití",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|4-2",
       "api_actual": "1|4-2",
       "used": "1|4-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Turquía-Estados Unidos",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-2",
       "api_actual": "1|3-2",
       "used": "1|3-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Paraguay-Australia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Curazao-Costa de Marfil",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-2",
       "api_actual": "2|0-2",
       "used": "2|0-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Ecuador-Alemania",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Japón-Suecia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Túnez-Países Bajos",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Egipto-Irán",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Nueva Zelanda-Bélgica",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-5",
       "api_actual": "2|1-5",
       "used": "2|1-5",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Cabo Verde-Arabia Saudita",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Uruguay-España",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Noruega-Francia",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-4",
       "api_actual": "2|1-4",
       "used": "2|1-4",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Senegal-Irak",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|5-0",
       "api_actual": "1|5-0",
       "used": "1|5-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Argelia-Austria",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|3-3",
       "api_actual": "X|3-3",
       "used": "X|3-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Jordania-Argentina",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Colombia-Portugal",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "RD Congo-Uzbekistán",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Panamá-Inglaterra",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "2|0-2",
       "api_actual": "2|0-2",
       "used": "2|0-2",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     },
     {
       "match": "Croacia-Ghana",
       "api_verification": "verificado_2_fuentes",
-      "excel_actual": null,
+      "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
-      "source": "api",
+      "source": "excel",
       "conflict": false
     }
   ]
