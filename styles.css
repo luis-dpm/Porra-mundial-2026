@@ -1,4 +1,4 @@
-/* ============ TOKENS ============ */
+* ============ TOKENS ============ */
 :root {
   --grass-deep: #0F3D2E;
   --grass-mid: #14502F;
@@ -819,9 +819,9 @@ main {
   justify-content: center;
   gap: 14px;
 }
-/* Cada ronda dobla el espacio entre tarjetas respecto a la anterior, así
+/* Cada ronda dobla el espacio entre tarjetas respecto a la anterior, asÃ­
    cada partido queda visualmente centrado entre los dos que lo alimentan
-   — es lo que produce el efecto de "embudo" hacia el centro. */
+   â€” es lo que produce el efecto de "embudo" hacia el centro. */
 .ko-gap-r0 { gap: 10px; }
 .ko-gap-r1 { gap: 34px; }
 .ko-gap-r2 { gap: 82px; }
@@ -916,7 +916,7 @@ main {
 .ko-honor-item.silver { border-color: rgba(201,212,199,0.4); color: var(--chalk); }
 .ko-honor-item.bronze { border-color: rgba(196,138,84,0.4); color: #C48A54; }
 
-/* Tarjetas de predicción de cada jugador (en dieciseisavos) */
+/* Tarjetas de predicciÃ³n de cada jugador (en dieciseisavos) */
 .ko-pred-card {
   border-radius: var(--radius-md);
   padding: 7px 8px;
@@ -953,7 +953,7 @@ main {
   margin-bottom: 20px;
 }
 
-/* Franja de "equipos predichos que pasan", debajo del árbol (de octavos
+/* Franja de "equipos predichos que pasan", debajo del Ã¡rbol (de octavos
    en adelante el jugador predijo equipo por slot, no cruce a cruce) */
 .ko-qual-strip {
   display: flex;
@@ -1157,7 +1157,7 @@ main {
   .sb-col-name { font-size: 11px; }
 }
 
-/* ============ KNOCKOUT LIST VIEW (móvil) ============ */
+/* ============ KNOCKOUT LIST VIEW (mÃ³vil) ============ */
 .ko-list-view {
   display: flex;
   flex-direction: column;
@@ -1272,4 +1272,19 @@ main {
 }
 @media (max-width: 899px) {
   .ko-tree-scroll { display: none; }
+}
+
+/* KO winner prediction label */
+.kol-winner-pred {
+  font-size: 11px;
+  color: var(--chalk-dim);
+  padding: 0 14px 6px 42px;
+}
+
+/* 4-column scoreboard for KO phase */
+.sb-columns-4 {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+@media (max-width: 700px) {
+  .sb-columns-4 { grid-template-columns: 1fr; }
 }
