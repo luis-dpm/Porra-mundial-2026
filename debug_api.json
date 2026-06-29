@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T19:02:50.927660Z",
+  "generated_at": "2026-06-29T19:20:08.628620Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -453,6 +453,12 @@
       "away_api": "Canada",
       "score": "0-1",
       "utcDate": "2026-06-28T19:00:00Z"
+    },
+    {
+      "home_api": "Brazil",
+      "away_api": "Japan",
+      "score": "2-1",
+      "utcDate": "2026-06-29T17:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -897,7 +903,7 @@
     {
       "home_api": "Brazil",
       "away_api": "Japan",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
