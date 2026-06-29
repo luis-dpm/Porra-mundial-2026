@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T18:07:27.961039Z",
+  "generated_at": "2026-06-29T18:30:16.847340Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -897,7 +897,7 @@
     {
       "home_api": "Brazil",
       "away_api": "Japan",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-06-29T17:00:00Z"
     },
     {
