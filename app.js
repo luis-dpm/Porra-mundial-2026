@@ -60,16 +60,18 @@ function renderScoreboard() {
   const groupPosPts = D.group_pos_points || {};
   const finishedGroups = D.finished_groups || [];
 
-  // s.points ya incluye bonus de grupo Y equipos clasificados (del backend).
-  // Desglosamos para mostrar cada columna por separado.
+  // s.points incluye: partidos + grupo_pos + clasificados + KO
   const qualPts = {};
   D.standings.forEach(s => { qualPts[s.player] = s.qualified_points || 0; });
+  const koPts = {};
+  D.standings.forEach(s => { koPts[s.player] = s.ko_points || 0; });
 
   const enriched = D.standings.map(s => ({
     ...s,
     group_pos_points: groupPosPts[s.player] || 0,
     qualified_points: qualPts[s.player] || 0,
-    match_only: s.points - (groupPosPts[s.player] || 0) - (qualPts[s.player] || 0),
+    ko_points: koPts[s.player] || 0,
+    match_only: s.points - (groupPosPts[s.player] || 0) - (qualPts[s.player] || 0) - (koPts[s.player] || 0),
     total_points: s.points,
   }));
 
@@ -139,7 +141,7 @@ function renderScoreboard() {
             <span class="sb-col-rank">${rank}</span>
             <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
             <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">${s.match_only}+${s.group_pos_points}+${s.qualified_points}</span></span>
+            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">${s.match_only}+${s.group_pos_points}+${s.qualified_points}${s.ko_points > 0 ? "+"+s.ko_points : ""}</span></span>
           </div>`;
         }).join('')}
       </div>
@@ -835,14 +837,142 @@ function renderFullBracket(ko, mode, player) {
 }
 
 // --- Bracket real ---
+// Mobile-friendly list view of bracket
+function renderKoListView(ko, mode, player) {
+  const ROUND_ORDER = ['dieciseisavos', 'octavos', 'cuartos', 'semis'];
+  const ROUND_LABELS_LIST = {
+    dieciseisavos: '1/16 — Dieciseisavos de final',
+    octavos: '1/8 — Octavos de final',
+    cuartos: '1/4 — Cuartos de final',
+    semis: 'Semifinales',
+  };
+
+  const sections = ROUND_ORDER.map(roundName => {
+    const matches = (ko.rounds[roundName] && ko.rounds[roundName].matches) || [];
+    if (!matches.length) return '';
+    const cards = matches.map(m => {
+      const home = m.home_team || '?';
+      const away = m.away_team || '?';
+      const hasResult = !!m.actual;
+      const homeLost = hasResult && ko.eliminated_teams && ko.eliminated_teams.includes(m.home_team);
+      const awayLost = hasResult && ko.eliminated_teams && ko.eliminated_teams.includes(m.away_team);
+
+      let scoreHtml = '<span class="kol-vs">vs</span>';
+      if (hasResult) {
+        const score = m.actual.split('|')[1] || '';
+        scoreHtml = `<span class="kol-score">${score.replace('-', ' – ')}</span>`;
+      }
+
+      if (mode === 'real') {
+        return `
+          <div class="kol-match ${hasResult ? 'played' : ''}">
+            <span class="kol-num">P${m.num}</span>
+            <div class="kol-teams">
+              <span class="kol-team ${homeLost ? 'lost' : ''}">${home}</span>
+              ${scoreHtml}
+              <span class="kol-team ${awayLost ? 'lost' : ''}">${away}</span>
+            </div>
+          </div>`;
+      } else {
+        // player view for dieciseisavos: show prediction
+        if (roundName === 'dieciseisavos') {
+          const pred = m.predictions && m.predictions[player];
+          const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
+          let cls = 'pending', label = pred ? pred.split('|')[1] : '—';
+          if (bd) cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
+          return `
+            <div class="kol-match ${cls}">
+              <span class="kol-num">P${m.num}</span>
+              <div class="kol-teams">
+                <span class="kol-team ${homeLost ? 'lost' : ''}">${home}</span>
+                <span class="kol-pred">${label}${bd ? ' +'+bd.pts+'pts' : ''}</span>
+                <span class="kol-team ${awayLost ? 'lost' : ''}">${away}</span>
+              </div>
+            </div>`;
+        }
+        return `
+          <div class="kol-match ${hasResult ? 'played' : ''}">
+            <span class="kol-num">P${m.num}</span>
+            <div class="kol-teams">
+              <span class="kol-team ${homeLost ? 'lost' : ''}">${home}</span>
+              ${scoreHtml}
+              <span class="kol-team ${awayLost ? 'lost' : ''}">${away}</span>
+            </div>
+          </div>`;
+      }
+    }).join('');
+
+    // For player mode, also show predicted qualifiers for NEXT round
+    let qualHtml = '';
+    if (mode === 'player') {
+      const nextRound = ROUND_ORDER[ROUND_ORDER.indexOf(roundName) + 1] || 'semis';
+      const QUAL_MAP = { dieciseisavos: 'octavos', octavos: 'cuartos', cuartos: 'semis', semis: 'final' };
+      const qualRound = QUAL_MAP[roundName];
+      const slots = qualRound && ko.qualifiers && ko.qualifiers[qualRound] || [];
+      if (slots.length) {
+        qualHtml = `<div class="kol-qual-row"><span class="kol-qual-label">Predichos →</span>${
+          slots.map(slot => {
+            const pred = slot.predictions && slot.predictions[player];
+            if (!pred || !pred.team) return '<span class="ko-qual-chip pending">—</span>';
+            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
+            return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
+          }).join('')
+        }</div>`;
+      }
+    }
+
+    return `
+      <div class="kol-section">
+        <div class="kol-round-title">${ROUND_LABELS_LIST[roundName]}</div>
+        ${cards}
+        ${qualHtml}
+      </div>`;
+  }).join('');
+
+  // Final
+  const finalMatch = ko.rounds.final && ko.rounds.final.matches && ko.rounds.final.matches[0];
+  const thirdMatch = ko.rounds.tercer_puesto && ko.rounds.tercer_puesto.matches && ko.rounds.tercer_puesto.matches[0];
+  let finalHtml = '';
+  if (finalMatch) {
+    const fh = finalMatch.home_team || '?', fa = finalMatch.away_team || '?';
+    const fHasResult = !!finalMatch.actual;
+    const fHomeLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.home_team);
+    const fAwayLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.away_team);
+    const fScore = fHasResult ? `<span class="kol-score">${finalMatch.actual.split('|')[1].replace('-',' – ')}</span>` : '<span class="kol-vs">vs</span>';
+    // honor
+    const honor = ko.honor || {};
+    const honorHtml = honor.champion ? `<div class="kol-honor">🥇 ${honor.champion}${honor.runner_up ? ' · 🥈 '+honor.runner_up : ''}${honor.third_place ? ' · 🥉 '+honor.third_place : ''}</div>` : '';
+    finalHtml = `
+      <div class="kol-section kol-final">
+        <div class="kol-round-title">🏆 Final</div>
+        <div class="kol-match played-final">
+          <div class="kol-teams">
+            <span class="kol-team ${fHomeLost ? 'lost' : ''}">${fh}</span>
+            ${fScore}
+            <span class="kol-team ${fAwayLost ? 'lost' : ''}">${fa}</span>
+          </div>
+        </div>
+        ${honorHtml}
+      </div>`;
+  }
+
+  return `<div class="ko-list-view">${sections}${finalHtml}</div>`;
+}
+
 function renderKoRealBracket() {
   const el = document.getElementById('koRealBracket');
   const ko = D.ko_stage;
   if (!ko || !ko.rounds || Object.keys(ko.rounds).length === 0) {
-    el.innerHTML = '<p class="ko-empty">Esta sección se rellenará en cuanto termine la fase de grupos y se complete el cuadro de dieciseisavos en el Excel.</p>';
+    el.innerHTML = '<p class="ko-empty">Esta sección se rellenará cuando empiece la fase eliminatoria.</p>';
     return;
   }
-  el.innerHTML = renderFullBracket(ko, 'real', null);
+  // On small screens use list view, on large screens use bracket tree
+  const isMobile = window.innerWidth < 900;
+  if (isMobile) {
+    el.innerHTML = renderKoListView(ko, 'real', null);
+  } else {
+    el.innerHTML = renderFullBracket(ko, 'real', null);
+  }
 }
 
 // --- Bracket de un jugador concreto ---
@@ -876,8 +1006,9 @@ function renderKoPlayerBracket() {
     return;
   }
 
-  const bracketHtml = renderFullBracket(ko, 'player', player);
-  const stripHtml = renderQualifiersStrip(ko, player);
+  const isMobile = window.innerWidth < 900;
+  const bracketHtml = isMobile ? renderKoListView(ko, 'player', player) : renderFullBracket(ko, 'player', player);
+  const stripHtml = isMobile ? '' : renderQualifiersStrip(ko, player);
 
   el.innerHTML = `
     ${bracketHtml}
