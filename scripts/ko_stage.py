@@ -144,7 +144,14 @@ def read_ko_predictions(ws, player_columns):
                 preds = {}
                 for player, col in player_columns.items():
                     val = ws.cell(row=row_idx, column=col).value
-                    preds[player] = str(val).strip() if val and "|" in str(val) else None
+                    if val and "|" in str(val):
+                        s = str(val).strip()
+                        # Format may be "TeamA-TeamB·sign|goals-goals" — extract after '·'
+                        if '·' in s:
+                            s = s.split('·')[1]
+                        preds[player] = s
+                    else:
+                        preds[player] = None
                 matches.append({
                     "num": match_def["num"],
                     "home_ref": match_def["home"],
