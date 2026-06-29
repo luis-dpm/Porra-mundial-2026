@@ -730,16 +730,6 @@ def build_dataset(api_key):
             running[p] += day_pts
             cum[p][d] = running[p]
 
-    standings = sorted(
-        ({"player": p, "points": running[p],
-          "group_pos_points": group_pos_points[p],
-          "qualified_points": qualified_points.get(p, 0),
-          "total_points": running[p]} for p in players),
-        key=lambda x: -x["points"],
-    )
-    for i, s in enumerate(standings):
-        s["rank"] = i + 1
-
     positions_by_day = {p: [] for p in players}
     for d in dates:
         sorted_p = sorted(players, key=lambda p: -cum[p][d])
@@ -753,9 +743,6 @@ def build_dataset(api_key):
             positions_by_day[p].append(pos[p])
 
     # --- Fase eliminatoria (dieciseisavos a final) ---
-    # Es opcional por ahora: si el Excel todavía no tiene rellena esa
-    # sección (fase de grupos en curso), build_ko_dataset simplemente
-    # devuelve listas vacías/sin resolver, sin romper nada.
     try:
         ko_data = build_ko_dataset(
             ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions
@@ -765,6 +752,49 @@ def build_dataset(api_key):
         ko_data = {"rounds": {}, "qualifiers": {}, "honor": {}, "eliminated_teams": [],
                    "winners_by_match": {}, "losers_by_match": {}}
 
+    # --- Puntos de fase eliminatoria ---
+    # Suma los puntos ganados en cada ronda de KO (leídos de ko_data)
+    # y los añade al daily/cumulative en la fecha del partido.
+    ko_points = {p: 0 for p in players}
+    try:
+        for round_name, rdata in ko_data.get("rounds", {}).items():
+            for m in rdata.get("matches", []):
+                if not m.get("actual") or not m.get("breakdown"):
+                    continue
+                match_date = m.get("date")
+                for p in players:
+                    bd = m["breakdown"].get(p, {})
+                    pts = bd.get("pts", 0) if bd else 0
+                    ko_points[p] += pts
+                    if match_date and match_date in daily.get(p, {}):
+                        daily[p][match_date] += pts
+                        # Recalculate cumulative from this date forward
+                        for d2 in sorted(dates):
+                            if d2 >= match_date:
+                                pass  # will recalc below
+        # Recalculate cumulative with ko_points
+        if any(v > 0 for v in ko_points.values()):
+            running2 = {p: 0 for p in players}
+            for d in dates:
+                for p in players:
+                    running2[p] += daily[p].get(d, 0)
+                    cum[p][d] = running2[p]
+            running = running2
+    except Exception as e:
+        print(f"AVISO: error calculando ko_points ({e})", file=sys.stderr)
+
+    # Update standings with ko_points
+    standings = sorted(
+        ({"player": p, "points": running[p],
+          "group_pos_points": group_pos_points[p],
+          "qualified_points": qualified_points.get(p, 0),
+          "ko_points": ko_points.get(p, 0),
+          "total_points": running[p]} for p in players),
+        key=lambda x: -x["points"],
+    )
+    for i, s in enumerate(standings):
+        s["rank"] = i + 1
+
     return {
         "matches": processed,
         "group_positions": group_positions,
@@ -773,6 +803,7 @@ def build_dataset(api_key):
         "using_official_standings": using_official_standings,
         "real_qualified_teams": sorted(real_qualified_teams),
         "qualified_points": qualified_points,
+        "ko_points": ko_points,
         "qualified_hits": qualified_hits,
         "finished_groups": sorted(finished_groups),
         "group_pos_points": group_pos_points,
