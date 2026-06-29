@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-29T22:30:46.464740Z",
+  "generated_at": "2026-06-29T23:00:53.583820Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -909,7 +909,7 @@
     {
       "home_api": "Germany",
       "away_api": "Paraguay",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-29T20:30:00Z"
     },
     {
