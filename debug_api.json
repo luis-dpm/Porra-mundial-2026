@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T03:30:45.094184Z",
+  "generated_at": "2026-06-30T04:00:53.317421Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -465,6 +465,12 @@
       "away_api": "Paraguay",
       "score": "4-5",
       "utcDate": "2026-06-29T20:30:00Z"
+    },
+    {
+      "home_api": "Netherlands",
+      "away_api": "Morocco",
+      "score": "3-4",
+      "utcDate": "2026-06-30T01:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -921,7 +927,7 @@
     {
       "home_api": "Netherlands",
       "away_api": "Morocco",
-      "status": "PAUSED",
+      "status": "FINISHED",
       "utcDate": "2026-06-30T01:00:00Z"
     },
     {
