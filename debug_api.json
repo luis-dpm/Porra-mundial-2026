@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T01:30:48.171014Z",
+  "generated_at": "2026-06-30T02:00:51.116547Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -921,7 +921,7 @@
     {
       "home_api": "Netherlands",
       "away_api": "Morocco",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-30T01:00:00Z"
     },
     {
