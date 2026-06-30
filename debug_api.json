@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T22:30:48.199144Z",
+  "generated_at": "2026-06-30T23:00:51.284805Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -477,6 +477,12 @@
       "away_api": "Norway",
       "score": "1-2",
       "utcDate": "2026-06-30T17:00:00Z"
+    },
+    {
+      "home_api": "France",
+      "away_api": "Sweden",
+      "score": "3-0",
+      "utcDate": "2026-06-30T21:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -945,7 +951,7 @@
     {
       "home_api": "France",
       "away_api": "Sweden",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-06-30T21:00:00Z"
     },
     {
