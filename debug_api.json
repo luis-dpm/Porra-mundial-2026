@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-30T17:30:49.198188Z",
+  "generated_at": "2026-06-30T18:00:52.896007Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -933,7 +933,7 @@
     {
       "home_api": "Ivory Coast",
       "away_api": "Norway",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-06-30T17:00:00Z"
     },
     {
