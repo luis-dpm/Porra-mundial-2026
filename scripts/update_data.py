@@ -42,6 +42,7 @@ except ImportError:
 
 from match_dates_es import MATCH_DATES_ES
 from ko_stage import build_ko_dataset
+from bracket_structure import EXCEL_ROWS
 
 EXCEL_PATH = "source/predicciones.xlsx"
 OUTPUT_PATH = "data.js"
@@ -980,6 +981,19 @@ def build_dataset(api_key):
             "final": final,
         }
 
+    # --- Cuadro de Honor: qué ha puesto cada jugador para campeón, bota
+    # de oro (máximo goleador) y balón de oro (mejor jugador) ---
+    final_predictions = {}
+    for p, col in PLAYER_COLUMNS.items():
+        champ = ws.cell(row=EXCEL_ROWS["champion"], column=col).value
+        top_scorer = ws.cell(row=EXCEL_ROWS["top_scorer"], column=col).value
+        best_player = ws.cell(row=EXCEL_ROWS["best_player"], column=col).value
+        final_predictions[p] = {
+            "campeon": str(champ).strip() if champ and str(champ).strip() else None,
+            "bota_oro": str(top_scorer).strip() if top_scorer and str(top_scorer).strip() else None,
+            "balon_oro": str(best_player).strip() if best_player and str(best_player).strip() else None,
+        }
+
     return {
         "matches": processed,
         "group_positions": group_positions,
@@ -995,6 +1009,7 @@ def build_dataset(api_key):
         "group_pos_detail": group_pos_detail,
         "ko_stage": ko_data,
         "rounds_breakdown": rounds_breakdown,
+        "final_predictions": final_predictions,
         "players": players,
         "dates": dates,
         "daily_points": daily,
