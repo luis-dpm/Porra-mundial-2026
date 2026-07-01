@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T11:34:11.250768Z",
+  "generated_at": "2026-07-01T11:41:21.439646Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -19,7 +19,7 @@
       ],
       [
         "Argentina",
-        "Cabo Verde"
+        "Jordania"
       ],
       [
         "Australia",
@@ -35,23 +35,19 @@
       ],
       [
         "Brasil",
-        "Noruega"
+        "Japón"
       ],
       [
         "Bélgica",
         "Senegal"
       ],
       [
-        "Cabo Verde",
-        "Argentina"
-      ],
-      [
         "Canadá",
-        "Marruecos"
+        "Sudáfrica"
       ],
       [
         "Colombia",
-        "Ghana"
+        "Portugal"
       ],
       [
         "Costa de Marfil",
@@ -79,11 +75,7 @@
       ],
       [
         "Francia",
-        "Paraguay"
-      ],
-      [
-        "Ghana",
-        "Colombia"
+        "Suecia"
       ],
       [
         "Inglaterra",
@@ -99,7 +91,7 @@
       ],
       [
         "Marruecos",
-        "Canadá"
+        "Países Bajos"
       ],
       [
         "México",
@@ -107,11 +99,11 @@
       ],
       [
         "Noruega",
-        "Brasil"
+        "Costa de Marfil"
       ],
       [
         "Paraguay",
-        "Francia"
+        "Alemania"
       ],
       [
         "Países Bajos",
@@ -162,7 +154,7 @@
       "84": "directo",
       "85": "api",
       "86": "directo",
-      "87": "api",
+      "87": "respaldo",
       "88": "directo"
     }
   },
