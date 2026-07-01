@@ -193,6 +193,12 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
         if known_team:
             used_teams.add(known_team)
         opponent = (team_ko_opponent or {}).get(known_team) if known_team else None
+        if opponent and opponent in used_teams:
+            # El rival que da la API para este equipo ya está asignado a
+            # otro cruce en este mismo cálculo (p.ej. porque conflate el
+            # rival de octavos con el de dieciseisavos) — no nos fiamos y
+            # lo tratamos como si la API no lo tuviera todavía.
+            opponent = None
         if opponent:
             used_teams.add(opponent)
             resolution[match_def["num"]] = (known_team, opponent) if known_is_home else (opponent, known_team)
