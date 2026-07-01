@@ -393,7 +393,12 @@ def fetch_real_results(api_key):
         # un equipo que ya avanzó tiene también su partido de OCTAVOS
         # programado con fecha posterior, y si no distinguimos, el rival de
         # octavos pisa (sobrescribe) al rival real de dieciseisavos.
-        if spain_date and KO_STAGE_START <= spain_date <= KO_STAGE_END:
+        # Además exigimos que 'stage' no sea fase de grupos: un partido de
+        # grupos jugado de madrugada puede caer, ya convertido a hora de
+        # España, en la fecha "28 de junio" y colarse por el filtro de
+        # fecha si no se descarta explícitamente por su fase.
+        is_group_stage = str(m.get("stage") or "").upper() == "GROUP_STAGE"
+        if spain_date and KO_STAGE_START <= spain_date <= KO_STAGE_END and not is_group_stage:
             team_ko_opponent[home_es] = away_es
             team_ko_opponent[away_es] = home_es
 
