@@ -220,7 +220,31 @@ def read_ko_predictions(ws, player_columns):
     return rounds_data
 
 
-def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranking, group_positions):
+def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results):
+    """Misma lógica de prioridad que en fase de grupos: 1) Excel (a mano),
+    2) football-data.org, 3) openfootball. Si las dos fuentes automáticas
+    coinciden, confianza alta; si no coinciden, se usa openfootball (más
+    fiable justo tras el pitido final). api_results/openfootball_results
+    son dicts {(home_es, away_es): (hg, ag)}."""
+    if excel_actual:
+        return excel_actual
+    if not home or not away:
+        return None
+    fd_res = (api_results or {}).get((home, away))
+    of_res = (openfootball_results or {}).get((home, away))
+    if fd_res and of_res:
+        hg, ag = fd_res if fd_res == of_res else of_res
+    elif fd_res:
+        hg, ag = fd_res
+    elif of_res:
+        hg, ag = of_res
+    else:
+        return None
+    return f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+
+
+def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranking, group_positions,
+                      api_results=None, openfootball_results=None):
     """Construye el dataset completo de la fase eliminatoria, listo para
     volcar a data.js. Si no hay datos en el Excel todavía (fase de grupos
     sin terminar), devuelve la estructura vacía mostrando solo los
@@ -282,7 +306,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         for m in match_defs:
             home_team = resolve_any_ref(m["home_ref"])
             away_team = resolve_any_ref(m["away_ref"])
-            actual = m["excel_actual"]
+            actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results)
             match_date = KO_MATCH_DATES.get(m["num"])
 
             breakdown = None
@@ -329,7 +353,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         m = raw[key]["matches"][0]
         home_team = resolve_any_ref(m["home_ref"])
         away_team = resolve_any_ref(m["away_ref"])
-        actual = m["excel_actual"]
+        actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results)
         if actual and home_team and away_team:
             asign, ascore = actual.split("|")
             ah, ag = map(int, ascore.split("-"))
