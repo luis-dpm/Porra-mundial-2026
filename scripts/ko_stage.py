@@ -414,11 +414,12 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
 
 
 def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results):
-    """Misma lógica de prioridad que en fase de grupos: 1) Excel (a mano),
-    2) football-data.org, 3) openfootball. Si las dos fuentes automáticas
-    coinciden, confianza alta; si no coinciden, se usa openfootball (más
-    fiable justo tras el pitido final). api_results/openfootball_results
-    son dicts {(home_es, away_es): (hg, ag)}."""
+    """El marcador que puntúa predicciones es el de 120' (90' + prórroga),
+    NO el resultado final tras penaltis — así que el Excel (donde se
+    introduce a mano el resultado a 120') manda siempre que exista.
+    Las fuentes automáticas (API/openfootball) solo rellenan cuando el
+    Excel todavía no tiene el partido. Quién avanza de ronda en caso de
+    empate a 120' se decide aparte, por penaltis (ver penalty_winners)."""
     if excel_actual:
         return excel_actual
     if not home or not away:
