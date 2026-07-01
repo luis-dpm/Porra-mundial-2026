@@ -297,10 +297,10 @@ def fetch_real_results(api_key):
     diagnóstico (se vuelca en debug_api.json)."""
     if not api_key:
         print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, [], [], {}
+        return {}, {}, [], [], {}, {}, {}
     if not requests:
         print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, [], [], {}
+        return {}, {}, [], [], {}, {}, {}
     try:
         headers = {"X-Auth-Token": api_key}
         url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
@@ -310,7 +310,7 @@ def fetch_real_results(api_key):
         data = resp.json()
     except Exception as e:
         print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
-        return {}, {}, [], [], {}
+        return {}, {}, [], [], {}, {}, {}
 
     total_matches = len(data.get("matches", []))
     finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
@@ -344,6 +344,8 @@ def fetch_real_results(api_key):
     results = {}
     schedule = {}  # (home_es, away_es) -> (fecha_iso_españa, hora_es "HH:MM")
     team_ko_opponent = {}  # equipo_es -> rival_es en su cruce de KO ya fijado por la API
+    penalty_winners = {}  # (home_es, away_es) -> equipo_es que gana por penaltis
+    penalty_scores = {}  # (home_es, away_es) -> "hp-ap" marcador de la tanda
     unmapped = []
     schedule_unmapped = []
     KO_STAGE_START = "2026-06-28"  # primer partido de dieciseisavos
@@ -404,14 +406,37 @@ def fetch_real_results(api_key):
         results[(home_es, away_es)] = (hg, ag)
         results[(away_es, home_es)] = (ag, hg)
 
+        # En fase KO un empate a 90'/prórroga se decide por penaltis — el
+        # marcador de "resultado" (para acertar signo/diferencia/exacto)
+        # sigue siendo el de 90', pero quién avanza de ronda lo marca la
+        # tanda. football-data.org trae esto en score.winner / score.penalties.
+        if hg == ag:
+            score_obj = m.get("score") or {}
+            winner_field = score_obj.get("winner")
+            pens = score_obj.get("penalties") or {}
+            hp, ap = pens.get("home"), pens.get("away")
+            pen_winner_es = None
+            if winner_field == "HOME_TEAM":
+                pen_winner_es = home_es
+            elif winner_field == "AWAY_TEAM":
+                pen_winner_es = away_es
+            elif hp is not None and ap is not None and hp != ap:
+                pen_winner_es = home_es if hp > ap else away_es
+            if pen_winner_es:
+                penalty_winners[(home_es, away_es)] = pen_winner_es
+                if hp is not None and ap is not None:
+                    penalty_scores[(home_es, away_es)] = f"{hp}-{ap}"
+
     if unmapped:
         print(f"AVISO: {len(unmapped)} partidos finalizados con nombre de equipo no mapeado: {unmapped}", file=sys.stderr)
     if schedule_unmapped:
         print(f"AVISO: {len(schedule_unmapped)} partidos no jugados con nombre de equipo no mapeado (sin horario): {set(schedule_unmapped)}", file=sys.stderr)
     print(f"INFO: {len(results) // 2} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
     print(f"INFO: {len(schedule) // 2} horarios reales (fecha+hora España) obtenidos de la API.", file=sys.stderr)
+    if penalty_winners:
+        print(f"INFO: {len(penalty_winners)} empates de KO resueltos por penaltis vía API.", file=sys.stderr)
     print(f"INFO: {len(team_ko_opponent) // 2} cruces de fase KO ya fijados por la API.", file=sys.stderr)
-    return results, schedule, raw_finished_debug, raw_all_matches_debug, team_ko_opponent
+    return results, schedule, raw_finished_debug, raw_all_matches_debug, team_ko_opponent, penalty_winners, penalty_scores
 
 
 
@@ -497,7 +522,7 @@ def sign_from_score(h, a):
 
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
-    api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug, team_ko_opponent = fetch_real_results(api_key)
+    api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug, team_ko_opponent, penalty_winners, penalty_scores = fetch_real_results(api_key)
     openfootball_results = fetch_openfootball_results()
     players = list(PLAYER_COLUMNS.keys())
 
@@ -783,7 +808,8 @@ def build_dataset(api_key):
         ko_data = build_ko_dataset(
             ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions,
             api_results=api_results, openfootball_results=openfootball_results,
-            team_ko_opponent=team_ko_opponent,
+            team_ko_opponent=team_ko_opponent, penalty_winners=penalty_winners,
+            penalty_scores=penalty_scores,
         )
     except Exception as e:
         print(f"AVISO: no se pudo procesar la fase eliminatoria ({e}). Se omite por ahora.", file=sys.stderr)
