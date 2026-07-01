@@ -1017,6 +1017,7 @@ def main():
                 "sin_jugar": len(not_played),
                 "conflictos_excel_vs_api": len(conflicts),
             },
+            "fase_ko_diagnostico": dataset.get("ko_stage", {}).get("debug", {}),
             "clasificacion_de_grupos": {
                 "usando_oficial_api": dataset["using_official_standings"],
                 "grupos_recibidos_de_api": len(dataset["group_standings_real"]) if dataset["using_official_standings"] else 0,
