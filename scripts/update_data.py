@@ -747,7 +747,8 @@ def build_dataset(api_key):
     # --- Fase eliminatoria (dieciseisavos a final) ---
     try:
         ko_data = build_ko_dataset(
-            ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions
+            ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions,
+            api_results=api_results, openfootball_results=openfootball_results,
         )
     except Exception as e:
         print(f"AVISO: no se pudo procesar la fase eliminatoria ({e}). Se omite por ahora.", file=sys.stderr)
