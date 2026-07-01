@@ -42,6 +42,7 @@ except ImportError:
 
 from match_dates_es import MATCH_DATES_ES
 from ko_stage import build_ko_dataset
+from bracket_structure import EXCEL_ROWS
 
 EXCEL_PATH = "source/predicciones.xlsx"
 OUTPUT_PATH = "data.js"
@@ -416,15 +417,21 @@ def fetch_real_results(api_key):
         results[(home_es, away_es)] = (hg, ag)
         results[(away_es, home_es)] = (ag, hg)
 
-        # En fase KO un empate a 90'/prórroga se decide por penaltis — el
-        # marcador de "resultado" (para acertar signo/diferencia/exacto)
-        # sigue siendo el de 90', pero quién avanza de ronda lo marca la
-        # tanda. football-data.org trae esto en score.winner / score.penalties.
-        if hg == ag:
-            score_obj = m.get("score") or {}
-            winner_field = score_obj.get("winner")
-            pens = score_obj.get("penalties") or {}
-            hp, ap = pens.get("home"), pens.get("away")
+        # En fase KO, si el partido se decidió por penaltis, football-data.org
+        # lo marca con score.duration == 'PENALTY_SHOOTOUT' (o trae
+        # score.penalties/score.winner) — lo comprobamos siempre, sin
+        # exigir que fullTime venga empatado, porque para partidos de
+        # penaltis ese campo no es fiable en esta competición. El
+        # marcador de 120' que puntúa predicciones sigue viniendo del
+        # Excel (ver resolve_ko_result); esto es solo para saber quién
+        # avanza de ronda.
+        score_obj = m.get("score") or {}
+        duration = str(score_obj.get("duration") or "").upper()
+        winner_field = score_obj.get("winner")
+        pens = score_obj.get("penalties") or {}
+        hp, ap = pens.get("home"), pens.get("away")
+        went_to_penalties = duration == "PENALTY_SHOOTOUT" or (hp is not None and ap is not None)
+        if went_to_penalties:
             pen_winner_es = None
             if winner_field == "HOME_TEAM":
                 pen_winner_es = home_es
@@ -974,6 +981,19 @@ def build_dataset(api_key):
             "final": final,
         }
 
+    # --- Cuadro de Honor: qué ha puesto cada jugador para campeón, bota
+    # de oro (máximo goleador) y balón de oro (mejor jugador) ---
+    final_predictions = {}
+    for p, col in PLAYER_COLUMNS.items():
+        champ = ws.cell(row=EXCEL_ROWS["champion"], column=col).value
+        top_scorer = ws.cell(row=EXCEL_ROWS["top_scorer"], column=col).value
+        best_player = ws.cell(row=EXCEL_ROWS["best_player"], column=col).value
+        final_predictions[p] = {
+            "campeon": str(champ).strip() if champ and str(champ).strip() else None,
+            "bota_oro": str(top_scorer).strip() if top_scorer and str(top_scorer).strip() else None,
+            "balon_oro": str(best_player).strip() if best_player and str(best_player).strip() else None,
+        }
+
     return {
         "matches": processed,
         "group_positions": group_positions,
@@ -989,6 +1009,7 @@ def build_dataset(api_key):
         "group_pos_detail": group_pos_detail,
         "ko_stage": ko_data,
         "rounds_breakdown": rounds_breakdown,
+        "final_predictions": final_predictions,
         "players": players,
         "dates": dates,
         "daily_points": daily,
