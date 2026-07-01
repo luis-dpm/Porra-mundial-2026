@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T05:00:54.124170Z",
+  "generated_at": "2026-07-01T05:30:50.553476Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -471,6 +471,12 @@
       "away_api": "Morocco",
       "score": "3-4",
       "utcDate": "2026-06-30T01:00:00Z"
+    },
+    {
+      "home_api": "Ivory Coast",
+      "away_api": "Norway",
+      "score": "1-2",
+      "utcDate": "2026-06-30T17:00:00Z"
     },
     {
       "home_api": "France",
@@ -945,7 +951,7 @@
     {
       "home_api": "Ivory Coast",
       "away_api": "Norway",
-      "status": "TIMED",
+      "status": "FINISHED",
       "utcDate": "2026-06-30T17:00:00Z"
     },
     {
