@@ -1,11 +1,170 @@
 {
-  "generated_at": "2026-07-01T11:30:47.474836Z",
+  "generated_at": "2026-07-01T11:34:11.250768Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
     "desde_api": 0,
     "sin_jugar": 0,
     "conflictos_excel_vs_api": 0
+  },
+  "fase_ko_diagnostico": {
+    "team_ko_opponent": [
+      [
+        "Alemania",
+        "Paraguay"
+      ],
+      [
+        "Argelia",
+        "Suiza"
+      ],
+      [
+        "Argentina",
+        "Cabo Verde"
+      ],
+      [
+        "Australia",
+        "Egipto"
+      ],
+      [
+        "Austria",
+        "España"
+      ],
+      [
+        "Bosnia y Herzegovina",
+        "Estados Unidos"
+      ],
+      [
+        "Brasil",
+        "Noruega"
+      ],
+      [
+        "Bélgica",
+        "Senegal"
+      ],
+      [
+        "Cabo Verde",
+        "Argentina"
+      ],
+      [
+        "Canadá",
+        "Marruecos"
+      ],
+      [
+        "Colombia",
+        "Ghana"
+      ],
+      [
+        "Costa de Marfil",
+        "Noruega"
+      ],
+      [
+        "Croacia",
+        "Portugal"
+      ],
+      [
+        "Ecuador",
+        "México"
+      ],
+      [
+        "Egipto",
+        "Australia"
+      ],
+      [
+        "España",
+        "Austria"
+      ],
+      [
+        "Estados Unidos",
+        "Bosnia y Herzegovina"
+      ],
+      [
+        "Francia",
+        "Paraguay"
+      ],
+      [
+        "Ghana",
+        "Colombia"
+      ],
+      [
+        "Inglaterra",
+        "RD Congo"
+      ],
+      [
+        "Japón",
+        "Brasil"
+      ],
+      [
+        "Jordania",
+        "Argentina"
+      ],
+      [
+        "Marruecos",
+        "Canadá"
+      ],
+      [
+        "México",
+        "Ecuador"
+      ],
+      [
+        "Noruega",
+        "Brasil"
+      ],
+      [
+        "Paraguay",
+        "Francia"
+      ],
+      [
+        "Países Bajos",
+        "Marruecos"
+      ],
+      [
+        "Portugal",
+        "Croacia"
+      ],
+      [
+        "RD Congo",
+        "Inglaterra"
+      ],
+      [
+        "Senegal",
+        "Bélgica"
+      ],
+      [
+        "Sudáfrica",
+        "Canadá"
+      ],
+      [
+        "Suecia",
+        "Francia"
+      ],
+      [
+        "Suiza",
+        "Argelia"
+      ],
+      [
+        "Uzbekistán",
+        "RD Congo"
+      ]
+    ],
+    "penalty_winners": [],
+    "dieciseisavos_fuente_cruce": {
+      "73": "directo",
+      "74": "api",
+      "75": "directo",
+      "76": "directo",
+      "77": "api",
+      "78": "directo",
+      "79": "api",
+      "80": "api",
+      "81": "api",
+      "82": "api",
+      "83": "directo",
+      "84": "directo",
+      "85": "api",
+      "86": "directo",
+      "87": "api",
+      "88": "directo"
+    }
   },
   "clasificacion_de_grupos": {
     "usando_oficial_api": true,
