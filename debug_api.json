@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T04:00:55.670137Z",
+  "generated_at": "2026-07-01T04:30:48.383512Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -473,16 +473,16 @@
       "utcDate": "2026-06-30T01:00:00Z"
     },
     {
-      "home_api": "Ivory Coast",
-      "away_api": "Norway",
-      "score": "1-2",
-      "utcDate": "2026-06-30T17:00:00Z"
-    },
-    {
       "home_api": "France",
       "away_api": "Sweden",
       "score": "3-0",
       "utcDate": "2026-06-30T21:00:00Z"
+    },
+    {
+      "home_api": "Mexico",
+      "away_api": "Ecuador",
+      "score": "2-0",
+      "utcDate": "2026-07-01T01:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -945,7 +945,7 @@
     {
       "home_api": "Ivory Coast",
       "away_api": "Norway",
-      "status": "FINISHED",
+      "status": "TIMED",
       "utcDate": "2026-06-30T17:00:00Z"
     },
     {
@@ -957,7 +957,7 @@
     {
       "home_api": "Mexico",
       "away_api": "Ecuador",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-01T01:00:00Z"
     },
     {
