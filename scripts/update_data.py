@@ -620,6 +620,8 @@ def build_dataset(api_key):
             gd = s["gf"] - s["gc"]
             rows.append({"team": team, **s, "gd": gd, "pts": pts})
         rows.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
+        for i, r in enumerate(rows, start=1):
+            r["position"] = i
         group_standings_local[g] = rows
 
     # Clasificación oficial vía API (aplica los criterios FIFA reales,
@@ -753,10 +755,33 @@ def build_dataset(api_key):
                    "winners_by_match": {}, "losers_by_match": {}}
 
     # --- Puntos de fase eliminatoria ---
-    # Suma puntos de partidos KO (breakdown) + puntos por equipos clasificados
+    # Suma puntos de partidos KO (breakdown) + puntos por equipos clasificados,
+    # fechados con el calendario real para que Gráficos/Jornadas avancen día
+    # a día también en fase KO (aunque la ronda global no haya terminado).
     ko_points = {p: 0 for p in players}
     try:
+        extra_dates = set()
+
         # 1. Puntos por aciertos de partido (signo/diferencia/exacto en 1/16)
+        for round_name, rdata in ko_data.get("rounds", {}).items():
+            for m in rdata.get("matches", []):
+                if not m.get("actual") or not m.get("breakdown") or not m.get("date"):
+                    continue
+                extra_dates.add(m["date"])
+
+        # 2. Fechas de los bonus por equipo clasificado
+        for round_name, slot_rows in ko_data.get("qualifiers", {}).items():
+            for row in slot_rows:
+                for p, info in row.get("predictions", {}).items():
+                    if info.get("status") == "clasificado" and info.get("date"):
+                        extra_dates.add(info["date"])
+
+        if extra_dates:
+            dates = sorted(set(dates) | extra_dates)
+            for p in players:
+                for d in extra_dates:
+                    daily[p].setdefault(d, 0)
+
         for round_name, rdata in ko_data.get("rounds", {}).items():
             for m in rdata.get("matches", []):
                 if not m.get("actual") or not m.get("breakdown"):
@@ -769,15 +794,25 @@ def build_dataset(api_key):
                         ko_points[p] += pts
                         if match_date and match_date in daily.get(p, {}):
                             daily[p][match_date] += pts
+                        elif dates:
+                            daily[p][dates[-1]] += pts
 
-        # 2. Puntos por equipos clasificados correctamente (qualifier_pts de ko_stage)
-        for p, pts in ko_data.get("qualifier_pts", {}).items():
-            if pts > 0:
-                ko_points[p] += pts
-                # Add on last known date
-                if dates:
-                    last_date = dates[-1]
-                    daily[p][last_date] = daily[p].get(last_date, 0) + pts
+        # 3. Puntos por equipos clasificados correctamente (qualifier_pts de ko_stage),
+        # fechados con la fecha real del partido que decidió esa clasificación.
+        for round_name, slot_rows in ko_data.get("qualifiers", {}).items():
+            for row in slot_rows:
+                for p, info in row.get("predictions", {}).items():
+                    if info.get("status") != "clasificado":
+                        continue
+                    pts = info.get("pts", 0)
+                    if pts <= 0:
+                        continue
+                    ko_points[p] += pts
+                    q_date = info.get("date")
+                    if q_date and q_date in daily.get(p, {}):
+                        daily[p][q_date] += pts
+                    elif dates:
+                        daily[p][dates[-1]] += pts
 
         # Recalculate cumulative
         if any(v > 0 for v in ko_points.values()):
@@ -787,6 +822,17 @@ def build_dataset(api_key):
                     running2[p] += daily[p].get(d, 0)
                     cum[p][d] = running2[p]
             running = running2
+            positions_by_day = {p: [] for p in players}
+            for d in dates:
+                sorted_p = sorted(players, key=lambda p: -cum[p][d])
+                pos, prev, rank = {}, None, 0
+                for i, p in enumerate(sorted_p):
+                    if cum[p][d] != prev:
+                        rank = i + 1
+                    pos[p] = rank
+                    prev = cum[p][d]
+                for p in players:
+                    positions_by_day[p].append(pos[p])
     except Exception as e:
         print(f"AVISO: error calculando ko_points ({e})", file=sys.stderr)
 
@@ -802,6 +848,60 @@ def build_dataset(api_key):
     for i, s in enumerate(standings):
         s["rank"] = i + 1
 
+    # --- Desglose de puntos por ronda para la pestaña Clasificación ---
+    # Orden pedido: general primero, luego detalle en orden cronológico.
+    ROUND_BUCKET_ORDER = [
+        "general", "grupos_partidos", "grupos_posiciones",
+        "dieciseisavos", "octavos", "cuartos", "semis", "final",
+    ]
+    ROUND_BUCKET_LABELS = {
+        "general": "Clasificación general",
+        "grupos_partidos": "Partidos de fase de grupos",
+        "grupos_posiciones": "Posiciones de grupos (y clasificados a 1/16)",
+        "dieciseisavos": "Dieciseisavos (1/16)",
+        "octavos": "Octavos de final",
+        "cuartos": "Cuartos de final",
+        "semis": "Semifinales",
+        "final": "Final",
+    }
+
+    ko_match_pts_by_round = {r: {p: 0 for p in players} for r in ["dieciseisavos", "octavos", "cuartos", "semis", "final"]}
+    for round_name, rdata in ko_data.get("rounds", {}).items():
+        if round_name not in ko_match_pts_by_round:
+            continue
+        for m in rdata.get("matches", []):
+            bd = m.get("breakdown") or {}
+            for p in players:
+                ko_match_pts_by_round[round_name][p] += bd.get(p, {}).get("pts", 0)
+
+    qbr = ko_data.get("qualifier_pts_by_round", {})
+
+    def _qr(round_name, p):
+        return qbr.get(round_name, {}).get(p, 0)
+
+    rounds_breakdown = {"order": ROUND_BUCKET_ORDER, "labels": ROUND_BUCKET_LABELS, "by_player": {}}
+    for p in players:
+        grupos_partidos = sum(
+            m["breakdown"][p]["pts"] for m in processed if m.get("group") and m.get("breakdown")
+        )
+        grupos_posiciones = group_pos_points[p] + qualified_points.get(p, 0)
+        dieci = ko_match_pts_by_round["dieciseisavos"][p] + _qr("octavos", p)
+        octavos = ko_match_pts_by_round["octavos"][p] + _qr("cuartos", p)
+        cuartos = ko_match_pts_by_round["cuartos"][p] + _qr("semis", p)
+        semis = ko_match_pts_by_round["semis"][p] + _qr("final", p) + _qr("tercer_puesto", p)
+        final = ko_match_pts_by_round["final"][p]
+        general = grupos_partidos + grupos_posiciones + dieci + octavos + cuartos + semis + final
+        rounds_breakdown["by_player"][p] = {
+            "general": general,
+            "grupos_partidos": grupos_partidos,
+            "grupos_posiciones": grupos_posiciones,
+            "dieciseisavos": dieci,
+            "octavos": octavos,
+            "cuartos": cuartos,
+            "semis": semis,
+            "final": final,
+        }
+
     return {
         "matches": processed,
         "group_positions": group_positions,
@@ -816,6 +916,7 @@ def build_dataset(api_key):
         "group_pos_points": group_pos_points,
         "group_pos_detail": group_pos_detail,
         "ko_stage": ko_data,
+        "rounds_breakdown": rounds_breakdown,
         "players": players,
         "dates": dates,
         "daily_points": daily,
