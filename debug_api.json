@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T11:41:43.039689Z",
+  "generated_at": "2026-07-01T11:48:59.389164Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -16,10 +16,6 @@
       [
         "Argelia",
         "Suiza"
-      ],
-      [
-        "Argentina",
-        "Jordania"
       ],
       [
         "Australia",
@@ -44,10 +40,6 @@
       [
         "Canadá",
         "Sudáfrica"
-      ],
-      [
-        "Colombia",
-        "Portugal"
       ],
       [
         "Costa de Marfil",
@@ -84,10 +76,6 @@
       [
         "Japón",
         "Brasil"
-      ],
-      [
-        "Jordania",
-        "Argentina"
       ],
       [
         "Marruecos",
@@ -132,10 +120,6 @@
       [
         "Suiza",
         "Argelia"
-      ],
-      [
-        "Uzbekistán",
-        "RD Congo"
       ]
     ],
     "penalty_winners": [],
