@@ -297,10 +297,10 @@ def fetch_real_results(api_key):
     diagnóstico (se vuelca en debug_api.json)."""
     if not api_key:
         print("AVISO: no hay FOOTBALL_DATA_API_KEY configurada. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, [], []
+        return {}, {}, [], [], {}
     if not requests:
         print("AVISO: el paquete requests no está instalado. Solo se usará el Excel.", file=sys.stderr)
-        return {}, {}, [], []
+        return {}, {}, [], [], {}
     try:
         headers = {"X-Auth-Token": api_key}
         url = f"{API_BASE}/competitions/{COMPETITION_CODE}/matches"
@@ -310,7 +310,7 @@ def fetch_real_results(api_key):
         data = resp.json()
     except Exception as e:
         print(f"AVISO: no se pudo consultar la API ({e}). Se usará solo el Excel.", file=sys.stderr)
-        return {}, {}, [], []
+        return {}, {}, [], [], {}
 
     total_matches = len(data.get("matches", []))
     finished = [m for m in data.get("matches", []) if m["status"] == "FINISHED"]
@@ -343,8 +343,10 @@ def fetch_real_results(api_key):
 
     results = {}
     schedule = {}  # (home_es, away_es) -> (fecha_iso_españa, hora_es "HH:MM")
+    team_ko_opponent = {}  # equipo_es -> rival_es en su cruce de KO ya fijado por la API
     unmapped = []
     schedule_unmapped = []
+    KO_STAGE_START = "2026-06-28"  # primer partido de dieciseisavos
 
     for m in data.get("matches", []):
         home_en = (m.get("homeTeam") or {}).get("name")
@@ -366,6 +368,7 @@ def fetch_real_results(api_key):
         # Horario real en España (CEST = UTC+2 en junio-julio) a partir del
         # utcDate que da la API. Sustituye a la tabla escrita a mano, que
         # tenía varios errores de fecha respecto al calendario oficial real.
+        spain_date = None
         utc_date_str = m.get("utcDate")
         if utc_date_str:
             try:
@@ -377,6 +380,15 @@ def fetch_real_results(api_key):
                 schedule[(away_es, home_es)] = (spain_date, spain_time)
             except (ValueError, TypeError):
                 pass
+
+        # Cruce de fase KO ya fijado por la API (aunque el partido todavía
+        # no se haya jugado): en vez de reconstruir la tabla oficial de 495
+        # combinaciones de "mejor tercero" (Anexo C del reglamento FIFA) a
+        # mano, con riesgo de error, usamos directamente el rival que la
+        # API ya tiene asignado — es la fuente más fiable posible.
+        if spain_date and spain_date >= KO_STAGE_START:
+            team_ko_opponent[home_es] = away_es
+            team_ko_opponent[away_es] = home_es
 
         if m["status"] != "FINISHED":
             continue
@@ -398,7 +410,10 @@ def fetch_real_results(api_key):
         print(f"AVISO: {len(schedule_unmapped)} partidos no jugados con nombre de equipo no mapeado (sin horario): {set(schedule_unmapped)}", file=sys.stderr)
     print(f"INFO: {len(results) // 2} resultados utilizables tras el mapeo de nombres.", file=sys.stderr)
     print(f"INFO: {len(schedule) // 2} horarios reales (fecha+hora España) obtenidos de la API.", file=sys.stderr)
-    return results, schedule, raw_finished_debug, raw_all_matches_debug
+    print(f"INFO: {len(team_ko_opponent) // 2} cruces de fase KO ya fijados por la API.", file=sys.stderr)
+    return results, schedule, raw_finished_debug, raw_all_matches_debug, team_ko_opponent
+
+
 
 
 def read_excel_data():
@@ -482,7 +497,7 @@ def sign_from_score(h, a):
 
 def build_dataset(api_key):
     matches, group_positions, qualified_predictions, ws = read_excel_data()
-    api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug = fetch_real_results(api_key)
+    api_results, api_schedule, api_raw_finished_debug, api_raw_all_debug, team_ko_opponent = fetch_real_results(api_key)
     openfootball_results = fetch_openfootball_results()
     players = list(PLAYER_COLUMNS.keys())
 
@@ -768,6 +783,7 @@ def build_dataset(api_key):
         ko_data = build_ko_dataset(
             ws, PLAYER_COLUMNS, group_standings_real, third_place_ranking, group_positions,
             api_results=api_results, openfootball_results=openfootball_results,
+            team_ko_opponent=team_ko_opponent,
         )
     except Exception as e:
         print(f"AVISO: no se pudo procesar la fase eliminatoria ({e}). Se omite por ahora.", file=sys.stderr)
