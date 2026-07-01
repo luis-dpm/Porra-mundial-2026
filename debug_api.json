@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T12:01:00.404011Z",
+  "generated_at": "2026-07-01T12:08:15.067567Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -122,7 +122,10 @@
         "Argelia"
       ]
     ],
-    "penalty_winners": [],
+    "penalty_winners": [
+      "Alemania-Paraguay: gana Paraguay",
+      "Países Bajos-Marruecos: gana Marruecos"
+    ],
     "dieciseisavos_fuente_cruce": {
       "73": "directo",
       "74": "api",
