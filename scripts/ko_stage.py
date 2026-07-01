@@ -129,58 +129,133 @@ def score_match(pred_str, actual_str, round_name="dieciseisavos"):
     return {"pts": pts, "sign": sign_ok, "diff": diff_ok, "exact": exact_ok}
 
 
-def build_group_ref_resolver(group_standings_real, third_place_ranking):
-    """Devuelve una función resolve_ref(ref) que convierte '2A', '3CDFGH',
-    etc. en el nombre real del equipo, usando solo datos de fase de grupos
-    (no necesita saber resultados de la fase KO todavía)."""
+def build_group_ref_resolver(group_standings_real, third_place_ranking=None):
+    """Devuelve una función resolve_ref(ref) que convierte '1A'/'2A' en el
+    nombre real del equipo, usando solo datos de fase de grupos. Los refs
+    '3XXXX' (mejor tercero) NO se resuelven aquí — ver resolve_r32_all,
+    porque necesitan tratarse todos juntos para no duplicar equipos."""
     group_slot_team = {}
     for g, rows in (group_standings_real or {}).items():
         for r in rows:
             if r.get("position") in (1, 2):
                 group_slot_team[f"{r['position']}{g}"] = r["team"]
-    third_by_group = {t["group"]: t for t in (third_place_ranking or [])}
 
     def resolve_ref(ref):
-        if ref in group_slot_team:
-            return group_slot_team[ref]
-        m = re.match(r"^3([A-L]+)$", ref)
-        if m:
-            candidate_groups = list(m.group(1))
-            for g in candidate_groups:
-                t = third_by_group.get(g)
-                if t and t.get("advances") and t["group"] in candidate_groups:
-                    return t["team"]
-            return None
-        return None
+        return group_slot_team.get(ref)
 
     return resolve_ref
 
 
-def resolve_r32_match_pair(home_ref, away_ref, resolve_group_ref, team_ko_opponent):
-    """Resuelve los dos equipos de un cruce de dieciseisavos. Los refs
-    '1X'/'2X' siempre se resuelven con datos de grupos, sin ambigüedad.
-    Los refs '3XXXX' (mejor tercero) dependen de una tabla oficial de 495
-    combinaciones (Anexo C del reglamento FIFA) que NO reproducimos a
-    mano — en vez de adivinar (lo que puede asignar el mismo equipo a dos
-    cruces distintos), usamos el rival que la API ya tiene fijado para el
-    equipo conocido del otro lado del cruce, que es la fuente oficial."""
-    home_is_third = bool(re.match(r"^3[A-L]+$", home_ref))
-    away_is_third = bool(re.match(r"^3[A-L]+$", away_ref))
-    if not home_is_third and not away_is_third:
-        return resolve_group_ref(home_ref), resolve_group_ref(away_ref)
-    if away_is_third and not home_is_third:
-        home_team = resolve_group_ref(home_ref)
-        away_team = (team_ko_opponent or {}).get(home_team) if home_team else None
-        if not away_team:
-            away_team = resolve_group_ref(away_ref)  # respaldo si no hay API todavía
-        return home_team, away_team
-    if home_is_third and not away_is_third:
-        away_team = resolve_group_ref(away_ref)
-        home_team = (team_ko_opponent or {}).get(away_team) if away_team else None
-        if not home_team:
-            home_team = resolve_group_ref(home_ref)  # respaldo si no hay API todavía
-        return home_team, away_team
-    return resolve_group_ref(home_ref), resolve_group_ref(away_ref)
+def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_opponent):
+    """Resuelve los dos equipos de CADA cruce de dieciseisavos a la vez, en
+    vez de uno a uno, para poder garantizar que un mismo 'mejor tercero'
+    nunca queda asignado a dos partidos distintos. Prioridad:
+      1) el rival que la API ya tiene fijado para el lado conocido del
+         cruce (fuente oficial real, sin ambigüedad posible)
+      2) si la API todavía no lo tiene: heurística de respaldo que nunca
+         reutiliza un equipo ya asignado a otro cruce en este mismo
+         cálculo — no garantiza igualar la tabla oficial de 495
+         combinaciones (Anexo C), pero nunca duplica un equipo
+    Devuelve {num_partido: (home_team, away_team)}."""
+    third_by_group = {t["group"]: t for t in (third_place_ranking or [])}
+    resolution = {}
+    used_teams = set()
+    pending = []  # (num, known_team, known_is_home, third_ref)
+
+    for match_def in match_defs:
+        home_ref, away_ref = match_def["home"], match_def["away"]
+        home_is_third = bool(re.match(r"^3[A-L]+$", home_ref))
+        away_is_third = bool(re.match(r"^3[A-L]+$", away_ref))
+        if not home_is_third and not away_is_third:
+            home = resolve_group_ref(home_ref)
+            away = resolve_group_ref(away_ref)
+            resolution[match_def["num"]] = (home, away)
+            if home:
+                used_teams.add(home)
+            if away:
+                used_teams.add(away)
+            continue
+        if home_is_third and away_is_third:
+            # No ocurre en el bracket real de 2026, pero por seguridad no
+            # intentamos adivinar dos lados inciertos a la vez.
+            resolution[match_def["num"]] = (None, None)
+            continue
+        third_ref, known_ref, known_is_home = (
+            (home_ref, away_ref, False) if home_is_third else (away_ref, home_ref, True)
+        )
+        known_team = resolve_group_ref(known_ref)
+        if known_team:
+            used_teams.add(known_team)
+        opponent = (team_ko_opponent or {}).get(known_team) if known_team else None
+        if opponent:
+            used_teams.add(opponent)
+            resolution[match_def["num"]] = (known_team, opponent) if known_is_home else (opponent, known_team)
+        else:
+            pending.append((match_def["num"], known_team, known_is_home, third_ref))
+
+    # Respaldo sin API: recorre las letras candidatas de cada ref '3XXX' y
+    # coge el primer tercero clasificado que NO se haya usado ya en otro
+    # cruce de este mismo cálculo (evita duplicar, aunque puede no
+    # coincidir con la tabla oficial exacta si no hay API disponible).
+    for num, known_team, known_is_home, third_ref in pending:
+        m = re.match(r"^3([A-L]+)$", third_ref)
+        opponent = None
+        if m:
+            for g in m.group(1):
+                t = third_by_group.get(g)
+                if t and t.get("advances") and t["team"] not in used_teams:
+                    opponent = t["team"]
+                    break
+        if opponent:
+            used_teams.add(opponent)
+        resolution[num] = (known_team, opponent) if known_is_home else (opponent, known_team)
+
+    return resolution
+
+
+REF_TOKEN_RE = re.compile(r"\b([WL]\d+)\b")
+
+
+def locate_ko_rows_by_ref(ws, match_rows, match_defs):
+    """Ubica la fila real de cada partido de octavos/cuartos/semis
+    buscando los tokens W##/L## (p.ej. 'W74-W77') en la columna 11, en
+    vez de asumir que las filas están en el mismo orden que los números
+    de partido oficiales — no siempre es así en este Excel (comprobado:
+    ocurre en octavos, partidos 89/90)."""
+    row_tokens = {}
+    for r in match_rows:
+        cell_val = ws.cell(row=r, column=11).value
+        row_tokens[r] = set(REF_TOKEN_RE.findall(str(cell_val))) if cell_val else set()
+
+    resolved_map = {}
+    used_rows = set()
+    # Primera pasada: filas cuyo texto todavía tiene los DOS refs sin
+    # resolver a nombre de equipo (caso normal, coincidencia exacta).
+    for match_def in match_defs:
+        want = {match_def["home"], match_def["away"]}
+        for r in match_rows:
+            if r in used_rows or r not in row_tokens:
+                continue
+            if row_tokens[r] == want:
+                resolved_map[match_def["num"]] = r
+                used_rows.add(r)
+                break
+    # Segunda pasada: si un lado ya se resolvió a nombre de equipo, solo
+    # queda un token en la fila — sigue siendo identificable de forma
+    # única porque cada W##/L## solo aparece en un partido de la ronda.
+    for match_def in match_defs:
+        if match_def["num"] in resolved_map:
+            continue
+        want = {match_def["home"], match_def["away"]}
+        for r in match_rows:
+            if r in used_rows or r not in row_tokens:
+                continue
+            found = row_tokens[r]
+            if found and found.issubset(want):
+                resolved_map[match_def["num"]] = r
+                used_rows.add(r)
+                break
+    return resolved_map
 
 
 def read_ko_predictions(ws, player_columns, group_standings_real=None, third_place_ranking=None,
@@ -212,12 +287,11 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
             # fija.
             row_for_num = dict(zip((md["num"] for md in match_defs), match_rows))
             if round_name == "dieciseisavos":
+                r32_teams = resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_opponent)
                 resolved_map = {}
                 used_rows = set()
                 for match_def in match_defs:
-                    home, away = resolve_r32_match_pair(
-                        match_def["home"], match_def["away"], resolve_group_ref, team_ko_opponent
-                    )
+                    home, away = r32_teams.get(match_def["num"], (None, None))
                     if not home or not away:
                         continue
                     target = f"{home}-{away}"
@@ -237,6 +311,17 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
                         "dieciseisavos por texto (columna 11) — normalmente porque el ranking de mejores "
                         "terceros necesita la API oficial y aquí no está disponible. Los cruces con 'mejor "
                         "tercero' usan el orden posicional de respaldo hasta que haya API.",
+                        file=sys.stderr,
+                    )
+            else:
+                resolved_map = locate_ko_rows_by_ref(ws, match_rows, match_defs)
+                if resolved_map:
+                    row_for_num.update(resolved_map)
+                if len(resolved_map) < len(match_defs):
+                    print(
+                        f"AVISO: solo se pudieron ubicar {len(resolved_map)}/{len(match_defs)} filas de "
+                        f"{round_name} por sus referencias W##/L## (columna 11). Se usa el orden posicional "
+                        "de respaldo para el resto.",
                         file=sys.stderr,
                     )
 
@@ -367,6 +452,8 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
     def resolve_any_ref(ref):
         return resolve_ref(ref) or resolve_w_l_ref(ref)
 
+    resolve_any_ref_r32 = resolve_r32_all(ROUND_OF_32, resolve_ref, third_place_ranking, team_ko_opponent)
+
     rounds_output = {}
     eliminated_teams = set()  # equipos ya fuera del torneo, en cualquier ronda jugada
     team_advance_date = {}  # equipo -> fecha en la que aseguró su plaza en la ronda siguiente
@@ -376,7 +463,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         round_matches = []
         for m in match_defs:
             if round_name == "dieciseisavos":
-                home_team, away_team = resolve_r32_match_pair(m["home_ref"], m["away_ref"], resolve_ref, team_ko_opponent)
+                home_team, away_team = resolve_any_ref_r32.get(m["num"], (None, None))
             else:
                 home_team = resolve_any_ref(m["home_ref"])
                 away_team = resolve_any_ref(m["away_ref"])
