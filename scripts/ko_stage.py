@@ -156,7 +156,35 @@ def build_group_ref_resolver(group_standings_real, third_place_ranking):
     return resolve_ref
 
 
-def read_ko_predictions(ws, player_columns, group_standings_real=None, third_place_ranking=None):
+def resolve_r32_match_pair(home_ref, away_ref, resolve_group_ref, team_ko_opponent):
+    """Resuelve los dos equipos de un cruce de dieciseisavos. Los refs
+    '1X'/'2X' siempre se resuelven con datos de grupos, sin ambigüedad.
+    Los refs '3XXXX' (mejor tercero) dependen de una tabla oficial de 495
+    combinaciones (Anexo C del reglamento FIFA) que NO reproducimos a
+    mano — en vez de adivinar (lo que puede asignar el mismo equipo a dos
+    cruces distintos), usamos el rival que la API ya tiene fijado para el
+    equipo conocido del otro lado del cruce, que es la fuente oficial."""
+    home_is_third = bool(re.match(r"^3[A-L]+$", home_ref))
+    away_is_third = bool(re.match(r"^3[A-L]+$", away_ref))
+    if not home_is_third and not away_is_third:
+        return resolve_group_ref(home_ref), resolve_group_ref(away_ref)
+    if away_is_third and not home_is_third:
+        home_team = resolve_group_ref(home_ref)
+        away_team = (team_ko_opponent or {}).get(home_team) if home_team else None
+        if not away_team:
+            away_team = resolve_group_ref(away_ref)  # respaldo si no hay API todavía
+        return home_team, away_team
+    if home_is_third and not away_is_third:
+        away_team = resolve_group_ref(away_ref)
+        home_team = (team_ko_opponent or {}).get(away_team) if away_team else None
+        if not home_team:
+            home_team = resolve_group_ref(home_ref)  # respaldo si no hay API todavía
+        return home_team, away_team
+    return resolve_group_ref(home_ref), resolve_group_ref(away_ref)
+
+
+def read_ko_predictions(ws, player_columns, group_standings_real=None, third_place_ranking=None,
+                         team_ko_opponent=None):
     """Lee, para cada ronda, la lista de equipos que predijo cada jugador
     (uno por slot) y los enfrentamientos con su resultado real si lo hay."""
     rounds_data = {}
@@ -179,17 +207,17 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
 
             # El Excel NO lista las filas de dieciseisavos en el mismo orden
             # que los números de partido oficiales (73→88) — el orden real
-            # varía. Como en dieciseisavos ya se conocen los equipos (solo
-            # dependen de la fase de grupos, ya terminada), ubicamos la fila
-            # real de cada cruce por su texto exacto en la columna 11
-            # ("Home-Away"), en vez de asumir una posición fija.
+            # varía. Ubicamos la fila real de cada cruce por su texto exacto
+            # en la columna 11 ("Home-Away"), en vez de asumir una posición
+            # fija.
             row_for_num = dict(zip((md["num"] for md in match_defs), match_rows))
             if round_name == "dieciseisavos":
                 resolved_map = {}
                 used_rows = set()
                 for match_def in match_defs:
-                    home = resolve_group_ref(match_def["home"])
-                    away = resolve_group_ref(match_def["away"])
+                    home, away = resolve_r32_match_pair(
+                        match_def["home"], match_def["away"], resolve_group_ref, team_ko_opponent
+                    )
                     if not home or not away:
                         continue
                     target = f"{home}-{away}"
@@ -310,13 +338,13 @@ def resolve_ko_result(excel_actual, home, away, api_results, openfootball_result
 
 
 def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranking, group_positions,
-                      api_results=None, openfootball_results=None):
+                      api_results=None, openfootball_results=None, team_ko_opponent=None):
     """Construye el dataset completo de la fase eliminatoria, listo para
     volcar a data.js. Si no hay datos en el Excel todavía (fase de grupos
     sin terminar), devuelve la estructura vacía mostrando solo los
     cruces teóricos, sin resultados ni predicciones resueltas."""
     players = list(player_columns.keys())
-    raw = read_ko_predictions(ws, player_columns, group_standings_real, third_place_ranking)
+    raw = read_ko_predictions(ws, player_columns, group_standings_real, third_place_ranking, team_ko_opponent)
 
     # --- Paso 1: ¿qué equipo real ocupa cada referencia de grupo? ---
     # ('1A' -> equipo 1º del grupo A, '3CDFGH' -> el mejor tercero entre
@@ -347,8 +375,11 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         match_defs = raw[round_name].get("matches", [])
         round_matches = []
         for m in match_defs:
-            home_team = resolve_any_ref(m["home_ref"])
-            away_team = resolve_any_ref(m["away_ref"])
+            if round_name == "dieciseisavos":
+                home_team, away_team = resolve_r32_match_pair(m["home_ref"], m["away_ref"], resolve_ref, team_ko_opponent)
+            else:
+                home_team = resolve_any_ref(m["home_ref"])
+                away_team = resolve_any_ref(m["away_ref"])
             actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results)
             match_date = KO_MATCH_DATES.get(m["num"])
 
