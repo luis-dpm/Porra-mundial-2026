@@ -375,6 +375,8 @@ main {
 }
 .jornada-pill:hover { color: var(--chalk); border-color: var(--gold); }
 .jornada-pill.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+.jornada-pill.ko-pill { border-style: dashed; }
+.jornada-pill.ko-pill.active { border-style: solid; }
 
 .match-card {
   background: var(--panel);
@@ -984,6 +986,7 @@ main {
 }
 .ko-qual-chip.pending { background: rgba(244,241,232,0.04); color: var(--chalk-dim); }
 .ko-qual-chip.alive { background: rgba(79,174,126,0.14); border-color: rgba(79,174,126,0.3); color: #6FCB9C; }
+.ko-qual-chip.hit { background: rgba(212,162,60,0.18); border-color: rgba(212,162,60,0.4); color: var(--gold-bright); font-weight: 700; }
 .ko-qual-chip.miss { background: rgba(196,69,54,0.12); border-color: rgba(196,69,54,0.3); color: #E8746A; text-decoration: line-through; }
 
 .ko-legend {
@@ -999,6 +1002,7 @@ main {
 .ko-dot.hit-diff { background: #6FCB9C; }
 .ko-dot.hit-sign { background: var(--player-2); }
 .ko-dot.alive { background: rgba(79,174,126,0.5); }
+.ko-dot.hit { background: var(--gold-bright); }
 .ko-dot.miss { background: var(--rust); }
 
 @media (max-width: 640px) {
@@ -1156,6 +1160,19 @@ main {
   }
   .sb-col-name { font-size: 11px; }
 }
+
+.sb-general-list, .round-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+}
+.sb-general-list .sb-col-row, .round-breakdown-list .sb-col-row { padding: 8px 4px; }
+.sb-general-list .sb-col-name, .round-breakdown-list .sb-col-name { font-size: 14px; }
+.sb-general-list .sb-col-pts, .round-breakdown-list .sb-col-pts { font-size: 16px; }
 
 /* ============ KNOCKOUT LIST VIEW (mÃ³vil) ============ */
 .ko-list-view {
