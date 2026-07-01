@@ -65,21 +65,42 @@ def sign_from_score(h, a):
     return "1" if h > a else ("X" if h == a else "2")
 
 
-# Puntos por ronda según el Excel (columna 4 de las reglas)
+# Puntos por ronda según el Excel (columna 4 de las reglas) — actualizado 01/07/2026
 KO_ROUND_POINTS = {
-    "dieciseisavos": {"sign": 2, "diff": 2, "exact": 4},
+    "dieciseisavos": {"sign": 4, "diff": 4, "exact": 8},
     "octavos":       {"sign": 0, "diff": 0, "exact": 0},  # solo cuenta equipo clasificado
     "cuartos":       {"sign": 0, "diff": 0, "exact": 0},
     "semis":         {"sign": 0, "diff": 0, "exact": 0},
     "final":         {"sign": 0, "diff": 0, "exact": 0},
 }
 KO_QUALIFIER_POINTS = {
-    "octavos":       3,   # equipo clasificado para octavos
-    "cuartos":       6,   # equipo clasificado para cuartos
-    "semis":         12,  # equipo clasificado para semis
-    "tercer_puesto": 12,  # equipo clasificado para 3º/4º
-    "final":         12,  # equipo clasificado para final (mismo que semis)
+    "octavos":       6,   # equipo clasificado para octavos
+    "cuartos":       12,  # equipo clasificado para cuartos
+    "semis":         24,  # equipo clasificado para semis
+    "tercer_puesto": 24,  # equipo clasificado para 3º/4º puesto
+    "final":         48,  # equipo clasificado para la final
 }
+
+# Calendario oficial FIFA por número de partido (fijo, independiente de qué
+# equipos jueguen cada cruce). Fuente: calendario oficial Mundial 2026.
+KO_MATCH_DATES = {
+    73: "2026-06-28",
+    74: "2026-06-29", 75: "2026-06-29", 76: "2026-06-29",
+    77: "2026-06-30", 78: "2026-06-30", 79: "2026-06-30",
+    80: "2026-07-01", 81: "2026-07-01", 82: "2026-07-01",
+    83: "2026-07-02", 84: "2026-07-02", 85: "2026-07-02",
+    86: "2026-07-03", 87: "2026-07-03", 88: "2026-07-03",
+    89: "2026-07-04", 90: "2026-07-04",
+    91: "2026-07-05", 92: "2026-07-05",
+    93: "2026-07-06", 94: "2026-07-06",
+    95: "2026-07-07", 96: "2026-07-07",
+    97: "2026-07-09",
+    98: "2026-07-10",
+    99: "2026-07-11", 100: "2026-07-11",
+    101: "2026-07-14",
+    102: "2026-07-15",
+}
+KO_SPECIAL_DATES = {"tercer_puesto": "2026-07-18", "final": "2026-07-19"}
 
 def score_match(pred_str, actual_str, round_name="dieciseisavos"):
     """Puntúa un partido según la ronda. En 1/16: signo 2pts, diferencia 2pts, exacto 4pts."""
@@ -253,6 +274,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
 
     rounds_output = {}
     eliminated_teams = set()  # equipos ya fuera del torneo, en cualquier ronda jugada
+    team_advance_date = {}  # equipo -> fecha en la que aseguró su plaza en la ronda siguiente
 
     for round_name in ["dieciseisavos", "octavos", "cuartos", "semis"]:
         match_defs = raw[round_name].get("matches", [])
@@ -261,6 +283,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
             home_team = resolve_any_ref(m["home_ref"])
             away_team = resolve_any_ref(m["away_ref"])
             actual = m["excel_actual"]
+            match_date = KO_MATCH_DATES.get(m["num"])
 
             breakdown = None
             if actual:
@@ -280,6 +303,13 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                 # En un Mundial KO no hay empate final (hay penaltis), pero
                 # si el Excel registrara 'X' por penaltis sin decidir aún,
                 # no resolvemos el ganador.
+                if match_date:
+                    winner_team = winners.get(str(m["num"]))
+                    loser_team = losers.get(str(m["num"]))
+                    if winner_team:
+                        team_advance_date[winner_team] = match_date
+                    if round_name == "semis" and loser_team:
+                        team_advance_date[loser_team] = match_date  # va a 3º/4º puesto
 
             round_matches.append({
                 "num": m["num"],
@@ -288,6 +318,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                 "home_team": home_team,
                 "away_team": away_team,
                 "actual": actual,
+                "date": match_date,
                 "breakdown": breakdown,
                 "predictions": m["predictions"],
             })
@@ -313,7 +344,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         rounds_output[key] = {"matches": [{
             "num": m["num"], "home_ref": m["home_ref"], "away_ref": m["away_ref"],
             "home_team": home_team, "away_team": away_team,
-            "actual": actual, "breakdown": None, "predictions": m["predictions"],
+            "actual": actual, "date": KO_SPECIAL_DATES.get(key), "breakdown": None, "predictions": m["predictions"],
         }]}
 
     # --- Paso 3: para cada ronda y cada jugador, ¿qué equipo predijo en
@@ -337,6 +368,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
 
     qualifiers_output = {}
     qualifier_pts = {p: 0 for p in players}  # puntos totales por equipos clasificados
+    qualifier_pts_by_round = {r: {p: 0 for p in players} for r in ROUND_NAMES + ["tercer_puesto"]}
 
     for round_name in ROUND_NAMES + ["tercer_puesto"]:
         slots = raw[round_name]["qualifiers"]
@@ -357,10 +389,14 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                     status = "clasificado"
                     pts = q_pts
                     qualifier_pts[p] += q_pts
+                    qualifier_pts_by_round[round_name][p] += q_pts
                 else:
                     status = "vivo"
                     pts = 0
-                row["predictions"][p] = {"team": team, "status": status, "pts": pts}
+                row["predictions"][p] = {
+                    "team": team, "status": status, "pts": pts,
+                    "date": team_advance_date.get(team) if status == "clasificado" else None,
+                }
             slot_rows.append(row)
         qualifiers_output[round_name] = slot_rows
 
@@ -382,4 +418,5 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         "winners_by_match": dict(winners),
         "losers_by_match": dict(losers),
         "qualifier_pts": qualifier_pts,
+        "qualifier_pts_by_round": qualifier_pts_by_round,
     }
