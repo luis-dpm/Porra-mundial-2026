@@ -100,4 +100,6 @@ EXCEL_ROWS = {
     "champion": 250,
     "runner_up": 251,
     "third_place_winner": 252,
+    "top_scorer": 253,   # Bota de Oro (máximo goleador)
+    "best_player": 256,  # Balón de Oro (mejor jugador)
 }
