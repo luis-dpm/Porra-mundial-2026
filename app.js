@@ -84,8 +84,14 @@ function renderScoreboard() {
   const el = document.getElementById('scoreboard');
   el.innerHTML = `<div class="sb-general-list">${sbListHTML(rankedRows('general'))}</div>`;
 
-  document.getElementById('matchesPlayedCount').textContent =
-    D.matches.filter(m => m.actual).length;
+  const groupPlayed = D.matches.filter(m => m.actual).length;
+  let koPlayed = 0;
+  if (D.ko_stage && D.ko_stage.rounds) {
+    Object.values(D.ko_stage.rounds).forEach(r => {
+      koPlayed += (r.matches || []).filter(m => m.actual).length;
+    });
+  }
+  document.getElementById('matchesPlayedCount').textContent = groupPlayed + koPlayed;
 
   renderRoundBreakdownSelector();
 }
