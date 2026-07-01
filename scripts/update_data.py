@@ -416,15 +416,21 @@ def fetch_real_results(api_key):
         results[(home_es, away_es)] = (hg, ag)
         results[(away_es, home_es)] = (ag, hg)
 
-        # En fase KO un empate a 90'/prórroga se decide por penaltis — el
-        # marcador de "resultado" (para acertar signo/diferencia/exacto)
-        # sigue siendo el de 90', pero quién avanza de ronda lo marca la
-        # tanda. football-data.org trae esto en score.winner / score.penalties.
-        if hg == ag:
-            score_obj = m.get("score") or {}
-            winner_field = score_obj.get("winner")
-            pens = score_obj.get("penalties") or {}
-            hp, ap = pens.get("home"), pens.get("away")
+        # En fase KO, si el partido se decidió por penaltis, football-data.org
+        # lo marca con score.duration == 'PENALTY_SHOOTOUT' (o trae
+        # score.penalties/score.winner) — lo comprobamos siempre, sin
+        # exigir que fullTime venga empatado, porque para partidos de
+        # penaltis ese campo no es fiable en esta competición. El
+        # marcador de 120' que puntúa predicciones sigue viniendo del
+        # Excel (ver resolve_ko_result); esto es solo para saber quién
+        # avanza de ronda.
+        score_obj = m.get("score") or {}
+        duration = str(score_obj.get("duration") or "").upper()
+        winner_field = score_obj.get("winner")
+        pens = score_obj.get("penalties") or {}
+        hp, ap = pens.get("home"), pens.get("away")
+        went_to_penalties = duration == "PENALTY_SHOOTOUT" or (hp is not None and ap is not None)
+        if went_to_penalties:
             pen_winner_es = None
             if winner_field == "HOME_TEAM":
                 pen_winner_es = home_es
