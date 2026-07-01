@@ -349,6 +349,7 @@ def fetch_real_results(api_key):
     unmapped = []
     schedule_unmapped = []
     KO_STAGE_START = "2026-06-28"  # primer partido de dieciseisavos
+    KO_STAGE_END = "2026-07-03"    # último partido de dieciseisavos (antes de octavos)
 
     for m in data.get("matches", []):
         home_en = (m.get("homeTeam") or {}).get("name")
@@ -388,7 +389,11 @@ def fetch_real_results(api_key):
         # combinaciones de "mejor tercero" (Anexo C del reglamento FIFA) a
         # mano, con riesgo de error, usamos directamente el rival que la
         # API ya tiene asignado — es la fuente más fiable posible.
-        if spain_date and spain_date >= KO_STAGE_START:
+        # OJO: acotado solo a la ventana de fechas de dieciseisavos, porque
+        # un equipo que ya avanzó tiene también su partido de OCTAVOS
+        # programado con fecha posterior, y si no distinguimos, el rival de
+        # octavos pisa (sobrescribe) al rival real de dieciseisavos.
+        if spain_date and KO_STAGE_START <= spain_date <= KO_STAGE_END:
             team_ko_opponent[home_es] = away_es
             team_ko_opponent[away_es] = home_es
 
