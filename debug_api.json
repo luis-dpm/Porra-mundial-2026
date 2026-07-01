@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T01:00:56.416260Z",
+  "generated_at": "2026-07-01T01:30:49.271122Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -957,7 +957,7 @@
     {
       "home_api": "Mexico",
       "away_api": "Ecuador",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-01T01:00:00Z"
     },
     {
