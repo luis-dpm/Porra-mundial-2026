@@ -17,6 +17,7 @@ Calcula:
     para esa ronda llega realmente a jugarla.
 """
 import re
+import sys
 from collections import defaultdict
 
 from bracket_structure import (
@@ -128,10 +129,38 @@ def score_match(pred_str, actual_str, round_name="dieciseisavos"):
     return {"pts": pts, "sign": sign_ok, "diff": diff_ok, "exact": exact_ok}
 
 
-def read_ko_predictions(ws, player_columns):
+def build_group_ref_resolver(group_standings_real, third_place_ranking):
+    """Devuelve una función resolve_ref(ref) que convierte '2A', '3CDFGH',
+    etc. en el nombre real del equipo, usando solo datos de fase de grupos
+    (no necesita saber resultados de la fase KO todavía)."""
+    group_slot_team = {}
+    for g, rows in (group_standings_real or {}).items():
+        for r in rows:
+            if r.get("position") in (1, 2):
+                group_slot_team[f"{r['position']}{g}"] = r["team"]
+    third_by_group = {t["group"]: t for t in (third_place_ranking or [])}
+
+    def resolve_ref(ref):
+        if ref in group_slot_team:
+            return group_slot_team[ref]
+        m = re.match(r"^3([A-L]+)$", ref)
+        if m:
+            candidate_groups = list(m.group(1))
+            for g in candidate_groups:
+                t = third_by_group.get(g)
+                if t and t.get("advances") and t["group"] in candidate_groups:
+                    return t["team"]
+            return None
+        return None
+
+    return resolve_ref
+
+
+def read_ko_predictions(ws, player_columns, group_standings_real=None, third_place_ranking=None):
     """Lee, para cada ronda, la lista de equipos que predijo cada jugador
     (uno por slot) y los enfrentamientos con su resultado real si lo hay."""
     rounds_data = {}
+    resolve_group_ref = build_group_ref_resolver(group_standings_real, third_place_ranking)
 
     for round_name in ROUND_NAMES:
         qualifier_rows = EXCEL_ROWS[QUALIFIER_ROW_KEYS[round_name]]
@@ -147,8 +176,45 @@ def read_ko_predictions(ws, player_columns):
         if round_name in MATCH_ROW_KEYS:
             match_rows = EXCEL_ROWS[MATCH_ROW_KEYS[round_name]]
             match_defs = MATCH_LISTS[round_name]
+
+            # El Excel NO lista las filas de dieciseisavos en el mismo orden
+            # que los números de partido oficiales (73→88) — el orden real
+            # varía. Como en dieciseisavos ya se conocen los equipos (solo
+            # dependen de la fase de grupos, ya terminada), ubicamos la fila
+            # real de cada cruce por su texto exacto en la columna 11
+            # ("Home-Away"), en vez de asumir una posición fija.
+            row_for_num = dict(zip((md["num"] for md in match_defs), match_rows))
+            if round_name == "dieciseisavos":
+                resolved_map = {}
+                used_rows = set()
+                for match_def in match_defs:
+                    home = resolve_group_ref(match_def["home"])
+                    away = resolve_group_ref(match_def["away"])
+                    if not home or not away:
+                        continue
+                    target = f"{home}-{away}"
+                    for r in match_rows:
+                        if r in used_rows:
+                            continue
+                        cell_val = ws.cell(row=r, column=11).value
+                        if cell_val and str(cell_val).strip() == target:
+                            resolved_map[match_def["num"]] = r
+                            used_rows.add(r)
+                            break
+                if resolved_map:
+                    row_for_num.update(resolved_map)
+                if len(resolved_map) < len(match_defs):
+                    print(
+                        f"AVISO: solo se pudieron ubicar {len(resolved_map)}/{len(match_defs)} filas de "
+                        "dieciseisavos por texto (columna 11) — normalmente porque el ranking de mejores "
+                        "terceros necesita la API oficial y aquí no está disponible. Los cruces con 'mejor "
+                        "tercero' usan el orden posicional de respaldo hasta que haya API.",
+                        file=sys.stderr,
+                    )
+
             matches = []
-            for match_def, row_idx in zip(match_defs, match_rows):
+            for match_def in match_defs:
+                row_idx = row_for_num[match_def["num"]]
                 # El resultado real en dieciseisavos usa columna 12 (signo: 1/X/2)
                 # y columna 13 (marcador: "goles-goles"), a diferencia de grupos
                 # que usa col 13 con formato completo "signo|goles-goles".
@@ -250,35 +316,12 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
     sin terminar), devuelve la estructura vacía mostrando solo los
     cruces teóricos, sin resultados ni predicciones resueltas."""
     players = list(player_columns.keys())
-    raw = read_ko_predictions(ws, player_columns)
+    raw = read_ko_predictions(ws, player_columns, group_standings_real, third_place_ranking)
 
     # --- Paso 1: ¿qué equipo real ocupa cada referencia de grupo? ---
     # ('1A' -> equipo 1º del grupo A, '3CDFGH' -> el mejor tercero entre
     # esos grupos si está entre los 8 que clasifican, etc.)
-    group_slot_team = {}
-    for g, rows in (group_standings_real or {}).items():
-        for r in rows:
-            if r.get("position") in (1, 2):
-                group_slot_team[f"{r['position']}{g}"] = r["team"]
-
-    third_by_group = {t["group"]: t for t in (third_place_ranking or [])}
-
-    def resolve_ref(ref):
-        """Convierte una referencia tipo '2A', '3CDFGH' o 'W73' en el
-        nombre del equipo real, si ya se conoce; si no, devuelve None."""
-        if ref in group_slot_team:
-            return group_slot_team[ref]
-        m = re.match(r"^3([A-L]+)$", ref)
-        if m:
-            candidate_groups = list(m.group(1))
-            for g in candidate_groups:
-                t = third_by_group.get(g)
-                if t and t.get("advances") and t["group"] in candidate_groups:
-                    return t["team"]
-            return None
-        # 'W73' / 'L101' se resuelven más adelante, una vez sabemos el
-        # resultado de esos partidos concretos (se hace en el paso 2).
-        return None
+    resolve_ref = build_group_ref_resolver(group_standings_real, third_place_ranking)
 
     # --- Paso 2: resolver resultados reales ronda a ronda, propagando
     # ganadores hacia la siguiente ronda (W<num> / L<num>) ---
