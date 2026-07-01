@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T20:00:54.816423Z",
+  "generated_at": "2026-07-01T20:30:46.787325Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1119,7 +1119,7 @@
     {
       "home_api": "Belgium",
       "away_api": "Senegal",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-01T20:00:00Z"
     },
     {
