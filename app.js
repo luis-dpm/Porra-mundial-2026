@@ -4,7 +4,7 @@ const PLAYERS = D.players;
 
 // Paleta fija por posición en la lista de jugadores (no por nombre), para que
 // siga funcionando aunque alguien cambie su nombre en el Excel.
-const COLOR_PALETTE = ['#D4A23C', '#6FA8DC', '#C44536', '#8B7BC4', '#4FAE7E', '#D67BB0', '#E8915C', '#5AC8C8', '#B0905A'];
+const COLOR_PALETTE = ['#BE7F1E', '#3676B0', '#C0392B', '#7455C4', '#2E9A63', '#BD4C8E', '#D2711E', '#2E8F8F', '#8A6A3A'];
 const DASH_PALETTE = [[], [6,3], [2,2], [6,3,2,3], [2,2,6,2], [4,4], [1,1], [3,1,1,1], [5,2,1,2]];
 
 const PLAYER_COLORS = {};
@@ -31,12 +31,34 @@ function fmtDateLong(iso) {
 let chartsRendered = false;
 let chartInstances = [];
 
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const mainTabs = document.getElementById('mainTabs');
+const navScrim = document.getElementById('navScrim');
+
+function closeNav() {
+  mainTabs.classList.remove('open');
+  navScrim.classList.remove('open');
+  hamburgerBtn.setAttribute('aria-expanded', 'false');
+}
+function openNav() {
+  mainTabs.classList.add('open');
+  navScrim.classList.add('open');
+  hamburgerBtn.setAttribute('aria-expanded', 'true');
+}
+hamburgerBtn.addEventListener('click', () => {
+  if (mainTabs.classList.contains('open')) closeNav();
+  else openNav();
+});
+navScrim.addEventListener('click', closeNav);
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+    closeNav();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (btn.dataset.tab === 'graficos') {
       if (!chartsRendered) {
@@ -206,8 +228,8 @@ function renderPositionChart() {
   let gridLines = '';
   for (let pos = 1; pos <= n; pos++) {
     const y = yFor(pos);
-    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(244,241,232,0.07)" stroke-width="1"/>`;
-    gridLines += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#C9D4C7" font-family="Space Mono, monospace">${pos}</text>`;
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(59,46,31,0.1)" stroke-width="1"/>`;
+    gridLines += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#7C6B4E" font-family="Space Mono, monospace">${pos}</text>`;
   }
 
   // Etiquetas de fecha en el eje X (todas si caben pocas, si no cada 2)
@@ -216,7 +238,7 @@ function renderPositionChart() {
   dates.forEach((d, i) => {
     if (i % step !== 0 && i !== dates.length - 1) return;
     const x = xFor(i);
-    xLabels += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="#C9D4C7" font-family="Inter, sans-serif">${fmtDate(d)}</text>`;
+    xLabels += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="#7C6B4E" font-family="Inter, sans-serif">${fmtDate(d)}</text>`;
   });
 
   // Una polilínea + puntos por jugador
@@ -245,7 +267,7 @@ function renderPositionChart() {
       ${gridLines}
       ${xLabels}
       ${seriesSvg}
-      <text x="${padL - 28}" y="${padT}" font-size="10" fill="#C9D4C7" font-family="Inter, sans-serif" transform="rotate(-90 ${padL-28} ${padT})" text-anchor="end"></text>
+      <text x="${padL - 28}" y="${padT}" font-size="10" fill="#7C6B4E" font-family="Inter, sans-serif" transform="rotate(-90 ${padL-28} ${padT})" text-anchor="end"></text>
     </svg>
   `;
 }
@@ -253,9 +275,9 @@ function renderPositionChart() {
 function renderCharts() {
   const labels = D.dates.map(fmtDate);
 
-  Chart.defaults.color = '#C9D4C7';
+  Chart.defaults.color = '#7C6B4E';
   Chart.defaults.font.family = "'Inter', sans-serif";
-  Chart.defaults.borderColor = 'rgba(244,241,232,0.08)';
+  Chart.defaults.borderColor = 'rgba(59,46,31,0.1)';
 
   const c1 = new Chart(document.getElementById('dailyChart'), {
     type: 'bar',
@@ -264,7 +286,7 @@ function renderCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Puntos del día', color: '#C9D4C7' }, ticks: { stepSize: 2 } },
+        y: { beginAtZero: true, title: { display: true, text: 'Puntos del día', color: '#7C6B4E' }, ticks: { stepSize: 2 } },
         x: { grid: { display: false } }
       }
     }
@@ -283,7 +305,7 @@ function renderCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Puntos totales acumulados', color: '#C9D4C7' } },
+        y: { beginAtZero: true, title: { display: true, text: 'Puntos totales acumulados', color: '#7C6B4E' } },
         x: { grid: { display: false } }
       }
     }
@@ -318,12 +340,14 @@ function koPendingMatches(roundName) {
 
 function renderJornadaSelector() {
   const el = document.getElementById('jornadaSelector');
-  const dayPills = D.dates.map((d, i) =>
-    `<button class="jornada-pill ${i === D.dates.length-1 ? 'active' : ''}" data-kind="date" data-date="${d}">${fmtDateLong(d)}</button>`
-  );
   const koRounds = KO_ROUND_ORDER.filter(r => koPlayedMatches(r).length > 0);
+  const lastKoRound = koRounds.length ? koRounds[koRounds.length - 1] : null;
+
+  const dayPills = D.dates.map((d, i) =>
+    `<button class="jornada-pill ${!lastKoRound && i === D.dates.length-1 ? 'active' : ''}" data-kind="date" data-date="${d}">${fmtDateLong(d)}</button>`
+  );
   const koPills = koRounds.map(r =>
-    `<button class="jornada-pill ko-pill" data-kind="ko" data-round="${r}">${KO_ROUND_PILL_LABELS[r]}</button>`
+    `<button class="jornada-pill ko-pill ${r === lastKoRound ? 'active' : ''}" data-kind="ko" data-round="${r}">${KO_ROUND_PILL_LABELS[r]}</button>`
   );
   el.innerHTML = dayPills.join('') + koPills.join('');
 
@@ -336,7 +360,8 @@ function renderJornadaSelector() {
     });
   });
 
-  renderJornadaContent(D.dates[D.dates.length-1]);
+  if (lastKoRound) renderJornadaContentKo(lastKoRound);
+  else renderJornadaContent(D.dates[D.dates.length-1]);
 }
 
 // Tarjeta de partido reutilizable (fase de grupos y dieciseisavos, que sí
@@ -903,19 +928,12 @@ function renderBracketHalf(ko, side, mode, player) {
             </div>
           `;
         }
-        const home = koTeamLabel(m.home_team);
-        const away = koTeamLabel(m.away_team);
-        const homeLost = m.home_team && ko.eliminated_teams.includes(m.home_team);
-        const awayLost = m.away_team && ko.eliminated_teams.includes(m.away_team);
-        return `
-          <div class="ko-card-slot">
-            <div class="ko-real-card compact">
-              <div class="ko-real-team ${homeLost ? 'lost' : ''}">${home}</div>
-              <span class="ko-pending">vs</span>
-              <div class="ko-real-team ${awayLost ? 'lost' : ''}">${away}</div>
-            </div>
-          </div>
-        `;
+        // De octavos en adelante, en modo jugador no hay "partido"
+        // predicho como tal (el jugador predijo equipos por slot, no por
+        // cruce) — dejamos el hueco vacío aquí; la franja de "clasificados
+        // predichos" (renderQualifiersStrip, debajo del árbol) es la que
+        // importa para puntos.
+        return `<div class="ko-card-slot empty"></div>`;
       }
     }).join('');
 
@@ -943,7 +961,8 @@ function renderQualifiersStrip(ko, player) {
               return `<span class="ko-qual-chip pending">—</span>`;
             }
             const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'clasificado' ? 'hit' : (pred.status === 'vivo' ? 'alive' : 'pending'));
-            return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
+            const ptsTag = pred.status === 'clasificado' && pred.pts ? ` +${pred.pts}` : '';
+            return `<span class="ko-qual-chip ${cls}">${pred.team}${ptsTag}</span>`;
           }).join('')}
         </div>
       </div>
@@ -1022,7 +1041,8 @@ function renderKoListView(ko, mode, player) {
   const sections = ROUND_ORDER.map(roundName => {
     const matches = (ko.rounds[roundName] && ko.rounds[roundName].matches) || [];
     if (!matches.length) return '';
-    const cards = matches.map(m => {
+    const showFixtureCards = mode === 'real' || roundName === 'dieciseisavos';
+    const cards = !showFixtureCards ? '' : matches.map(m => {
       const home = m.home_team || '?';
       const away = m.away_team || '?';
       const hasResult = !!m.actual;
@@ -1085,12 +1105,14 @@ function renderKoListView(ko, mode, player) {
       const qualRound = QUAL_MAP[roundName];
       const slots = qualRound && ko.qualifiers && ko.qualifiers[qualRound] || [];
       if (slots.length) {
-        qualHtml = `<div class="kol-qual-row"><span class="kol-qual-label">Predichos →</span>${
+        const qualLabel = showFixtureCards ? 'Predichos →' : `Equipos clasificados para ${KO_ROUND_PILL_LABELS[qualRound] || qualRound}`;
+        qualHtml = `<div class="kol-qual-row"><span class="kol-qual-label">${qualLabel}</span>${
           slots.map(slot => {
             const pred = slot.predictions && slot.predictions[player];
             if (!pred || !pred.team) return '<span class="ko-qual-chip pending">—</span>';
             const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'clasificado' ? 'hit' : (pred.status === 'vivo' ? 'alive' : 'pending'));
-            return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
+            const ptsTag = pred.status === 'clasificado' && pred.pts ? ` +${pred.pts}` : '';
+            return `<span class="ko-qual-chip ${cls}">${pred.team}${ptsTag}</span>`;
           }).join('')
         }</div>`;
       }
@@ -1132,6 +1154,28 @@ function renderKoListView(ko, mode, player) {
   }
 
   return `<div class="ko-list-view">${sections}${finalHtml}</div>`;
+}
+
+function renderHonorBoard() {
+  const el = document.getElementById('honorBoard');
+  const fp = D.final_predictions;
+  if (!fp) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="honor-board">
+      ${PLAYERS.map(p => {
+        const row = fp[p] || {};
+        return `
+          <div class="honor-card" style="border-color:${PLAYER_COLORS[p]}55">
+            <div class="honor-player" style="color:${PLAYER_COLORS[p]}">${p}</div>
+            <div class="honor-items">
+              <div class="honor-item"><span class="honor-icon">🏆</span><span class="honor-label">Campeón</span><span class="honor-value">${row.campeon || '—'}</span></div>
+              <div class="honor-item"><span class="honor-icon">👟</span><span class="honor-label">Bota de Oro</span><span class="honor-value">${row.bota_oro || '—'}</span></div>
+              <div class="honor-item"><span class="honor-icon">⚽</span><span class="honor-label">Balón de Oro</span><span class="honor-value">${row.balon_oro || '—'}</span></div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
 }
 
 function renderKoRealBracket() {
@@ -1233,5 +1277,6 @@ renderGroupPlayerSelector();
 renderGroupsGrid();
 renderThirdPlaceTable();
 renderKoRealBracket();
+renderHonorBoard();
 renderKoPlayerSelector();
 renderKoPlayerBracket();
