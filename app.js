@@ -409,7 +409,7 @@ function renderJornadaContentKo(roundName) {
   el.innerHTML = matches.map(m => {
     const home = m.home_team || koRefLabel(m.home_ref);
     const away = m.away_team || koRefLabel(m.away_ref);
-    const [, actualScore] = m.actual.split('|');
+    const actualScore = formatKoScore(m);
     if (roundName === 'dieciseisavos' && m.breakdown) {
       return scoredMatchCardHTML(tag, home, away, actualScore, m.predictions, m.breakdown);
     }
@@ -797,6 +797,13 @@ function koTeamLabel(team) {
 // Traduce una referencia de bracket ('2A', '1E', '3ABCDF', 'W73'...) a un
 // texto legible que explica de dónde sale ese equipo (p.ej. "2º Grupo A",
 // "Mejor 3º (varios grupos)", "Ganador P73").
+// Marcador de un partido KO, con la tanda de penaltis si el 90' quedó
+// empatado y ya se sabe quién ganó la tanda.
+function formatKoScore(m) {
+  const score = (m.actual || '').split('|')[1] || '';
+  return m.penalties ? `${score} (pen. ${m.penalties})` : score;
+}
+
 function koRefLabel(ref) {
   if (!ref) return '';
   let m = ref.match(/^([123])([A-L])$/);
@@ -845,7 +852,7 @@ function renderBracketHalf(ko, side, mode, player) {
         const hasResult = !!m.actual;
         let resultHtml = '<span class="ko-pending">vs</span>';
         if (hasResult) {
-          const [, score] = m.actual.split('|');
+          const score = formatKoScore(m);
           resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
         }
         const homeLost = hasResult && m.home_team && ko.eliminated_teams.includes(m.home_team);
@@ -951,7 +958,7 @@ function renderFinalCenter(ko, mode, player) {
   const hasResult = !!fm.actual;
   let resultHtml = '<span class="ko-pending">vs</span>';
   if (hasResult) {
-    const [, score] = fm.actual.split('|');
+    const score = formatKoScore(fm);
     resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
   }
   const homeLost = hasResult && fm.home_team && ko.eliminated_teams.includes(fm.home_team);
@@ -1018,7 +1025,7 @@ function renderKoListView(ko, mode, player) {
 
       let scoreHtml = '<span class="kol-vs">vs</span>';
       if (hasResult) {
-        const score = m.actual.split('|')[1] || '';
+        const score = formatKoScore(m);
         scoreHtml = `<span class="kol-score">${score.replace('-', ' – ')}</span>`;
       }
 
@@ -1100,7 +1107,7 @@ function renderKoListView(ko, mode, player) {
     const fHasResult = !!finalMatch.actual;
     const fHomeLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.home_team);
     const fAwayLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.away_team);
-    const fScore = fHasResult ? `<span class="kol-score">${finalMatch.actual.split('|')[1].replace('-',' – ')}</span>` : '<span class="kol-vs">vs</span>';
+    const fScore = fHasResult ? `<span class="kol-score">${formatKoScore(finalMatch).replace('-',' – ')}</span>` : '<span class="kol-vs">vs</span>';
     // honor
     const honor = ko.honor || {};
     const honorHtml = honor.champion ? `<div class="kol-honor">🥇 ${honor.champion}${honor.runner_up ? ' · 🥈 '+honor.runner_up : ''}${honor.third_place ? ' · 🥉 '+honor.third_place : ''}</div>` : '';
