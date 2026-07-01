@@ -631,6 +631,25 @@ def build_dataset(api_key):
     using_official_standings = bool(group_standings_api)
     group_standings_real = group_standings_api if using_official_standings else group_standings_local
 
+    if not third_place_ranking:
+        # Respaldo local del ranking de terceros (mismo criterio pts/gd/gf,
+        # sin fair play ni enfrentamiento directo) para que los cruces de
+        # dieciseisavos con "mejor tercero" también se puedan ubicar sin
+        # clave de API. Puede diferir del oficial en empates ajustados.
+        local_thirds = []
+        for g, rows in group_standings_local.items():
+            third = next((r for r in rows if r["position"] == 3), None)
+            if third:
+                local_thirds.append({**third, "group": g})
+        local_thirds.sort(key=lambda r: (-r["pts"], -r["gd"], -r["gf"]))
+        for i, t in enumerate(local_thirds):
+            t["ranking"] = i + 1
+            t["advances"] = i < 8
+        third_place_ranking = local_thirds
+        if local_thirds:
+            print("AVISO: ranking de terceros calculado LOCAL (sin fair play/enfrentamiento directo); "
+                  "puede diferir del oficial en empates muy ajustados.", file=sys.stderr)
+
     if using_official_standings:
         print("INFO: usando clasificación OFICIAL de la API (criterios FIFA completos).", file=sys.stderr)
     else:
