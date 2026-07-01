@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T18:00:51.999563Z",
+  "generated_at": "2026-07-01T18:30:44.787947Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -627,6 +627,12 @@
       "away_api": "Ecuador",
       "score": "2-0",
       "utcDate": "2026-07-01T01:00:00Z"
+    },
+    {
+      "home_api": "England",
+      "away_api": "Congo DR",
+      "score": "2-1",
+      "utcDate": "2026-07-01T16:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1107,7 +1113,7 @@
     {
       "home_api": "England",
       "away_api": "Congo DR",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-01T16:00:00Z"
     },
     {
