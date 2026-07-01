@@ -423,7 +423,8 @@ def resolve_ko_result(excel_actual, home, away, api_results, openfootball_result
 
 
 def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranking, group_positions,
-                      api_results=None, openfootball_results=None, team_ko_opponent=None):
+                      api_results=None, openfootball_results=None, team_ko_opponent=None,
+                      penalty_winners=None, penalty_scores=None):
     """Construye el dataset completo de la fase eliminatoria, listo para
     volcar a data.js. Si no hay datos en el Excel todavía (fase de grupos
     sin terminar), devuelve la estructura vacía mostrando solo los
@@ -477,17 +478,20 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
             if actual and home_team and away_team:
                 asign, ascore = actual.split("|")
                 ah, ag = map(int, ascore.split("-"))
-                if ah > ag:
+                pen_winner = None
+                if ah == ag:
+                    pen_winner = (penalty_winners or {}).get((home_team, away_team))
+                if ah > ag or pen_winner == home_team:
                     winners[str(m["num"])] = home_team
                     losers[str(m["num"])] = away_team
                     eliminated_teams.add(away_team)
-                elif ag > ah:
+                elif ag > ah or pen_winner == away_team:
                     winners[str(m["num"])] = away_team
                     losers[str(m["num"])] = home_team
                     eliminated_teams.add(home_team)
-                # En un Mundial KO no hay empate final (hay penaltis), pero
-                # si el Excel registrara 'X' por penaltis sin decidir aún,
-                # no resolvemos el ganador.
+                # Si el marcador quedó en empate y todavía no hay dato de
+                # quién ganó por penaltis (ni de la API ni del Excel), no
+                # resolvemos ganador — mejor no decidir a ciegas.
                 if match_date:
                     winner_team = winners.get(str(m["num"]))
                     loser_team = losers.get(str(m["num"]))
@@ -496,6 +500,13 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                     if round_name == "semis" and loser_team:
                         team_advance_date[loser_team] = match_date  # va a 3º/4º puesto
 
+            penalties = None
+            if actual and home_team and away_team:
+                asign, ascore = actual.split("|")
+                ah, ag = map(int, ascore.split("-"))
+                if ah == ag:
+                    penalties = (penalty_scores or {}).get((home_team, away_team))
+
             round_matches.append({
                 "num": m["num"],
                 "home_ref": m["home_ref"],
@@ -503,6 +514,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                 "home_team": home_team,
                 "away_team": away_team,
                 "actual": actual,
+                "penalties": penalties,
                 "date": match_date,
                 "breakdown": breakdown,
                 "predictions": m["predictions"],
@@ -518,18 +530,28 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         if actual and home_team and away_team:
             asign, ascore = actual.split("|")
             ah, ag = map(int, ascore.split("-"))
-            if ah > ag:
+            pen_winner = None
+            if ah == ag:
+                pen_winner = (penalty_winners or {}).get((home_team, away_team))
+            if ah > ag or pen_winner == home_team:
                 eliminated_teams.add(away_team)
                 winners[special_key] = home_team
                 losers[special_key] = away_team
-            elif ag > ah:
+            elif ag > ah or pen_winner == away_team:
                 eliminated_teams.add(home_team)
                 winners[special_key] = away_team
                 losers[special_key] = home_team
+        special_penalties = None
+        if actual and home_team and away_team:
+            asign_chk, ascore_chk = actual.split("|")
+            ah_chk, ag_chk = map(int, ascore_chk.split("-"))
+            if ah_chk == ag_chk:
+                special_penalties = (penalty_scores or {}).get((home_team, away_team))
         rounds_output[key] = {"matches": [{
             "num": m["num"], "home_ref": m["home_ref"], "away_ref": m["away_ref"],
             "home_team": home_team, "away_team": away_team,
-            "actual": actual, "date": KO_SPECIAL_DATES.get(key), "breakdown": None, "predictions": m["predictions"],
+            "actual": actual, "penalties": special_penalties, "date": KO_SPECIAL_DATES.get(key),
+            "breakdown": None, "predictions": m["predictions"],
         }]}
 
     # --- Paso 3: para cada ronda y cada jugador, ¿qué equipo predijo en
