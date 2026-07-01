@@ -54,120 +54,62 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ============ PAGE 1: CLASIFICACIÓN ============
+function sbListHTML(rows) {
+  const maxPts = Math.max(...rows.map(r => r.pts), 1);
+  return rows.map(r => {
+    const pct = (r.pts / maxPts * 100);
+    return `<div class="sb-col-row rank-${r.rank}">
+      <span class="sb-col-rank">${r.rank}</span>
+      <span class="sb-col-name" style="color:${PLAYER_COLORS[r.player]}">${r.player}</span>
+      <span class="sb-col-pts">${r.pts}</span>
+      <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[r.player]}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function rankedRows(bucket) {
+  const by = D.rounds_breakdown.by_player;
+  const rows = PLAYERS.map(p => ({ player: p, pts: by[p][bucket] || 0 }))
+    .sort((a, b) => b.pts - a.pts);
+  let rank = 0, prev = null;
+  rows.forEach((r, i) => {
+    if (r.pts !== prev) rank = i + 1;
+    r.rank = rank;
+    prev = r.pts;
+  });
+  return rows;
+}
+
 function renderScoreboard() {
   const el = document.getElementById('scoreboard');
-
-  const groupPosPts = D.group_pos_points || {};
-  const finishedGroups = D.finished_groups || [];
-
-  // s.points incluye: partidos + grupo_pos + clasificados + KO
-  const qualPts = {};
-  D.standings.forEach(s => { qualPts[s.player] = s.qualified_points || 0; });
-  const koPts = {};
-  D.standings.forEach(s => { koPts[s.player] = s.ko_points || 0; });
-
-  const enriched = D.standings.map(s => ({
-    ...s,
-    group_pos_points: groupPosPts[s.player] || 0,
-    qualified_points: qualPts[s.player] || 0,
-    ko_points: koPts[s.player] || 0,
-    match_only: s.points - (groupPosPts[s.player] || 0) - (qualPts[s.player] || 0) - (koPts[s.player] || 0),
-    total_points: s.points,
-  }));
-
-  const byMatch  = [...enriched].sort((a, b) => b.match_only - a.match_only);
-  const byGroup  = [...enriched].sort((a, b) => b.group_pos_points - a.group_pos_points);
-  const byKO     = [...enriched].sort((a, b) => b.ko_points - a.ko_points);
-  const byTotal  = [...enriched].sort((a, b) => b.total_points - a.total_points);
-
-  const maxMatch = Math.max(...enriched.map(s => s.match_only), 1);
-  const maxGroup = Math.max(...enriched.map(s => s.group_pos_points), 1);
-  const maxKO    = Math.max(...enriched.map(s => s.ko_points), 1);
-  const maxTotal = Math.max(...enriched.map(s => s.total_points), 1);
-
-  function getRank(arr, field, val) {
-    let r = 1;
-    arr.forEach(o => { if (o[field] > val) r++; });
-    return r;
-  }
-
-  const finishedNote = finishedGroups.length > 0
-    ? `Se incluyen puntos por posiciones de grupos ya finalizados: <strong>${finishedGroups.join(', ')}</strong>`
-    : 'Aún no hay grupos completamente finalizados';
-
-  el.innerHTML = `
-    <div class="sb-notes">
-      <p class="sb-note ok">📊 ${finishedNote}</p>
-      <p class="sb-note ok">✅ Fase de grupos completada — puntos de partidos, posiciones de grupo y equipos clasificados (1/16) incluidos</p>
-    </div>
-
-    <div class="sb-columns ${enriched.some(s=>s.ko_points>0)?'sb-columns-4':''}">
-
-      <div class="sb-col">
-        <div class="sb-col-header">🎯 Partidos</div>
-        <div class="sb-col-sub">Aciertos de resultados</div>
-        ${byMatch.map(s => {
-          const pct = (s.match_only / maxMatch * 100);
-          const rank = getRank(byMatch, 'match_only', s.match_only);
-          return `<div class="sb-col-row rank-${rank}">
-            <span class="sb-col-rank">${rank}</span>
-            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
-            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.match_only}</span>
-          </div>`;
-        }).join('')}
-      </div>
-
-      <div class="sb-col">
-        <div class="sb-col-header">🏆 Grupos</div>
-        <div class="sb-col-sub">Posiciones 1º–4º acertadas</div>
-        ${byGroup.map(s => {
-          const pct = (s.group_pos_points / maxGroup * 100);
-          const rank = getRank(byGroup, 'group_pos_points', s.group_pos_points);
-          return `<div class="sb-col-row rank-${rank}">
-            <span class="sb-col-rank">${rank}</span>
-            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
-            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.group_pos_points}</span>
-          </div>`;
-        }).join('')}
-      </div>
-
-      <div class="sb-col">
-        <div class="sb-col-header">⚔️ KO</div>
-        <div class="sb-col-sub">Eliminatorias</div>
-        ${byKO.map(s => {
-          const pct = maxKO > 0 ? (s.ko_points / maxKO * 100) : 0;
-          const rank = getRank(byKO, 'ko_points', s.ko_points);
-          return `<div class="sb-col-row rank-${rank}">
-            <span class="sb-col-rank">${rank}</span>
-            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
-            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.ko_points}</span>
-          </div>`;
-        }).join('')}
-      </div>
-
-      <div class="sb-col sb-col-total">
-        <div class="sb-col-header">🥇 Total</div>
-        <div class="sb-col-sub">Partidos + grupos + KO</div>
-        ${byTotal.map(s => {
-          const pct = (s.total_points / maxTotal * 100);
-          const rank = getRank(byTotal, 'total_points', s.total_points);
-          return `<div class="sb-col-row rank-${rank}">
-            <span class="sb-col-rank">${rank}</span>
-            <span class="sb-col-name" style="color:${PLAYER_COLORS[s.player]}">${s.player}</span>
-            <div class="sb-col-bar-bg"><div class="sb-col-bar-fill" style="width:${pct}%;background:${PLAYER_COLORS[s.player]}"></div></div>
-            <span class="sb-col-pts">${s.total_points}<span class="sb-breakdown">${s.match_only}+${s.group_pos_points}+${s.qualified_points}${s.ko_points > 0 ? "+"+s.ko_points : ""}</span></span>
-          </div>`;
-        }).join('')}
-      </div>
-
-    </div>
-  `;
+  el.innerHTML = `<div class="sb-general-list">${sbListHTML(rankedRows('general'))}</div>`;
 
   document.getElementById('matchesPlayedCount').textContent =
     D.matches.filter(m => m.actual).length;
+
+  renderRoundBreakdownSelector();
+}
+
+function renderRoundBreakdownSelector() {
+  const rb = D.rounds_breakdown;
+  const buckets = rb.order.filter(k => k !== 'general');
+  const sel = document.getElementById('roundBreakdownSelector');
+  sel.innerHTML = buckets.map((k, i) =>
+    `<button class="jornada-pill ${i === 0 ? 'active' : ''}" data-bucket="${k}">${rb.labels[k]}</button>`
+  ).join('');
+  sel.querySelectorAll('.jornada-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sel.querySelectorAll('.jornada-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRoundBreakdownContent(btn.dataset.bucket);
+    });
+  });
+  renderRoundBreakdownContent(buckets[0]);
+}
+
+function renderRoundBreakdownContent(bucket) {
+  const el = document.getElementById('roundBreakdownContent');
+  el.innerHTML = sbListHTML(rankedRows(bucket));
 }
 
 
@@ -351,21 +293,130 @@ function renderCharts() {
 }
 
 // ============ PAGE 3: JORNADAS ============
+const KO_ROUND_ORDER = ['dieciseisavos', 'octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'];
+const KO_ROUND_PILL_LABELS = {
+  dieciseisavos: '1/16', octavos: 'Octavos', cuartos: 'Cuartos',
+  semis: 'Semis', tercer_puesto: '3º puesto', final: 'Final',
+};
+
+function koPlayedMatches(roundName) {
+  const ko = D.ko_stage;
+  if (!ko || !ko.rounds || !ko.rounds[roundName]) return [];
+  return (ko.rounds[roundName].matches || []).filter(m => m.actual);
+}
+function koPendingMatches(roundName) {
+  const ko = D.ko_stage;
+  if (!ko || !ko.rounds || !ko.rounds[roundName]) return [];
+  return (ko.rounds[roundName].matches || []).filter(m => !m.actual);
+}
+
 function renderJornadaSelector() {
   const el = document.getElementById('jornadaSelector');
-  el.innerHTML = D.dates.map((d, i) =>
-    `<button class="jornada-pill ${i === D.dates.length-1 ? 'active' : ''}" data-date="${d}">${fmtDateLong(d)}</button>`
-  ).join('');
+  const dayPills = D.dates.map((d, i) =>
+    `<button class="jornada-pill ${i === D.dates.length-1 ? 'active' : ''}" data-kind="date" data-date="${d}">${fmtDateLong(d)}</button>`
+  );
+  const koRounds = KO_ROUND_ORDER.filter(r => koPlayedMatches(r).length > 0);
+  const koPills = koRounds.map(r =>
+    `<button class="jornada-pill ko-pill" data-kind="ko" data-round="${r}">${KO_ROUND_PILL_LABELS[r]}</button>`
+  );
+  el.innerHTML = dayPills.join('') + koPills.join('');
 
   el.querySelectorAll('.jornada-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       el.querySelectorAll('.jornada-pill').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderJornadaContent(btn.dataset.date);
+      if (btn.dataset.kind === 'ko') renderJornadaContentKo(btn.dataset.round);
+      else renderJornadaContent(btn.dataset.date);
     });
   });
 
   renderJornadaContent(D.dates[D.dates.length-1]);
+}
+
+// Tarjeta de partido reutilizable (fase de grupos y dieciseisavos, que sí
+// puntúan por marcador exacto/diferencia/signo).
+function scoredMatchCardHTML(tag, home, away, actualScore, predictions, breakdown) {
+  const predRows = PLAYERS.map(p => {
+    const pred = predictions[p];
+    const bd = breakdown[p];
+    if (!pred) {
+      return `
+        <div class="pred-row">
+          <span class="pred-player">${p}</span>
+          <span class="pred-guess guess-miss">—</span>
+          <div class="pred-badges"><span class="badge b-miss">SIN APUESTA</span></div>
+        </div>`;
+    }
+    const [, guessScore] = pred.split('|');
+    const badges = [];
+    if (bd.sign) badges.push('<span class="badge b-sign">SIGNO</span>');
+    if (bd.diff) badges.push('<span class="badge b-diff">DIF.</span>');
+    if (bd.exact) badges.push('<span class="badge b-exact">EXACTO</span>');
+    if (!bd.sign) badges.push('<span class="badge b-miss">FALLO</span>');
+    let guessClass = 'guess-miss';
+    if (bd.exact) guessClass = 'guess-exact';
+    else if (bd.diff) guessClass = 'guess-diff';
+    else if (bd.sign) guessClass = 'guess-sign';
+    return `
+      <div class="pred-row">
+        <span class="pred-player">${p}</span>
+        <span class="pred-guess ${guessClass}">${guessScore}</span>
+        <div class="pred-badges">${badges.join('')}<span class="pred-total">${bd.pts} pts</span></div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="match-card">
+      <div class="match-card-head">
+        <div>
+          <div class="match-group-tag">${tag}</div>
+          <div class="match-teams">${home} – ${away}</div>
+        </div>
+        <div class="match-result">${actualScore}</div>
+      </div>
+      <div class="predictions-table">${predRows}</div>
+    </div>
+  `;
+}
+
+// Tarjeta simple de resultado (octavos en adelante: no hay puntuación por
+// marcador, solo interesa quién ganó y avanzó).
+function simpleResultCardHTML(tag, home, away, actualScore, homeLost, awayLost) {
+  return `
+    <div class="match-card">
+      <div class="match-card-head">
+        <div>
+          <div class="match-group-tag">${tag}</div>
+          <div class="match-teams">
+            <span class="${homeLost ? 'kol-team lost' : ''}">${home}</span> – <span class="${awayLost ? 'kol-team lost' : ''}">${away}</span>
+          </div>
+        </div>
+        <div class="match-result">${actualScore}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderJornadaContentKo(roundName) {
+  const el = document.getElementById('jornadaContent');
+  const matches = koPlayedMatches(roundName);
+  const ko = D.ko_stage;
+  if (matches.length === 0) {
+    el.innerHTML = `<p style="color:var(--chalk-dim)">Aún no hay partidos jugados en esta ronda.</p>`;
+    return;
+  }
+  const tag = KO_ROUND_PILL_LABELS[roundName];
+  el.innerHTML = matches.map(m => {
+    const home = m.home_team || koRefLabel(m.home_ref);
+    const away = m.away_team || koRefLabel(m.away_ref);
+    const [, actualScore] = m.actual.split('|');
+    if (roundName === 'dieciseisavos' && m.breakdown) {
+      return scoredMatchCardHTML(tag, home, away, actualScore, m.predictions, m.breakdown);
+    }
+    const homeLost = ko.eliminated_teams && ko.eliminated_teams.includes(m.home_team);
+    const awayLost = ko.eliminated_teams && ko.eliminated_teams.includes(m.away_team);
+    return simpleResultCardHTML(tag, home, away, actualScore, homeLost, awayLost);
+  }).join('');
 }
 
 function renderJornadaContent(date) {
@@ -535,27 +586,118 @@ function getFutureDates() {
 function renderProximosSelector() {
   const el = document.getElementById('proximosSelector');
   const dates = getFutureDates();
+  const koRounds = KO_ROUND_ORDER.filter(r => koPendingMatches(r).length > 0);
 
-  if (dates.length === 0) {
+  if (dates.length === 0 && koRounds.length === 0) {
     el.innerHTML = '';
     document.getElementById('proximosContent').innerHTML =
-      `<p style="color:var(--chalk-dim)">No quedan partidos por jugar. ¡La fase de grupos ha terminado!</p>`;
+      `<p style="color:var(--chalk-dim)">No quedan partidos por jugar. ¡El Mundial ha terminado!</p>`;
     return;
   }
 
-  el.innerHTML = dates.map((d, i) =>
-    `<button class="jornada-pill ${i === 0 ? 'active' : ''}" data-date="${d}">${fmtDateLong(d)}</button>`
-  ).join('');
+  const dayPills = dates.map((d, i) =>
+    `<button class="jornada-pill ${i === 0 && dates.length ? 'active' : ''}" data-kind="date" data-date="${d}">${fmtDateLong(d)}</button>`
+  );
+  const koPills = koRounds.map((r, i) =>
+    `<button class="jornada-pill ko-pill ${dates.length === 0 && i === 0 ? 'active' : ''}" data-kind="ko" data-round="${r}">${KO_ROUND_PILL_LABELS[r]}</button>`
+  );
+  el.innerHTML = dayPills.join('') + koPills.join('');
 
   el.querySelectorAll('.jornada-pill').forEach(btn => {
     btn.addEventListener('click', () => {
       el.querySelectorAll('.jornada-pill').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderProximosContent(btn.dataset.date);
+      if (btn.dataset.kind === 'ko') renderProximosContentKo(btn.dataset.round);
+      else renderProximosContent(btn.dataset.date);
     });
   });
 
-  renderProximosContent(dates[0]);
+  if (dates.length > 0) renderProximosContent(dates[0]);
+  else renderProximosContentKo(koRounds[0]);
+}
+
+// Ronda 1/16: aún hay marcador que adivinar, mostramos tarjeta de
+// pronóstico igual que en fase de grupos. Octavos en adelante: no hay
+// marcador que puntúe, mostramos qué equipo ha puesto cada jugador para
+// esa ronda (a partir de sus slots de clasificados, "vivo" o "eliminado").
+function renderProximosContentKo(roundName) {
+  const el = document.getElementById('proximosContent');
+  const ko = D.ko_stage;
+
+  if (roundName === 'dieciseisavos') {
+    const matches = koPendingMatches('dieciseisavos');
+    if (matches.length === 0) {
+      el.innerHTML = `<p style="color:var(--chalk-dim)">No quedan partidos de 1/16 por jugar.</p>`;
+      return;
+    }
+    el.innerHTML = matches.map(m => {
+      const home = m.home_team || koRefLabel(m.home_ref);
+      const away = m.away_team || koRefLabel(m.away_ref);
+      const predRows = PLAYERS.map(p => {
+        const pred = m.predictions[p];
+        if (!pred) {
+          return `
+            <div class="pred-row">
+              <span class="pred-player">${p}</span>
+              <span class="pred-guess guess-miss">—</span>
+              <div class="pred-badges"><span class="badge b-miss">SIN APUESTA</span></div>
+            </div>`;
+        }
+        const [sign, guessScore] = pred.split('|');
+        const signLabel = sign === '1' ? 'Local' : (sign === 'X' ? 'Empate' : 'Visitante');
+        const signClass = sign === '1' ? 'badge-sign-1' : (sign === 'X' ? 'badge-sign-x' : 'badge-sign-2');
+        return `
+          <div class="pred-row">
+            <span class="pred-player">${p}</span>
+            <span class="pred-guess">${guessScore}</span>
+            <div class="pred-badges"><span class="badge ${signClass}">${signLabel.toUpperCase()}</span></div>
+          </div>`;
+      }).join('');
+      return `
+        <div class="match-card">
+          <div class="match-card-head">
+            <div>
+              <div class="match-group-tag">1/16</div>
+              <div class="match-teams">${home} – ${away}</div>
+            </div>
+            <div class="match-result pending">Por jugar</div>
+          </div>
+          <div class="predictions-table">${predRows}</div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
+  // Octavos, cuartos, semis, 3º puesto, final: tabla de "quién ha puesto
+  // cada jugador para llegar aquí", coloreada vivo/eliminado.
+  const slots = (ko.qualifiers && ko.qualifiers[roundName]) || [];
+  if (slots.length === 0) {
+    el.innerHTML = `<p style="color:var(--chalk-dim)">Esta ronda todavía no se puede pronosticar.</p>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="match-card">
+      <div class="match-card-head">
+        <div class="match-teams">Pronósticos para ${KO_ROUND_PILL_LABELS[roundName]}</div>
+      </div>
+      <div class="predictions-table">
+        ${PLAYERS.map(p => {
+          const chips = slots.map(slot => {
+            const pred = slot.predictions[p];
+            if (!pred || !pred.team) return '<span class="ko-qual-chip pending">—</span>';
+            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'clasificado' ? 'hit' : (pred.status === 'vivo' ? 'alive' : 'pending'));
+            return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
+          }).join('');
+          return `
+            <div class="pred-row">
+              <span class="pred-player">${p}</span>
+              <div class="pred-badges">${chips}</div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function renderProximosContent(date) {
@@ -735,7 +877,7 @@ function renderBracketHalf(ko, side, mode, player) {
         // la franja de "clasificados predichos" aparte, debajo del árbol.
         if (roundName === 'dieciseisavos') {
           const pred = m.predictions[player];
-          const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
+          const bd = pred && m.actual && m.breakdown ? m.breakdown[player] : null;
           let cls = 'pending';
           let label = pred ? pred.split('|')[1] : '—';
           if (bd) cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
@@ -787,7 +929,7 @@ function renderQualifiersStrip(ko, player) {
             if (!pred || !pred.team) {
               return `<span class="ko-qual-chip pending">—</span>`;
             }
-            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
+            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'clasificado' ? 'hit' : (pred.status === 'vivo' ? 'alive' : 'pending'));
             return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
           }).join('')}
         </div>
@@ -894,7 +1036,7 @@ function renderKoListView(ko, mode, player) {
         // player view for dieciseisavos: show prediction
         if (roundName === 'dieciseisavos') {
           const pred = m.predictions && m.predictions[player];
-          const bd = pred && m.actual ? scoreKoMatch(pred, m.actual) : null;
+          const bd = pred && m.actual && m.breakdown ? m.breakdown[player] : null;
           let cls = 'pending', label = pred ? pred.split('|')[1] : '—';
           if (bd) cls = bd.sign ? (bd.exact ? 'hit-exact' : (bd.diff ? 'hit-diff' : 'hit-sign')) : 'miss';
           const predSign = pred ? pred.split('|')[0] : null;
@@ -934,7 +1076,7 @@ function renderKoListView(ko, mode, player) {
           slots.map(slot => {
             const pred = slot.predictions && slot.predictions[player];
             if (!pred || !pred.team) return '<span class="ko-qual-chip pending">—</span>';
-            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'vivo' ? 'alive' : 'pending');
+            const cls = pred.status === 'eliminado' ? 'miss' : (pred.status === 'clasificado' ? 'hit' : (pred.status === 'vivo' ? 'alive' : 'pending'));
             return `<span class="ko-qual-chip ${cls}">${pred.team}</span>`;
           }).join('')
         }</div>`;
@@ -1037,6 +1179,7 @@ function renderKoPlayerBracket() {
       <span class="ko-legend-item"><span class="ko-dot hit-exact"></span>Resultado exacto (16avos)</span>
       <span class="ko-legend-item"><span class="ko-dot hit-diff"></span>Acierta diferencia</span>
       <span class="ko-legend-item"><span class="ko-dot hit-sign"></span>Acierta signo</span>
+      <span class="ko-legend-item"><span class="ko-dot hit"></span>Equipo predicho, clasificación confirmada</span>
       <span class="ko-legend-item"><span class="ko-dot alive"></span>Equipo predicho, aún vivo</span>
       <span class="ko-legend-item"><span class="ko-dot miss"></span>Fallo / equipo eliminado</span>
     </div>
