@@ -156,9 +156,13 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
          reutiliza un equipo ya asignado a otro cruce en este mismo
          cálculo — no garantiza igualar la tabla oficial de 495
          combinaciones (Anexo C), pero nunca duplica un equipo
-    Devuelve {num_partido: (home_team, away_team)}."""
+    Devuelve (resolution, source) donde resolution es
+    {num_partido: (home_team, away_team)} y source es
+    {num_partido: 'directo'|'api'|'respaldo'|'sin_resolver'} para poder
+    diagnosticar de dónde salió cada cruce."""
     third_by_group = {t["group"]: t for t in (third_place_ranking or [])}
     resolution = {}
+    source = {}
     used_teams = set()
     pending = []  # (num, known_team, known_is_home, third_ref)
 
@@ -170,6 +174,7 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
             home = resolve_group_ref(home_ref)
             away = resolve_group_ref(away_ref)
             resolution[match_def["num"]] = (home, away)
+            source[match_def["num"]] = "directo"
             if home:
                 used_teams.add(home)
             if away:
@@ -179,6 +184,7 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
             # No ocurre en el bracket real de 2026, pero por seguridad no
             # intentamos adivinar dos lados inciertos a la vez.
             resolution[match_def["num"]] = (None, None)
+            source[match_def["num"]] = "sin_resolver"
             continue
         third_ref, known_ref, known_is_home = (
             (home_ref, away_ref, False) if home_is_third else (away_ref, home_ref, True)
@@ -190,6 +196,7 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
         if opponent:
             used_teams.add(opponent)
             resolution[match_def["num"]] = (known_team, opponent) if known_is_home else (opponent, known_team)
+            source[match_def["num"]] = "api"
         else:
             pending.append((match_def["num"], known_team, known_is_home, third_ref))
 
@@ -209,8 +216,9 @@ def resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_
         if opponent:
             used_teams.add(opponent)
         resolution[num] = (known_team, opponent) if known_is_home else (opponent, known_team)
+        source[num] = "respaldo" if opponent else "sin_resolver"
 
-    return resolution
+    return resolution, source
 
 
 REF_TOKEN_RE = re.compile(r"\b([WL]\d+)\b")
@@ -287,7 +295,7 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
             # fija.
             row_for_num = dict(zip((md["num"] for md in match_defs), match_rows))
             if round_name == "dieciseisavos":
-                r32_teams = resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_opponent)
+                r32_teams, _r32_source = resolve_r32_all(match_defs, resolve_group_ref, third_place_ranking, team_ko_opponent)
                 resolved_map = {}
                 used_rows = set()
                 for match_def in match_defs:
@@ -453,7 +461,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
     def resolve_any_ref(ref):
         return resolve_ref(ref) or resolve_w_l_ref(ref)
 
-    resolve_any_ref_r32 = resolve_r32_all(ROUND_OF_32, resolve_ref, third_place_ranking, team_ko_opponent)
+    resolve_any_ref_r32, r32_source = resolve_r32_all(ROUND_OF_32, resolve_ref, third_place_ranking, team_ko_opponent)
 
     rounds_output = {}
     eliminated_teams = set()  # equipos ya fuera del torneo, en cualquier ronda jugada
@@ -626,4 +634,9 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         "losers_by_match": dict(losers),
         "qualifier_pts": qualifier_pts,
         "qualifier_pts_by_round": qualifier_pts_by_round,
+        "debug": {
+            "team_ko_opponent": sorted((team_ko_opponent or {}).items()),
+            "penalty_winners": sorted(f"{h}-{a}: gana {w}" for (h, a), w in (penalty_winners or {}).items()),
+            "dieciseisavos_fuente_cruce": {str(num): src for num, src in sorted(r32_source.items())},
+        },
     }
