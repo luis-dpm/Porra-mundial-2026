@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-01T17:00:55.356848Z",
+  "generated_at": "2026-07-01T17:30:46.828359Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1107,7 +1107,7 @@
     {
       "home_api": "England",
       "away_api": "Congo DR",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-01T16:00:00Z"
     },
     {
