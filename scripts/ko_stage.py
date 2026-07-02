@@ -415,17 +415,16 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
 
 def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results):
     """El marcador que puntúa predicciones es el de 120' (90' + prórroga),
-    NO el resultado final tras penaltis — así que el Excel (donde se
-    introduce a mano el resultado a 120') manda siempre que exista.
-    Las fuentes automáticas (API/openfootball) solo rellenan cuando el
-    Excel todavía no tiene el partido. Quién avanza de ronda en caso de
+    NO el resultado final tras penaltis. En fase KO la API manda primero
+    (ya viene con la prórroga sumada, ver fetch_real_results, y se
+    actualiza sola cada 2h) — el Excel solo rellena si ninguna fuente
+    automática tiene el partido todavía. Quién avanza de ronda en caso de
     empate a 120' se decide aparte, por penaltis (ver penalty_winners)."""
-    if excel_actual:
-        return excel_actual
     if not home or not away:
-        return None
+        return excel_actual
     fd_res = (api_results or {}).get((home, away))
     of_res = (openfootball_results or {}).get((home, away))
+    api_actual = None
     if fd_res and of_res:
         # A diferencia de fase de grupos (donde ante conflicto se prefiere
         # openfootball porque football-data.org puede dar marcadores
@@ -435,13 +434,23 @@ def resolve_ko_result(excel_actual, home, away, api_results, openfootball_result
         # openfootball, que en partidos con prórroga puede quedarse con
         # el marcador de 90' varias horas.
         hg, ag = fd_res
+        api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
     elif fd_res:
         hg, ag = fd_res
+        api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
     elif of_res:
         hg, ag = of_res
-    else:
-        return None
-    return f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+        api_actual = f"{sign_from_score(hg, ag)}|{hg}-{ag}"
+
+    if api_actual:
+        if excel_actual and excel_actual != api_actual:
+            print(
+                f"AVISO: KO {home}-{away}: Excel dice '{excel_actual}' pero la API (a 120') dice "
+                f"'{api_actual}' — se usa la API. Si el Excel es el correcto, revísalo.",
+                file=sys.stderr,
+            )
+        return api_actual
+    return excel_actual
 
 
 def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranking, group_positions,
