@@ -342,19 +342,29 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
             matches = []
             for match_def in match_defs:
                 row_idx = row_for_num[match_def["num"]]
-                # El resultado real en dieciseisavos usa columna 12 (signo: 1/X/2)
-                # y columna 13 (marcador: "goles-goles"), a diferencia de grupos
-                # que usa col 13 con formato completo "signo|goles-goles".
+                # El resultado real en dieciseisavos vive en columna 13
+                # ("goles-goles"). La columna 12 en teoría trae el signo
+                # (1/X/2), pero en la práctica algunas versiones del Excel
+                # usan '0' para empate en vez de 'X' (columna de fórmula,
+                # no de texto) — así que en vez de fiarnos de esa columna,
+                # calculamos el signo nosotros mismos a partir del propio
+                # marcador, que es la fuente fiable.
                 excel_actual = None
                 col12 = ws.cell(row=row_idx, column=12).value
                 col13 = ws.cell(row=row_idx, column=13).value
-                col12s = str(col12).strip() if col12 is not None else ""
                 col13s = str(col13).strip() if col13 is not None else ""
-                if col12s in ("1", "X", "2") and "-" in col13s and col13s != "-":
-                    excel_actual = f"{col12s}|{col13s}"
-                elif col13s and "|" in col13s:
-                    # fallback: formato completo en col13 (grupos o manual)
-                    excel_actual = col13s
+                if col13s and col13s != "-" and "-" in col13s:
+                    try:
+                        gh_str, ga_str = col13s.split("-")
+                        gh, ga = int(gh_str.strip()), int(ga_str.strip())
+                        excel_actual = f"{sign_from_score(gh, ga)}|{col13s}"
+                    except (ValueError, TypeError):
+                        excel_actual = None
+                if excel_actual is None:
+                    col12s = str(col12).strip() if col12 is not None else ""
+                    if col13s and "|" in col13s:
+                        # fallback: formato completo en col13 (grupos o manual)
+                        excel_actual = col13s
                 preds = {}
                 for player, col in player_columns.items():
                     val = ws.cell(row=row_idx, column=col).value
