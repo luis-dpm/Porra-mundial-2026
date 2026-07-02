@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T21:01:05.390593Z",
+  "generated_at": "2026-07-02T21:30:50.280436Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -645,6 +645,12 @@
       "away_api": "Bosnia-Herzegovina",
       "score": "2-0",
       "utcDate": "2026-07-02T00:00:00Z"
+    },
+    {
+      "home_api": "Spain",
+      "away_api": "Austria",
+      "score": "3-0",
+      "utcDate": "2026-07-02T19:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1143,7 +1149,7 @@
     {
       "home_api": "Spain",
       "away_api": "Austria",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-02T19:00:00Z"
     },
     {
