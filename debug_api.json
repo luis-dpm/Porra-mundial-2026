@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T19:30:50.266988Z",
+  "generated_at": "2026-07-02T20:00:59.750470Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1143,7 +1143,7 @@
     {
       "home_api": "Spain",
       "away_api": "Austria",
-      "status": "TIMED",
+      "status": "PAUSED",
       "utcDate": "2026-07-02T19:00:00Z"
     },
     {
