@@ -946,8 +946,8 @@ function renderBracketHalf(ko, side, mode, player) {
 // La franja de "equipo predicho para esta ronda" (lo que el jugador puso
 // en Octavofinalista-N, Cuartofinalista-N, etc.), coloreada vivo/eliminado.
 function renderQualifiersStrip(ko, player) {
-  const rounds = ['octavos', 'cuartos', 'semis', 'tercer_puesto', 'final'];
-  const labels = { octavos: 'Pasan a Cuartos', cuartos: 'Pasan a Semis', semis: 'Pasan a Final', tercer_puesto: '3º puesto', final: 'Campeón / Subcampeón' };
+  const rounds = ['octavos', 'cuartos', 'semis', 'final', 'tercer_puesto'];
+  const labels = { octavos: 'Pasan a Octavos', cuartos: 'Pasan a Cuartos', semis: 'Pasan a Semis', final: 'Pasan a la Final', tercer_puesto: 'Pasan a 3º/4º puesto' };
   const blocks = rounds.map(roundName => {
     const slots = ko.qualifiers[roundName] || [];
     if (slots.length === 0) return '';
@@ -1178,6 +1178,28 @@ function renderHonorBoard() {
   `;
 }
 
+function renderTopScorers() {
+  const el = document.getElementById('topScorersBlock');
+  const scorers = D.top_scorers;
+  if (!scorers || scorers.length === 0) { el.innerHTML = ''; return; }
+  const medals = ['🥇', '🥈', '🥉'];
+  el.innerHTML = `
+    <div class="section-divider"><span>⚽ Máximos goleadores del Mundial (real)</span></div>
+    <div class="scorers-podium">
+      ${scorers.map((s, i) => `
+        <div class="scorer-card scorer-${i + 1}">
+          <span class="scorer-medal">${medals[i] || '⚽'}</span>
+          <div class="scorer-info">
+            <div class="scorer-name">${s.name}</div>
+            <div class="scorer-team">${s.team}</div>
+          </div>
+          <div class="scorer-goals">${s.goals}<span class="scorer-goals-label">goles</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderKoRealBracket() {
   const el = document.getElementById('koRealBracket');
   const ko = D.ko_stage;
@@ -1278,5 +1300,6 @@ renderGroupsGrid();
 renderThirdPlaceTable();
 renderKoRealBracket();
 renderHonorBoard();
+renderTopScorers();
 renderKoPlayerSelector();
 renderKoPlayerBracket();
