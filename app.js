@@ -1158,6 +1158,7 @@ function renderKoListView(ko, mode, player) {
 
 function renderHonorBoard() {
   const el = document.getElementById('honorBoard');
+  if (!el) return;
   const fp = D.final_predictions;
   if (!fp) { el.innerHTML = ''; return; }
   el.innerHTML = `
@@ -1180,6 +1181,7 @@ function renderHonorBoard() {
 
 function renderTopScorers() {
   const el = document.getElementById('topScorersBlock');
+  if (!el) return;
   const scorers = D.top_scorers;
   if (!scorers || scorers.length === 0) { el.innerHTML = ''; return; }
   const medals = ['🥇', '🥈', '🥉'];
@@ -1202,6 +1204,7 @@ function renderTopScorers() {
 
 function renderKoRealBracket() {
   const el = document.getElementById('koRealBracket');
+  if (!el) return;
   const ko = D.ko_stage;
   if (!ko || !ko.rounds || Object.keys(ko.rounds).length === 0) {
     el.innerHTML = '<p class="ko-empty">Esta sección se rellenará cuando empiece la fase eliminatoria.</p>';
@@ -1221,6 +1224,7 @@ let currentKoPlayer = null;
 
 function renderKoPlayerSelector() {
   const el = document.getElementById('koPlayerSelector');
+  if (!el) return;
   if (!currentKoPlayer) currentKoPlayer = PLAYERS[0];
 
   el.innerHTML = PLAYERS.map(p =>
@@ -1239,6 +1243,7 @@ function renderKoPlayerSelector() {
 
 function renderKoPlayerBracket() {
   const el = document.getElementById('koPlayerBracket');
+  if (!el) return;
   const ko = D.ko_stage;
   const player = currentKoPlayer;
 
