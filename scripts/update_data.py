@@ -449,18 +449,22 @@ def fetch_real_results(api_key):
         if hg is None or ag is None:
             continue
 
-        # Comprobado con datos reales: football-data.org da 'fullTime' ya
-        # como el marcador COMPLETO a 120' (90'+prórroga) en cuanto el
-        # partido está FINISHED — 'extraTime' es un campo aparte, no hay
-        # que sumarlo encima o se duplican los goles de la prórroga (nos
-        # pasó: 3-2 real → 4-2 por sumar de más). Se deja fullTime tal cual.
-
-        # Guardamos en ambas orientaciones (normal e invertida) para que el
-        # resultado se encuentre aunque el Excel tenga el partido anotado
-        # con local/visitante distinto a como lo da la API — algo que puede
-        # pasar si alguien se equivocó al transcribir el fixture a mano.
-        results[(home_es, away_es)] = (hg, ag)
-        results[(away_es, home_es)] = (ag, hg)
+        # Comprobado con datos reales: cuando el partido termina en juego
+        # (normal o prórroga sin penaltis, como Bélgica-Senegal 3-2),
+        # 'fullTime' ya trae el marcador completo a 120' y es fiable. Pero
+        # cuando se decide por PENALTIS, esta API mete ahí un número que
+        # NO es el marcador real a 120' (nos dio 4-5 y 3-4 en partidos que
+        # en realidad fueron 1-1) — así que en ese caso no lo usamos como
+        # resultado; solo nos sirve para saber quién gana la tanda (más
+        # abajo). El marcador a 120' de esos partidos vendrá del Excel.
+        if duration != "PENALTY_SHOOTOUT":
+            # Guardamos en ambas orientaciones (normal e invertida) para
+            # que el resultado se encuentre aunque el Excel tenga el
+            # partido anotado con local/visitante distinto a como lo da
+            # la API — algo que puede pasar si alguien se equivocó al
+            # transcribir el fixture a mano.
+            results[(home_es, away_es)] = (hg, ag)
+            results[(away_es, home_es)] = (ag, hg)
 
         # En fase KO, si el partido se decidió por penaltis, football-data.org
         # lo marca con score.duration == 'PENALTY_SHOOTOUT' (o trae
