@@ -427,7 +427,14 @@ def resolve_ko_result(excel_actual, home, away, api_results, openfootball_result
     fd_res = (api_results or {}).get((home, away))
     of_res = (openfootball_results or {}).get((home, away))
     if fd_res and of_res:
-        hg, ag = fd_res if fd_res == of_res else of_res
+        # A diferencia de fase de grupos (donde ante conflicto se prefiere
+        # openfootball porque football-data.org puede dar marcadores
+        # provisionales justo tras el pitido), en KO preferimos
+        # football-data.org: ya incluye los goles de la prórroga (ver
+        # fetch_real_results) y se actualiza mucho más rápido que
+        # openfootball, que en partidos con prórroga puede quedarse con
+        # el marcador de 90' varias horas.
+        hg, ag = fd_res
     elif fd_res:
         hg, ag = fd_res
     elif of_res:
