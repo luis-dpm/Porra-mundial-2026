@@ -133,6 +133,42 @@ PLAYER_COLUMNS = {
 }
 
 
+def fetch_top_scorers(api_key, limit=3):
+    """Consulta /competitions/WC/scorers: la tabla real de máximos
+    goleadores del torneo (nombre, equipo, goles), ya ordenada por la
+    API. Devuelve una lista de hasta `limit` dicts
+    {'name', 'team', 'goals', 'assists'} o [] si no se puede consultar
+    (por ejemplo si el plan de API no incluye este endpoint)."""
+    if not api_key or not requests:
+        return []
+    try:
+        headers = {"X-Auth-Token": api_key}
+        url = f"{API_BASE}/competitions/{COMPETITION_CODE}/scorers?limit={limit}"
+        resp = requests.get(url, headers=headers, timeout=30)
+        print(f"INFO: API scorers respondió con status {resp.status_code}", file=sys.stderr)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"AVISO: no se pudo consultar /scorers ({e}). Sin tabla de goleadores por ahora.", file=sys.stderr)
+        return []
+
+    scorers = []
+    for entry in data.get("scorers", [])[:limit]:
+        player_en = (entry.get("player") or {}).get("name")
+        team_en = (entry.get("team") or {}).get("name")
+        goals = entry.get("goals")
+        if not player_en or goals is None:
+            continue
+        scorers.append({
+            "name": player_en,
+            "team": resolve_team_name(team_en) or team_en,
+            "goals": goals,
+            "assists": entry.get("assists"),
+        })
+    print(f"INFO: {len(scorers)} goleadores recibidos de la API.", file=sys.stderr)
+    return scorers
+
+
 def fetch_official_standings(api_key):
     """Consulta /competitions/WC/standings: la clasificación de cada grupo ya
     calculada por football-data.org aplicando los criterios oficiales FIFA
@@ -406,10 +442,25 @@ def fetch_real_results(api_key):
         if m["status"] != "FINISHED":
             continue
 
+        score_obj = m.get("score") or {}
+        duration = str(score_obj.get("duration") or "").upper()
         hg = m["score"]["fullTime"]["home"]
         ag = m["score"]["fullTime"]["away"]
         if hg is None or ag is None:
             continue
+
+        # football-data.org da 'fullTime' como el marcador de 90' incluso en
+        # partidos que fueron a prórroga — 'extraTime' trae los goles
+        # ADICIONALES marcados en esos 30 minutos extra, no el acumulado.
+        # Como aquí puntuamos siempre a 120' (90' + prórroga si la hubo,
+        # sin contar penaltis), hay que sumarlos para tener el marcador
+        # real que hay que comparar con las predicciones.
+        if duration in ("EXTRA_TIME", "PENALTY_SHOOTOUT"):
+            et = score_obj.get("extraTime") or {}
+            et_h, et_a = et.get("home"), et.get("away")
+            if et_h is not None and et_a is not None:
+                hg, ag = hg + et_h, ag + et_a
+
         # Guardamos en ambas orientaciones (normal e invertida) para que el
         # resultado se encuentre aunque el Excel tenga el partido anotado
         # con local/visitante distinto a como lo da la API — algo que puede
@@ -425,8 +476,6 @@ def fetch_real_results(api_key):
         # marcador de 120' que puntúa predicciones sigue viniendo del
         # Excel (ver resolve_ko_result); esto es solo para saber quién
         # avanza de ronda.
-        score_obj = m.get("score") or {}
-        duration = str(score_obj.get("duration") or "").upper()
         winner_field = score_obj.get("winner")
         pens = score_obj.get("penalties") or {}
         hp, ap = pens.get("home"), pens.get("away")
@@ -685,6 +734,7 @@ def build_dataset(api_key):
     # incluyendo enfrentamiento directo y fair play cuando hace falta).
     # Si la API falla, usamos la calculada localmente como respaldo.
     third_place_ranking, group_standings_api = fetch_third_place_ranking(api_key)
+    top_scorers = fetch_top_scorers(api_key, limit=3)
     using_official_standings = bool(group_standings_api)
     group_standings_real = group_standings_api if using_official_standings else group_standings_local
 
@@ -1010,6 +1060,7 @@ def build_dataset(api_key):
         "ko_stage": ko_data,
         "rounds_breakdown": rounds_breakdown,
         "final_predictions": final_predictions,
+        "top_scorers": top_scorers,
         "players": players,
         "dates": dates,
         "daily_points": daily,
