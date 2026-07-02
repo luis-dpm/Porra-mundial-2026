@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-02T02:00:49.831355Z",
+  "generated_at": "2026-07-02T02:30:44.558576Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -639,6 +639,12 @@
       "away_api": "Senegal",
       "score": "3-2",
       "utcDate": "2026-07-01T20:00:00Z"
+    },
+    {
+      "home_api": "United States",
+      "away_api": "Bosnia-Herzegovina",
+      "score": "2-0",
+      "utcDate": "2026-07-02T00:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1131,7 +1137,7 @@
     {
       "home_api": "United States",
       "away_api": "Bosnia-Herzegovina",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-02T00:00:00Z"
     },
     {
