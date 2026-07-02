@@ -413,14 +413,19 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
     return rounds_data
 
 
-def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results):
+def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results, penalty_winners=None):
     """El marcador que puntúa predicciones es el de 120' (90' + prórroga),
     NO el resultado final tras penaltis. En fase KO la API manda primero
-    (ya viene con la prórroga sumada, ver fetch_real_results, y se
-    actualiza sola cada 2h) — el Excel solo rellena si ninguna fuente
-    automática tiene el partido todavía. Quién avanza de ronda en caso de
-    empate a 120' se decide aparte, por penaltis (ver penalty_winners)."""
+    (ya viene con la prórroga incluida en 'fullTime', ver
+    fetch_real_results) — el Excel solo rellena si ninguna fuente
+    automática tiene el partido todavía. EXCEPCIÓN: si el partido se
+    decidió por penaltis, ninguna fuente automática (ni football-data.org
+    ni openfootball) da un marcador de 120' fiable en esta competición,
+    así que en ese caso se usa directamente el Excel."""
     if not home or not away:
+        return excel_actual
+    went_to_penalties = (penalty_winners or {}).get((home, away)) is not None
+    if went_to_penalties:
         return excel_actual
     fd_res = (api_results or {}).get((home, away))
     of_res = (openfootball_results or {}).get((home, away))
@@ -499,7 +504,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
             else:
                 home_team = resolve_any_ref(m["home_ref"])
                 away_team = resolve_any_ref(m["away_ref"])
-            actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results)
+            actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results, penalty_winners)
             match_date = KO_MATCH_DATES.get(m["num"])
 
             breakdown = None
@@ -557,7 +562,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
         m = raw[key]["matches"][0]
         home_team = resolve_any_ref(m["home_ref"])
         away_team = resolve_any_ref(m["away_ref"])
-        actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results)
+        actual = resolve_ko_result(m["excel_actual"], home_team, away_team, api_results, openfootball_results, penalty_winners)
         if actual and home_team and away_team:
             asign, ascore = actual.split("|")
             ah, ag = map(int, ascore.split("-"))
