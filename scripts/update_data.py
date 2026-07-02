@@ -449,17 +449,11 @@ def fetch_real_results(api_key):
         if hg is None or ag is None:
             continue
 
-        # football-data.org da 'fullTime' como el marcador de 90' incluso en
-        # partidos que fueron a prórroga — 'extraTime' trae los goles
-        # ADICIONALES marcados en esos 30 minutos extra, no el acumulado.
-        # Como aquí puntuamos siempre a 120' (90' + prórroga si la hubo,
-        # sin contar penaltis), hay que sumarlos para tener el marcador
-        # real que hay que comparar con las predicciones.
-        if duration in ("EXTRA_TIME", "PENALTY_SHOOTOUT"):
-            et = score_obj.get("extraTime") or {}
-            et_h, et_a = et.get("home"), et.get("away")
-            if et_h is not None and et_a is not None:
-                hg, ag = hg + et_h, ag + et_a
+        # Comprobado con datos reales: football-data.org da 'fullTime' ya
+        # como el marcador COMPLETO a 120' (90'+prórroga) en cuanto el
+        # partido está FINISHED — 'extraTime' es un campo aparte, no hay
+        # que sumarlo encima o se duplican los goles de la prórroga (nos
+        # pasó: 3-2 real → 4-2 por sumar de más). Se deja fullTime tal cual.
 
         # Guardamos en ambas orientaciones (normal e invertida) para que el
         # resultado se encuentre aunque el Excel tenga el partido anotado
