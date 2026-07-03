@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T01:01:01.837188Z",
+  "generated_at": "2026-07-03T01:30:53.636165Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -651,6 +651,12 @@
       "away_api": "Austria",
       "score": "3-0",
       "utcDate": "2026-07-02T19:00:00Z"
+    },
+    {
+      "home_api": "Portugal",
+      "away_api": "Croatia",
+      "score": "2-1",
+      "utcDate": "2026-07-02T23:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1155,7 +1161,7 @@
     {
       "home_api": "Portugal",
       "away_api": "Croatia",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-02T23:00:00Z"
     },
     {
