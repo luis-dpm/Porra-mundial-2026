@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T19:01:06.246233Z",
+  "generated_at": "2026-07-03T19:30:57.460342Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1179,7 +1179,7 @@
     {
       "home_api": "Australia",
       "away_api": "Egypt",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
