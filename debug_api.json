@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T20:30:59.803716Z",
+  "generated_at": "2026-07-03T21:01:03.603129Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -663,6 +663,12 @@
       "away_api": "Algeria",
       "score": "2-0",
       "utcDate": "2026-07-03T03:00:00Z"
+    },
+    {
+      "home_api": "Australia",
+      "away_api": "Egypt",
+      "score": "3-5",
+      "utcDate": "2026-07-03T18:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1179,7 +1185,7 @@
     {
       "home_api": "Australia",
       "away_api": "Egypt",
-      "status": "PAUSED",
+      "status": "FINISHED",
       "utcDate": "2026-07-03T18:00:00Z"
     },
     {
