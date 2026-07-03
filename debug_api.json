@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T22:30:59.451898Z",
+  "generated_at": "2026-07-03T23:01:01.842573Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1191,7 +1191,7 @@
     {
       "home_api": "Argentina",
       "away_api": "Cape Verde Islands",
-      "status": "IN_PLAY",
+      "status": "PAUSED",
       "utcDate": "2026-07-03T22:00:00Z"
     },
     {
