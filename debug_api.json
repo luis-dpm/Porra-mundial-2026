@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T01:30:55.406289Z",
+  "generated_at": "2026-07-04T02:00:54.659409Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1203,7 +1203,7 @@
     {
       "home_api": "Colombia",
       "away_api": "Ghana",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-04T01:30:00Z"
     },
     {
