@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T18:01:10.013292Z",
+  "generated_at": "2026-07-04T18:31:08.003023Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1216,7 +1216,7 @@
     {
       "home_api": "Canada",
       "away_api": "Morocco",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-04T17:00:00Z"
     },
     {
