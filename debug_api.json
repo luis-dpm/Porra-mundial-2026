@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T03:30:54.794283Z",
+  "generated_at": "2026-07-04T04:01:04.229059Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -675,6 +675,12 @@
       "away_api": "Cape Verde Islands",
       "score": "3-2",
       "utcDate": "2026-07-03T22:00:00Z"
+    },
+    {
+      "home_api": "Colombia",
+      "away_api": "Ghana",
+      "score": "1-0",
+      "utcDate": "2026-07-04T01:30:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1203,7 +1209,7 @@
     {
       "home_api": "Colombia",
       "away_api": "Ghana",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-04T01:30:00Z"
     },
     {
