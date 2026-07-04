@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-04T21:01:08.142602Z",
+  "generated_at": "2026-07-04T21:30:55.583596Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1228,7 +1228,7 @@
     {
       "home_api": "Paraguay",
       "away_api": "France",
-      "status": "TIMED",
+      "status": "LIVE",
       "utcDate": "2026-07-04T21:00:00Z"
     },
     {
