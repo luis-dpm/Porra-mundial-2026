@@ -590,11 +590,10 @@ def main():
                 out[t] = out.get(t, 0.0) + p
         return out
 
-    # "Llegar a la final" (finalista) es distinto de "ganarla" (campeón) --
-    # antes ambos mostraban F_dist y salían idénticos. Igual para 3º-4º
-    # puesto: "clasificarse" (perder ambas semis) es distinto de "ganar el
-    # partido de bronce".
-    finalista_dist = merge_dists(S_dist)
+    # "Clasificarse" al partido de 3º-4º puesto (perder ambas semis) es
+    # distinto de "ganarlo". Para la final no hace falta el mismo desglose:
+    # "Semifinal 1/2" ya muestra quién gana cada semi, que es exactamente
+    # quién llega a la final.
     bronce_dist = merge_dists(L_dist)
 
     def top_n(dist, n=None):
@@ -616,7 +615,6 @@ def main():
         ],
         "qf": [{"label": f"Cuartos {k+1}", "top": top_n(Q_dist[k]), "from": list(qf_pairs[k])} for k in range(4)],
         "sf": [{"label": f"Semifinal {k+1}", "top": top_n(S_dist[k]), "from": list(sf_pairs[k])} for k in range(2)],
-        "finalistas": {"label": "Finalistas", "top": top_n(finalista_dist), "from": list(f_pair)},
         "campeon": {"top": top_n(F_dist)},
         "clasificados34": {"label": "Clasificados a 3º-4º puesto", "top": top_n(bronce_dist), "fromLosers": True},
         "tercerpuesto": {"label": "3º puesto", "top": top_n(T34_dist), "fromLosers": True},

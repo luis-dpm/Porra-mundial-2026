@@ -1548,10 +1548,10 @@ function predBracketNodeHTML(node) {
 // Cuadrícula simple por ronda (sin funambulismo de flexbox con huecos
 // calculados a mano): cada ronda es un bloque con su título y una
 // rejilla CSS Grid que envuelve sola sin depender de alturas de tarjeta.
-// "Llegar" a una ronda (finalista, clasificado a 3º-4º) es un dato distinto
-// de "ganarla" (campeón, 3º puesto) -- se muestran como dos tarjetas
-// separadas, cada una con su propio subtítulo, para que no parezcan la
-// misma información repetida dos veces.
+// "Llegar" al partido de 3º-4º puesto es un dato distinto de "ganarlo" --
+// se muestran como dos tarjetas separadas, cada una con su propio
+// subtítulo. (Para la final no hace falta: "Semis" ya muestra quién gana
+// cada semifinal, que es exactamente quién llega a la final.)
 function predBracketNodeCard(subtitle, node) {
   return `<div class="pred-bracket-subgroup">
     <div class="pred-bracket-subtitle">${subtitle}</div>
@@ -1566,10 +1566,7 @@ function renderPredBracket() {
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final</div><div class="pred-bracket-grid">
-    ${predBracketNodeCard('Llega a la final', bk.finalistas)}
-    ${predBracketNodeCard('🏆 Gana el Mundial (campeón)', bk.campeon)}
-  </div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">3º-4º puesto</div><div class="pred-bracket-grid">
     ${predBracketNodeCard('Juega el partido de bronce', bk.clasificados34)}
     ${predBracketNodeCard('🥉 Gana el 3º puesto', bk.tercerpuesto)}
