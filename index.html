@@ -176,6 +176,7 @@
       </div>
       <p class="pred-mode-note" id="predModeNote"></p>
 
+      <!-- 1. Resumen -->
       <div class="section-divider"><span>Clasificación proyectada</span></div>
       <div id="predScoreboard"></div>
 
@@ -183,13 +184,7 @@
       <p class="chart-desc">Probabilidad de acabar en cada puesto exacto (no solo de ser 1º). Los empates a puntos reparten la probabilidad entre las posiciones que ocupan.</p>
       <div class="pred-chart-wrap" id="predRankDistWrap"></div>
 
-      <div id="predCaminoSection">
-        <div class="section-divider"><span>🧭 Camino a la victoria</span></div>
-        <p class="chart-desc">Para cada jugador, el escenario individual más probable —entre todos los que le hacen ganar la porra— con cuotas reales (Kalshi + Elo), incluidas las probabilidades de Bota y Balón de Oro. Ojo: aunque sea "el más probable", suele ser solo una fracción pequeña de su % total de ganar, porque hay muchísimos escenarios distintos que también le dan la victoria.</p>
-        <div class="pred-player-selector" id="predCaminoSelector"></div>
-        <div id="predCaminoContent"></div>
-      </div>
-
+      <!-- 2. La apuesta -->
       <div class="section-divider"><span id="predChuletonIcon">🥩</span> La cena — chuletones esperados</div>
       <p class="chart-desc" id="predChuletonDesc"></p>
       <div id="predChuletonBoard"></div>
@@ -200,6 +195,11 @@
         <div class="pred-chart-wrap" id="predBoxplotWrap"></div>
       </div>
 
+      <!-- 3-4. Detalle partido a partido + lo más jugoso -->
+      <div class="section-divider"><span>Mapa de calor</span></div>
+      <p class="chart-desc" id="predHeatmapDesc"></p>
+      <div class="pred-chart-wrap" id="predHeatmapWrap"></div>
+
       <div class="section-divider"><span>🔥 Partidos que más mueven la porra</span></div>
       <p class="chart-desc">Los 3 partidos con más chuletones en juego (mayor diferencia entre que gane un equipo u otro), en el modo elegido arriba.</p>
       <div class="pred-bracket-grid" id="predTopImpact"></div>
@@ -208,20 +208,25 @@
       <div class="pred-round-selector" id="predRoundSelector"></div>
       <div id="predRoundContent"></div>
 
-      <div class="section-divider"><span>Mapa de calor</span></div>
-      <p class="chart-desc" id="predHeatmapDesc"></p>
-      <div class="pred-chart-wrap" id="predHeatmapWrap"></div>
-
       <div id="predBracketSection">
         <div class="section-divider"><span>El cuadro con probabilidades</span></div>
         <div id="predBracketWrap"></div>
       </div>
 
+      <div id="predCaminoSection">
+        <div class="section-divider"><span>🧭 Camino a la victoria</span></div>
+        <p class="chart-desc">Para cada jugador, el escenario individual más probable —entre todos los que le hacen ganar la porra— con cuotas reales (Kalshi + Elo), incluidas las probabilidades de Bota y Balón de Oro. Ojo: aunque sea "el más probable", suele ser solo una fracción pequeña de su % total de ganar, porque hay muchísimos escenarios distintos que también le dan la victoria.</p>
+        <div class="pred-player-selector" id="predCaminoSelector"></div>
+        <div id="predCaminoContent"></div>
+      </div>
+
+      <!-- 5. Premios -->
       <div id="predAwardsSection">
         <div class="section-divider"><span>🥾 Bota de Oro · ⚽ Balón de Oro</span></div>
         <div class="groups-grid" id="predAwardsGrid"></div>
       </div>
 
+      <!-- 6. Referencia -->
       <div class="section-divider"><span>Picks ya descartados</span></div>
       <p class="chart-desc">Equipos que un jugador marcó para llegar a una ronda pero que ya quedaron eliminados — no pueden sumar puntos, caiga lo que caiga.</p>
       <div class="pred-dead-list" id="predDeadList"></div>
