@@ -1722,6 +1722,12 @@ main {
    necesitan huecos más cortos para que el embudo hacia el centro no se
    vea desproporcionado. */
 .pred-tree-scroll .ko-round-col { flex-basis: 172px; }
+/* El árbol real usa gap:0 en .ko-tree porque compensa el espacio con el
+   padding del centro; con mis tarjetas (más anchas de contenido: nombres
+   de selección + porcentaje) eso deja el semis pegado al bloque central.
+   Más separación horizontal aquí, solo en mi árbol. */
+.pred-tree-scroll .ko-tree { gap: 22px; }
+.pred-tree-scroll .ko-tree-center { padding: 0 6px; }
 /* Para que cada tarjeta de una ronda quede centrada exactamente entre las
    dos que la alimentan, el hueco de la ronda siguiente tiene que ser
    Gap_siguiente = alturaTarjeta + 2×Gap_actual (con tarjetas de 52px):

@@ -1524,8 +1524,8 @@ function predBracketLeafHTML(o) {
     // Mismo alto de 2 filas que la tarjeta con cuota, para que la columna de
     // octavos no quede más alta/baja que el resto y descuadre el árbol.
     return `<div class="pred-bracket-card resolved">
-      <div class="pred-bracket-team fav"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
-      <div class="pred-bracket-team dim"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
+      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
+      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
     </div>`;
   }
   const aFav = o.aProbW >= o.bProbW;
