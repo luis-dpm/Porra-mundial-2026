@@ -69,11 +69,14 @@ def hybrid_prob(a, b):
     return elo_prob(a, b)
 
 # Bota de Oro (Polymarket "Golden Boot Winner", 4 jul. 2026). Julián Álvarez no
-# tiene cifra propia en el mercado (agrupado en "resto"); se le asigna un
-# residuo casi nulo en vez de repartirlo con los demás.
+# tiene cifra propia en el mercado (agrupado en "resto") y sigue con 0 goles
+# mientras el máximo goleador del torneo ya lleva 7 -- 0.01% es un residuo
+# casi nulo (no cero, porque técnicamente aún podría encadenar un hat-trick
+# tras otro), muy por debajo de lo que sería repartir a partes iguales con
+# el resto de "Otros".
 GOLDEN_CANDIDATES = [
     ("Mbappé", 0.49), ("Messi", 0.38), ("Kane", 0.04),
-    ("Oyarzabal", 0.02), ("Julián Álvarez", 0.0005), ("Otros", 0.0695),
+    ("Oyarzabal", 0.02), ("Julián Álvarez", 0.0001), ("Otros", 0.0699),
 ]
 # Balón de Oro (Polymarket "Golden Ball Winner", 4 jul. 2026).
 GOLDEN_BALL_CANDIDATES = [
