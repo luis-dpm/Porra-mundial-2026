@@ -1573,6 +1573,8 @@ main {
 /* cuadro con probabilidades */
 .pred-bracket-round { margin-bottom: 24px; }
 .pred-bracket-round-title { font-family: var(--font-display); font-size: 13px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+.pred-bracket-subgroup { display: flex; flex-direction: column; gap: 6px; }
+.pred-bracket-subtitle { font-size: 11px; color: var(--chalk-dim); }
 .pred-bracket-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .pred-bracket-card {
   background: var(--panel);

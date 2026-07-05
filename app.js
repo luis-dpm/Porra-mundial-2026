@@ -1548,6 +1548,17 @@ function predBracketNodeHTML(node) {
 // Cuadrícula simple por ronda (sin funambulismo de flexbox con huecos
 // calculados a mano): cada ronda es un bloque con su título y una
 // rejilla CSS Grid que envuelve sola sin depender de alturas de tarjeta.
+// "Llegar" a una ronda (finalista, clasificado a 3º-4º) es un dato distinto
+// de "ganarla" (campeón, 3º puesto) -- se muestran como dos tarjetas
+// separadas, cada una con su propio subtítulo, para que no parezcan la
+// misma información repetida dos veces.
+function predBracketNodeCard(subtitle, node) {
+  return `<div class="pred-bracket-subgroup">
+    <div class="pred-bracket-subtitle">${subtitle}</div>
+    ${predBracketNodeHTML(node)}
+  </div>`;
+}
+
 function renderPredBracket() {
   if (!PD) return;
   const bk = PD.bracket;
@@ -1555,8 +1566,14 @@ function renderPredBracket() {
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final &amp; 3º-4º puesto</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.final)}${predBracketNodeHTML(bk.tercerpuesto)}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final</div><div class="pred-bracket-grid">
+    ${predBracketNodeCard('Llega a la final', bk.finalistas)}
+    ${predBracketNodeCard('🏆 Gana el Mundial (campeón)', bk.campeon)}
+  </div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">3º-4º puesto</div><div class="pred-bracket-grid">
+    ${predBracketNodeCard('Juega el partido de bronce', bk.clasificados34)}
+    ${predBracketNodeCard('🥉 Gana el 3º puesto', bk.tercerpuesto)}
+  </div></div>`;
   document.getElementById('predBracketWrap').innerHTML =
     `<p class="chart-desc">Esta vista usa siempre la cuota real (Kalshi + Elo), sea cual sea el modo elegido arriba — en equiprobable no tiene sentido dibujar un cuadro donde todos los equipos están empatados.</p>${html}`;
 }

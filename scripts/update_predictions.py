@@ -580,6 +580,23 @@ def main():
     tp_a, tp_b = tp_pair
     T34_dist = next_round_dist([(tp_a, tp_b)], L_dist, hybrid_prob)[0]
 
+    def merge_dists(dists):
+        """Une varias distribuciones disjuntas (cada equipo solo puede salir
+        de una) sumando sus probabilidades -- para pasar de "2 finalistas
+        por separado" a "probabilidad de ser uno de los 2 finalistas"."""
+        out = {}
+        for d in dists:
+            for t, p in d.items():
+                out[t] = out.get(t, 0.0) + p
+        return out
+
+    # "Llegar a la final" (finalista) es distinto de "ganarla" (campeón) --
+    # antes ambos mostraban F_dist y salían idénticos. Igual para 3º-4º
+    # puesto: "clasificarse" (perder ambas semis) es distinto de "ganar el
+    # partido de bronce".
+    finalista_dist = merge_dists(S_dist)
+    bronce_dist = merge_dists(L_dist)
+
     def top_n(dist, n=None):
         """n=None -> todos los equipos que pueden llegar a esa casilla (todo
         el soporte de la distribución), no solo los favoritos."""
@@ -599,9 +616,10 @@ def main():
         ],
         "qf": [{"label": f"Cuartos {k+1}", "top": top_n(Q_dist[k]), "from": list(qf_pairs[k])} for k in range(4)],
         "sf": [{"label": f"Semifinal {k+1}", "top": top_n(S_dist[k]), "from": list(sf_pairs[k])} for k in range(2)],
-        "final": {"label": "Final", "top": top_n(F_dist), "from": list(f_pair)},
+        "finalistas": {"label": "Finalistas", "top": top_n(finalista_dist), "from": list(f_pair)},
         "campeon": {"top": top_n(F_dist)},
-        "tercerpuesto": {"label": "3º y 4º puesto", "top": top_n(T34_dist), "fromLosers": True},
+        "clasificados34": {"label": "Clasificados a 3º-4º puesto", "top": top_n(bronce_dist), "fromLosers": True},
+        "tercerpuesto": {"label": "3º puesto", "top": top_n(T34_dist), "fromLosers": True},
     }
 
     golden = {"candidates": [{"name": n, "pct": round(p * 100, 2)} for n, p in GOLDEN_CANDIDATES],
