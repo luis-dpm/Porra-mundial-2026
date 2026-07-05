@@ -34,29 +34,28 @@ PLAYER_COLUMNS = {
 }
 
 # ---------------------------------------------------------------- mercado --
-# Octavos sin jugar: cuota real "to advance" de Kalshi, renormalizada a 2 vías
-# (consultada 4 jul. 2026). Clave = número de partido FIFA.
+# Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 5 jul. 2026).
+# Clave = número de partido FIFA.
 OCTAVOS_ODDS = {
-    91: {"Brasil": 0.6505, "Noruega": 0.3495},
-    92: {"Inglaterra": 0.5644, "México": 0.4356},
-    93: {"España": 0.6337, "Portugal": 0.3663},
-    94: {"Bélgica": 0.5263, "Estados Unidos": 0.4737},
-    95: {"Argentina": 0.7368, "Egipto": 0.2632},
-    96: {"Colombia": 0.5825, "Suiza": 0.4175},
+    91: {"Brasil": 0.70, "Noruega": 0.30},
+    92: {"Inglaterra": 0.52, "México": 0.48},
+    93: {"España": 0.66, "Portugal": 0.34},
+    94: {"Bélgica": 0.50, "Estados Unidos": 0.50},
+    95: {"Argentina": 0.84, "Egipto": 0.16},
+    96: {"Colombia": 0.61, "Suiza": 0.39},
 }
 # Cuartos 1 (partido 97, Marruecos-Francia) ya es un cruce real: cuota propia
-# de Kalshi (Francia 81c / Marruecos 20c), consultada 5 jul. 2026.
-CUARTOS1_ODDS = {"Francia": 81 / 101, "Marruecos": 20 / 101}
+# de Kalshi, consultada 5 jul. 2026.
+CUARTOS1_ODDS = {"Francia": 0.76, "Marruecos": 0.24}
 
-# World Football Elo (eloratings.net/2026_World_Cup es JS y no se puede leer
-# directamente; estos valores vienen de international-football.net, que sigue
-# la misma metodología), ~2-4 jul. 2026. Ancla estable para cruces que todavía
-# no existen como mercado (cuartos 2-4, semis, final, 3º-4º puesto).
+# World Football Elo (eloratings.net/2026_World_Cup), ratings al sábado 4 jul.
+# 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
+# 2-4, semis, final, 3º-4º puesto).
 ELO = {
-    "España": 2159, "Argentina": 2151, "Francia": 2134, "Inglaterra": 2046,
-    "Brasil": 2031, "Portugal": 2013, "Colombia": 2009, "Suiza": 1943,
-    "México": 1943, "Noruega": 1934, "Bélgica": 1910, "Marruecos": 1886,
-    "Paraguay": 1823, "Estados Unidos": 1798, "Canadá": 1764, "Egipto": 1747,
+    "España": 2159, "Argentina": 2151, "Francia": 2143, "Inglaterra": 2046,
+    "Brasil": 2031, "Portugal": 2013, "Colombia": 2009, "México": 1943,
+    "Suiza": 1943, "Noruega": 1934, "Marruecos": 1921, "Bélgica": 1910,
+    "Paraguay": 1814, "Estados Unidos": 1798, "Canadá": 1729, "Egipto": 1747,
 }
 
 def elo_prob(a, b):
