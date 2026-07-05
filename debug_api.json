@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T21:01:15.140742Z",
+  "generated_at": "2026-07-05T21:31:10.829845Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1240,7 +1240,7 @@
     {
       "home_api": "Brazil",
       "away_api": "Norway",
-      "status": "PAUSED",
+      "status": "LIVE",
       "utcDate": "2026-07-05T20:00:00Z"
     },
     {
