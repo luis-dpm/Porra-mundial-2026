@@ -1484,6 +1484,7 @@ main {
 .pred-range-fill { position: absolute; top: 0; bottom: 0; background: var(--gold); opacity: 0.55; border-radius: 3px; }
 .pred-range-marker { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--chalk); border-radius: 1px; }
 .pred-range-label { font-family: var(--font-mono); font-size: 11px; color: var(--chalk-dim); }
+.pred-range-tag { opacity: 0.7; }
 .pred-score-side { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 74px; }
 .pred-win-pct { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--chalk); }
 .pred-win-label { font-size: 10px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.04em; }

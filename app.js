@@ -1333,10 +1333,14 @@ function renderPredModeNote() {
 
 function renderPredScoreboard() {
   if (!PD) return;
+  document.getElementById('predScoreboardDesc').textContent = predMode === 'uniform'
+    ? 'Rango total: el mínimo y el máximo absoluto que puede alcanzar cada jugador entre las 16.384 combinaciones (el extremo más bajo con todo en contra, el más alto acertando todo, incluidas Bota y Balón de Oro).'
+    : 'Rango probable (percentil 10–90): el 80% de los escenarios, ponderados por su probabilidad real (Kalshi + Elo), caen dentro de este tramo. Se quedan fuera el 10% de casos más bajo y el 10% más alto.';
   const players = PD.players.slice().sort((a, b) => b[predMode].win_pct - a[predMode].win_pct);
   const maxHi = Math.max(...PD.players.map(p => p.total_max));
   const minLo = Math.min(...PD.players.map(p => p.total_min));
   const span = maxHi - minLo || 1;
+  const rangeTag = predMode === 'uniform' ? 'mín–máx' : 'p10–p90';
   const html = players.map((p, i) => {
     const m = p[predMode];
     const lo = predMode === 'uniform' ? p.total_min : m.p10;
@@ -1358,7 +1362,7 @@ function renderPredScoreboard() {
             <div class="pred-range-fill" style="left:${left}%;width:${Math.max(width, 1)}%"></div>
             <div class="pred-range-marker" style="left:${midPos}%"></div>
           </div>
-          <div class="pred-range-label">${Math.round(lo)} – ${Math.round(hi)} pts</div>
+          <div class="pred-range-label">${Math.round(lo)} – ${Math.round(hi)} pts <span class="pred-range-tag">(${rangeTag})</span></div>
         </div>
         <div class="pred-score-side">
           <div class="pred-win-pct">${m.win_pct}%</div>
