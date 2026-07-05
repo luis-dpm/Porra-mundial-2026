@@ -1541,63 +1541,18 @@ function predBracketNodeHTML(node) {
     ${top.map(t => `<div class="pred-bracket-team ${t.pct === maxPct ? 'fav' : 'dim'}"><span>${t.team}</span><span class="pred-bracket-pct">${t.pct}%</span></div>`).join('')}
   </div>`;
 }
-// Árbol real del cuadro (mismo reparto en dos mitades que converge al centro
-// que usa "El bracket real" de Eliminatoria — ver bracket_structure.py
-// BRACKET_TREE), pero con probabilidades en vez de resultados.
-const PRED_BRACKET_TREE = {
-  left: { octavos: [90, 89, 93, 94], cuartos: [97, 98], semis: [101] },
-  right: { octavos: [91, 92, 95, 96], cuartos: [99, 100], semis: [102] },
-};
-const PRED_OCTAVOS_NUM_TO_IDX = { 89: 0, 90: 1, 91: 2, 92: 3, 93: 4, 94: 5, 95: 6, 96: 7 };
-const PRED_CUARTOS_NUM_TO_IDX = { 97: 0, 98: 1, 99: 2, 100: 3 };
-const PRED_SEMIS_NUM_TO_IDX = { 101: 0, 102: 1 };
-
-function renderPredBracketHalf(bk, side) {
-  const tree = PRED_BRACKET_TREE[side];
-  const octavosCards = tree.octavos.map(num => predBracketLeafHTML(bk.octavos[PRED_OCTAVOS_NUM_TO_IDX[num]])).join('');
-  const cuartosCards = tree.cuartos.map(num => predBracketNodeHTML(bk.qf[PRED_CUARTOS_NUM_TO_IDX[num]])).join('');
-  const semisCards = tree.semis.map(num => predBracketNodeHTML(bk.sf[PRED_SEMIS_NUM_TO_IDX[num]])).join('');
-  return `
-    <div class="ko-round-col pred-tree-gap-1">${octavosCards}</div>
-    <div class="ko-round-col pred-tree-gap-2">${cuartosCards}</div>
-    <div class="ko-round-col pred-tree-gap-3">${semisCards}</div>
-  `;
-}
-const PRED_TREE_LABELS = `
-  <div class="pred-tree-col-label">Octavos</div>
-  <div class="pred-tree-col-label">Cuartos</div>
-  <div class="pred-tree-col-label">Semis</div>
-`;
-
+// Cuadrícula simple por ronda (sin funambulismo de flexbox con huecos
+// calculados a mano): cada ronda es un bloque con su título y una
+// rejilla CSS Grid que envuelve sola sin depender de alturas de tarjeta.
 function renderPredBracket() {
   if (!PD) return;
   const bk = PD.bracket;
-  const centerHtml = `
-    <div class="ko-tree-center pred-tree-center">
-      <div class="pred-tree-center-stack">
-        <div class="pred-tree-center-label">Final</div>
-        ${predBracketNodeHTML(bk.final)}
-        <div class="pred-tree-center-label">🏆 Campeón</div>
-        ${predBracketNodeHTML(bk.campeon)}
-        <div class="pred-tree-center-label">3º-4º puesto</div>
-        ${predBracketNodeHTML(bk.tercerpuesto)}
-      </div>
-    </div>`;
-  const labelsRow = `
-    <div class="ko-tree pred-tree-labels-row">
-      <div class="ko-tree-half left">${PRED_TREE_LABELS}</div>
-      <div class="ko-tree-center pred-tree-center"></div>
-      <div class="ko-tree-half right">${PRED_TREE_LABELS}</div>
-    </div>`;
-  const html = `
-    <div class="pred-tree-scroll">
-      ${labelsRow}
-      <div class="ko-tree">
-        <div class="ko-tree-half left">${renderPredBracketHalf(bk, 'left')}</div>
-        ${centerHtml}
-        <div class="ko-tree-half right">${renderPredBracketHalf(bk, 'right')}</div>
-      </div>
-    </div>`;
+  let html = '';
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final &amp; 3º-4º puesto</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.final)}${predBracketNodeHTML(bk.tercerpuesto)}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
   document.getElementById('predBracketWrap').innerHTML =
     `<p class="chart-desc">Esta vista usa siempre la cuota real (Kalshi + Elo), sea cual sea el modo elegido arriba — en equiprobable no tiene sentido dibujar un cuadro donde todos los equipos están empatados.</p>${html}`;
 }
