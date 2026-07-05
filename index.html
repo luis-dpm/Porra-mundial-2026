@@ -35,6 +35,7 @@
     <button class="tab-btn" data-tab="proximos">⏳ Próximos</button>
     <button class="tab-btn" data-tab="grupos">🔠 Fase de grupos</button>
     <button class="tab-btn" data-tab="eliminatoria">🔥 Eliminatoria</button>
+    <button class="tab-btn" data-tab="predicciones">🔮 Predicciones</button>
   </nav>
 </header>
 <div class="nav-scrim" id="navScrim"></div>
@@ -161,9 +162,60 @@
     </div>
   </section>
 
+  <!-- ============ PAGE 7: PREDICCIONES ============ -->
+  <section class="page" id="page-predicciones">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Predicciones: de aquí a la final</h1>
+        <p class="page-sub" id="predIntro">—</p>
+      </div>
+
+      <div class="pred-mode-toggle" id="predModeToggle">
+        <button class="pred-mode-btn active" data-mode="uniform">Equiprobable (50/50)</button>
+        <button class="pred-mode-btn" data-mode="weighted">Kalshi + Elo</button>
+      </div>
+      <p class="pred-mode-note" id="predModeNote"></p>
+
+      <div class="section-divider"><span>Clasificación proyectada</span></div>
+      <div id="predScoreboard"></div>
+
+      <div class="section-divider"><span id="predChuletonIcon">🥩</span> La cena — chuletones esperados</div>
+      <p class="chart-desc" id="predChuletonDesc"></p>
+      <div id="predChuletonBoard"></div>
+
+      <div class="chart-block">
+        <h2 class="chart-title">Dispersión por jugador</h2>
+        <p class="chart-desc">Caja = percentil 25–75 · bigotes = percentil 10–90 · línea azul = mediana · rombo dorado = media</p>
+        <div class="pred-chart-wrap" id="predBoxplotWrap"></div>
+      </div>
+
+      <div class="section-divider"><span>Partidos por ronda</span></div>
+      <div class="pred-round-selector" id="predRoundSelector"></div>
+      <div id="predRoundContent"></div>
+
+      <div class="section-divider"><span>Mapa de calor</span></div>
+      <p class="chart-desc" id="predHeatmapDesc"></p>
+      <div class="pred-chart-wrap" id="predHeatmapWrap"></div>
+
+      <div class="section-divider"><span>El cuadro con probabilidades</span></div>
+      <div id="predBracketWrap"></div>
+
+      <div class="section-divider"><span>🥾 Bota de Oro · ⚽ Balón de Oro</span></div>
+      <div class="groups-grid" id="predAwardsGrid"></div>
+
+      <div class="section-divider"><span>Picks ya descartados</span></div>
+      <p class="chart-desc">Equipos que un jugador marcó para llegar a una ronda pero que ya quedaron eliminados — no pueden sumar puntos, caiga lo que caiga.</p>
+      <div class="pred-dead-list" id="predDeadList"></div>
+
+      <div class="section-divider"><span>Metodología</span></div>
+      <div id="predMethodology"></div>
+    </div>
+  </section>
+
 </main>
 
 <script src="data.js"></script>
+<script src="predictions_data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

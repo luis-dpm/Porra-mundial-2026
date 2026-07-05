@@ -1294,6 +1294,322 @@ function scoreKoMatch(predStr, actualStr) {
   return { pts, sign, diff, exact };
 }
 
+// ============ PAGE 7: PREDICCIONES ============
+// PREDICTIONS_DATA viene de predictions_data.js, generado por
+// scripts/update_predictions.py (aparte del resto de data.js: combina el
+// estado real ya calculado con cuotas de mercado externas que hay que
+// refrescar a mano). Ver la pestaña "Metodología" dentro de Predicciones.
+const PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
+const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
+let predMode = 'uniform';
+let predRound = 'Octavos';
+const PRED_ROUNDS = ['Octavos', 'Cuartos', 'Semis', 'Final', '3º-4º puesto'];
+
+document.querySelectorAll('.pred-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pred-mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    predMode = btn.dataset.mode;
+    renderPredAll();
+  });
+});
+
+function renderPredIntro() {
+  const el = document.getElementById('predIntro');
+  if (!PD) { el.textContent = 'Predicciones no disponibles todavía.'; return; }
+  const dateTxt = PD.generated_from_last_updated ? fmtDateLong(PD.generated_from_last_updated) : '?';
+  el.innerHTML = `Quedan <b>${PD.n_remaining_matches}</b> partidos con dos resultados posibles cada uno (2<sup>${PD.n_remaining_matches}</sup> = <b>${PD.n_combinations.toLocaleString('es-ES')}</b> combinaciones). Con datos hasta el ${dateTxt}.`;
+}
+
+function renderPredModeNote() {
+  const el = document.getElementById('predModeNote');
+  if (predMode === 'uniform') {
+    el.innerHTML = 'Cada uno de los partidos que quedan se trata como una moneda al aire (50%/50%). La Bota y el Balón de Oro usan su cuota real de Polymarket en los dos modos: no tendría sentido fingir que todos los candidatos tienen la misma probabilidad.';
+  } else {
+    el.innerHTML = 'Modelo híbrido: los octavos que quedan y Cuartos 1 (Marruecos-Francia, ya es un cruce real) usan la cuota real "to advance" de <b>Kalshi</b>. El resto de cuartos, semis, final y el 3º-4º puesto usan el <b>rating Elo</b> de cada selección como ancla estable. La Bota y el Balón de Oro usan Polymarket.';
+  }
+}
+
+function renderPredScoreboard() {
+  if (!PD) return;
+  const players = PD.players.slice().sort((a, b) => b[predMode].win_pct - a[predMode].win_pct);
+  const maxHi = Math.max(...PD.players.map(p => p.total_max));
+  const minLo = Math.min(...PD.players.map(p => p.total_min));
+  const span = maxHi - minLo || 1;
+  const html = players.map((p, i) => {
+    const m = p[predMode];
+    const lo = predMode === 'uniform' ? p.total_min : m.p10;
+    const hi = predMode === 'uniform' ? p.total_max : m.p90;
+    const mid = predMode === 'uniform' ? m.total_avg : m.p50;
+    const left = ((lo - minLo) / span) * 100;
+    const width = ((hi - lo) / span) * 100;
+    const midPos = ((mid - minLo) / span) * 100;
+    return `
+      <div class="pred-score-row ${i === 0 ? 'rank-1' : ''}">
+        <div class="pred-score-rank">${i + 1}</div>
+        <div class="pred-score-mid">
+          <div class="pred-score-name-line">
+            <span class="pred-score-name">${p.name}</span>
+            <span class="pred-score-current">${p.current} pts hoy</span>
+            ${p.dead.length ? `<span class="badge b-miss">${p.dead.length} pick${p.dead.length > 1 ? 's' : ''} muerto${p.dead.length > 1 ? 's' : ''}</span>` : ''}
+          </div>
+          <div class="pred-range-track">
+            <div class="pred-range-fill" style="left:${left}%;width:${Math.max(width, 1)}%"></div>
+            <div class="pred-range-marker" style="left:${midPos}%"></div>
+          </div>
+          <div class="pred-range-label">${Math.round(lo)} – ${Math.round(hi)} pts</div>
+        </div>
+        <div class="pred-score-side">
+          <div class="pred-win-pct">${m.win_pct}%</div>
+          <div class="pred-win-label">de acabar 1º</div>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('predScoreboard').innerHTML = html;
+}
+
+function renderPredChuleton() {
+  if (!PD) return;
+  document.getElementById('predChuletonDesc').textContent = predMode === 'uniform'
+    ? 'Con los partidos que quedan a 50/50. 1º no paga, 4º paga lo suyo (1 chuletón), 7º paga el doble (2 = lo suyo y lo de otro).'
+    : 'Ponderado con Kalshi + Elo. 1º no paga, 4º paga lo suyo (1 chuletón), 7º paga el doble (2 = lo suyo y lo de otro).';
+  const players = PD.players.slice().sort((a, b) => a.chuleton[predMode] - b.chuleton[predMode]);
+  const html = players.map(p => `
+    <div class="pred-chop-row">
+      <div class="pred-chop-icon">🥩</div>
+      <div class="pred-chop-name">${p.name}</div>
+      <div class="pred-chop-value">${p.chuleton[predMode].toFixed(2)}<span>chuletones esperados</span></div>
+    </div>`).join('');
+  document.getElementById('predChuletonBoard').innerHTML = html;
+}
+
+function renderPredBoxplot() {
+  if (!PD) return;
+  const players = PD.players.slice().sort((a, b) => a.chuleton_box[predMode].mean - b.chuleton_box[predMode].mean);
+  const rowH = 40, leftPad = 132, topPad = 10, wPlot = Math.max(280, 380);
+  const height = topPad + rowH * players.length + 26;
+  const width = leftPad + wPlot + 40;
+  const scale = v => (v / 2) * wPlot;
+  let svg = `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" class="pred-boxplot">`;
+  [0, 1, 2].forEach(v => {
+    const x = leftPad + scale(v);
+    svg += `<line x1="${x}" y1="${topPad}" x2="${x}" y2="${topPad + rowH * players.length}" stroke="var(--panel-line)" stroke-width="1"></line>`;
+    svg += `<text x="${x}" y="${topPad + rowH * players.length + 18}" text-anchor="middle" font-size="11">${v}</text>`;
+  });
+  players.forEach((p, i) => {
+    const box = p.chuleton_box[predMode];
+    const y = topPad + i * rowH + rowH / 2;
+    svg += `<text x="${leftPad - 12}" y="${y + 4}" text-anchor="end" font-size="12">${p.name}</text>`;
+    const xP10 = leftPad + scale(box.p10), xP90 = leftPad + scale(box.p90);
+    const xQ1 = leftPad + scale(box.q1), xQ3 = leftPad + scale(box.q3);
+    const xMed = leftPad + scale(box.median), xMean = leftPad + scale(box.mean);
+    svg += `<line x1="${xP10}" y1="${y}" x2="${xQ1}" y2="${y}" class="pred-whisker"></line>`;
+    svg += `<line x1="${xQ3}" y1="${y}" x2="${xP90}" y2="${y}" class="pred-whisker"></line>`;
+    svg += `<rect x="${Math.min(xQ1, xQ3)}" y="${y - 9}" width="${Math.max(Math.abs(xQ3 - xQ1), 1)}" height="18" rx="3" class="pred-box"></rect>`;
+    svg += `<line x1="${xMed}" y1="${y - 9}" x2="${xMed}" y2="${y + 9}" stroke-width="2.4" stroke="var(--player-2)"></line>`;
+    svg += `<rect x="${xMean - 4}" y="${y - 4}" width="8" height="8" transform="rotate(45 ${xMean} ${y})" class="pred-mean"></rect>`;
+  });
+  svg += `</svg>`;
+  document.getElementById('predBoxplotWrap').innerHTML = svg;
+}
+
+function renderPredRoundSelector() {
+  document.getElementById('predRoundSelector').innerHTML = PRED_ROUNDS.map(r =>
+    `<button class="pred-round-pill ${r === predRound ? 'active' : ''}" data-round="${r}">${r}</button>`
+  ).join('');
+  document.querySelectorAll('.pred-round-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      predRound = btn.dataset.round;
+      renderPredRoundSelector();
+      renderPredRoundContent();
+    });
+  });
+}
+
+function predResolvedCardHTML(o) {
+  return `
+    <div class="pred-match-card">
+      <div class="pred-match-head">
+        <div class="pred-match-teams">${o.a} <span style="color:var(--chalk-dim)">vs</span> ${o.b}</div>
+        <div class="pred-match-resolved">Jugado · ${o.score}</div>
+      </div>
+      <div class="pred-odds-line">Pasa a cuartos: <b style="color:var(--chalk)">${o.winner}</b></div>
+    </div>`;
+}
+
+function predMatchCardHTML(m) {
+  const rows = PRED_PLAYERS.map(name => {
+    const v = m.players[name];
+    const delta = v.cutsB - v.cutsA;
+    const cls = delta > 0 ? 'pred-delta-up' : (delta < 0 ? 'pred-delta-down' : '');
+    const sign = delta > 0 ? '+' : '';
+    return `<tr>
+      <td class="name">${name}</td>
+      <td class="num">${v.cutsA.toFixed(2)}</td>
+      <td class="num">${v.cutsB.toFixed(2)}</td>
+      <td class="num ${cls}">${sign}${delta.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+  const oddsLine = predMode === 'weighted'
+    ? `<div class="pred-odds-line">Cuota real: <b>${m.a} ${m.probA}%</b>
+        <div class="pred-odds-track"><div class="pred-odds-fill" style="width:${m.probA}%"></div></div>
+        <b>${m.probB}% ${m.b}</b></div>`
+    : '';
+  return `
+    <div class="pred-match-card">
+      <div class="pred-match-head">
+        <div class="pred-match-teams">${m.a} <span style="color:var(--chalk-dim)">vs</span> ${m.b}</div>
+        <div class="pred-match-impact">impacto ${m.impact}</div>
+      </div>
+      ${oddsLine}
+      <table class="pred-cuts-table">
+        <thead><tr><th>Jugador</th><th class="num">Gana ${m.a}</th><th class="num">Gana ${m.b}</th><th class="num">Ahorro si gana ${m.a}</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderPredRoundContent() {
+  if (!PD) return;
+  const src = predMode === 'uniform' ? PD.matches_uniform : PD.matches_weighted;
+  let html = '';
+  if (predRound === 'Octavos') {
+    html += PD.bracket.octavos.filter(o => o.resolved).map(predResolvedCardHTML).join('');
+  }
+  html += src.filter(m => m.stage === predRound).map(predMatchCardHTML).join('');
+  document.getElementById('predRoundContent').innerHTML = html || '<p class="chart-desc">Nada que mostrar en esta ronda.</p>';
+}
+
+function renderPredHeatmap() {
+  if (!PD) return;
+  const src = predMode === 'uniform' ? PD.matches_uniform : PD.matches_weighted;
+  document.getElementById('predHeatmapDesc').textContent = predMode === 'uniform'
+    ? 'Con cada partido a 50/50. Verde = le conviene el equipo de la izquierda de cada cruce; rojo = le conviene el de la derecha.'
+    : 'Ponderado con Kalshi + Elo. Verde = le conviene el equipo de la izquierda de cada cruce; rojo = le conviene el de la derecha.';
+  const rowsOrder = PD.players.slice().sort((a, b) => a.chuleton[predMode] - b.chuleton[predMode]);
+  let maxAbs = 0.01;
+  src.forEach(m => rowsOrder.forEach(p => {
+    const v = m.players[p.name];
+    maxAbs = Math.max(maxAbs, Math.abs(v.cutsB - v.cutsA));
+  }));
+  const rowLabelW = 140, cellW = 40, cellH = 26, headH = 60, leftPad = 6, topPad = 6;
+  const width = leftPad + rowLabelW + cellW * src.length + 10;
+  const height = topPad + headH + cellH * rowsOrder.length + 6;
+  let svg = `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" class="pred-heatmap">`;
+  src.forEach((m, ci) => {
+    const x = leftPad + rowLabelW + ci * cellW + cellW / 2;
+    const label = `${m.a.slice(0, 3).toUpperCase()}-${m.b.slice(0, 3).toUpperCase()}`;
+    svg += `<text class="pred-hm-label" x="${x}" y="${topPad + headH - 8}" text-anchor="start" transform="rotate(-42 ${x} ${topPad + headH - 8})">${label}</text>`;
+  });
+  rowsOrder.forEach((p, ri) => {
+    const y = topPad + headH + ri * cellH;
+    svg += `<text class="pred-hm-label" x="${leftPad + rowLabelW - 10}" y="${y + cellH / 2 + 4}" text-anchor="end" font-size="11">${p.name}</text>`;
+    src.forEach((m, ci) => {
+      const v = m.players[p.name];
+      const delta = v.cutsB - v.cutsA;
+      const x = leftPad + rowLabelW + ci * cellW;
+      const alpha = (0.15 + 0.85 * Math.min(Math.abs(delta) / maxAbs, 1)).toFixed(2);
+      const color = delta >= 0 ? `rgba(31,122,77,${alpha})` : `rgba(192,57,43,${alpha})`;
+      const favored = delta >= 0 ? m.a : m.b;
+      svg += `<rect x="${x + 1}" y="${y + 1}" width="${cellW - 2}" height="${cellH - 2}" rx="3" fill="${color}"><title>${p.name} · ${m.a}-${m.b}: paga ${Math.abs(delta).toFixed(2)} chuletones menos si gana ${favored}</title></rect>`;
+    });
+  });
+  svg += `</svg>`;
+  document.getElementById('predHeatmapWrap').innerHTML = svg;
+}
+
+function predBracketLeafHTML(o) {
+  if (o.resolved) {
+    return `<div class="pred-bracket-card resolved">
+      <div class="pred-bracket-team fav"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span></div>
+      <div class="pred-bracket-score">${o.score}</div>
+      <div class="pred-bracket-team fav"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span></div>
+    </div>`;
+  }
+  const aFav = o.aProbW >= o.bProbW;
+  return `<div class="pred-bracket-card">
+    <div class="pred-bracket-team ${aFav ? 'fav' : 'dim'}"><span>${o.a}</span><span class="pred-bracket-pct">${o.aProbW}%</span></div>
+    <div class="pred-bracket-team ${!aFav ? 'fav' : 'dim'}"><span>${o.b}</span><span class="pred-bracket-pct">${o.bProbW}%</span></div>
+  </div>`;
+}
+function predBracketNodeHTML(node) {
+  const top = node.top;
+  const maxPct = Math.max(...top.map(t => t.pct));
+  return `<div class="pred-bracket-card">
+    ${top.map(t => `<div class="pred-bracket-team ${t.pct === maxPct ? 'fav' : 'dim'}"><span>${t.team}</span><span class="pred-bracket-pct">${t.pct}%</span></div>`).join('')}
+  </div>`;
+}
+function renderPredBracket() {
+  if (!PD) return;
+  const bk = PD.bracket;
+  let html = '';
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final &amp; 3º-4º puesto</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.final)}${predBracketNodeHTML(bk.tercerpuesto)}</div></div>`;
+  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
+  document.getElementById('predBracketWrap').innerHTML =
+    `<p class="chart-desc">Esta vista usa siempre la cuota real (Kalshi + Elo), sea cual sea el modo elegido arriba — en equiprobable no tiene sentido dibujar un cuadro donde todos los equipos están empatados.</p>${html}`;
+}
+
+function predAwardCardHTML(title, icon, data) {
+  const rows = data.candidates.map(c => {
+    const backers = Object.entries(data.picks).filter(([, pick]) => pick === c.name).map(([name]) => name);
+    return `<div class="pred-award-row">
+      <div>
+        <div class="pred-award-name">${c.name}</div>
+        ${backers.length ? `<div class="pred-award-backers">${backers.map(n => `<span class="pred-award-chip">${n}</span>`).join('')}</div>` : ''}
+      </div>
+      <div class="pred-award-pct">${c.pct}%</div>
+    </div>`;
+  }).join('');
+  return `<div class="pred-award-card"><div class="honor-player">${icon} ${title}</div>${rows}</div>`;
+}
+function renderPredAwards() {
+  if (!PD) return;
+  document.getElementById('predAwardsGrid').innerHTML =
+    predAwardCardHTML('Bota de Oro', '🥾', PD.golden) + predAwardCardHTML('Balón de Oro', '⚽', PD.ball);
+}
+
+function renderPredDeadList() {
+  if (!PD) return;
+  const rows = [];
+  PD.players.forEach(p => p.dead.forEach(d => rows.push({ name: p.name, stage: d.stage, pick: d.pick })));
+  let html = `<div class="pred-dead-row head"><div>Jugador</div><div>Ronda</div><div>Equipo elegido</div></div>`;
+  rows.forEach(r => {
+    html += `<div class="pred-dead-row"><div><b>${r.name}</b></div><div>${r.stage}</div><div><span class="pred-dead-tag">${r.pick}</span></div></div>`;
+  });
+  if (!rows.length) html += `<p class="chart-desc">Nadie tiene picks descartados todavía.</p>`;
+  document.getElementById('predDeadList').innerHTML = html;
+}
+
+function renderPredMethodology() {
+  if (!PD) return;
+  document.getElementById('predMethodology').innerHTML = `
+    <div class="pred-note"><b>Qué se simula:</b> desde los octavos que aún no se han jugado hasta la final y el 3º-4º puesto, con dos resultados posibles por partido (2<sup>${PD.n_remaining_matches}</sup> = ${PD.n_combinations.toLocaleString('es-ES')} combinaciones). Los puntos por ronda (12/24/48/24 según equipo clasificado, más 96/48/16 por Campeón/Subcampeón/3º puesto) son los mismos que usa la pestaña Eliminatoria; la Bota y el Balón de Oro (24 pts cada uno) se añaden con su probabilidad real de mercado.</div>
+    <div class="pred-note"><b>Equiprobable:</b> cada partido que queda es una moneda al aire (50%/50%). Sirve para ver el rango de resultados "si todo fuera puro azar", sin opinar sobre quién es mejor equipo.</div>
+    <div class="pred-note"><b>Kalshi + Elo:</b> los octavos que quedan y Cuartos 1 (Marruecos-Francia, ya es un cruce real) usan la cuota "to advance" de <a href="https://kalshi.com/category/sports/soccer/fifa-world-cup/world-cup/games" target="_blank" rel="noopener">Kalshi</a>. El resto de cuartos, semis, final y el 3º-4º puesto usan el rating <a href="https://www.eloratings.net/2026_World_Cup" target="_blank" rel="noopener">World Football Elo</a> de cada selección (P(A gana a B) = 1/(1+10^(−(Elo_A−Elo_B)/400))) como ancla estable, porque el cruce concreto todavía no existe como mercado.</div>
+    <div class="pred-note"><b>Bota y Balón de Oro:</b> probabilidades reales de los mercados "Golden Boot Winner" / "Golden Ball Winner" de <a href="https://polymarket.com/sports/world-cup" target="_blank" rel="noopener">Polymarket</a>, iguales en los dos modos.</div>
+    <div class="pred-note"><b>La cena:</b> 1º no paga, 4º paga lo suyo (1 chuletón), 7º paga el doble (2 = lo suyo y lo de otro), con pasos de 1/3 entre medias. Empates a puntos reparten el chuletón de esas posiciones a partes iguales.</div>
+    <div class="pred-note"><b>Fuentes y limitaciones:</b> esta pestaña se genera con <code>scripts/update_predictions.py</code>, aparte del resto de <code>data.js</code> (que sigue reflejando solo resultados ya jugados). Los datos de mercado (Kalshi, Elo, Polymarket) hay que refrescarlos a mano cuando cambian — no forman parte del workflow automático que corre cada 2 horas.</div>
+  `;
+}
+
+function renderPredAll() {
+  renderPredIntro();
+  renderPredModeNote();
+  renderPredScoreboard();
+  renderPredChuleton();
+  renderPredBoxplot();
+  renderPredRoundSelector();
+  renderPredRoundContent();
+  renderPredHeatmap();
+  renderPredBracket();
+  renderPredAwards();
+  renderPredDeadList();
+  renderPredMethodology();
+}
+
 // ============ INIT ============
 renderScoreboard();
 renderDaySelector();
@@ -1308,3 +1624,4 @@ renderHonorBoard();
 renderTopScorers();
 renderKoPlayerSelector();
 renderKoPlayerBracket();
+renderPredAll();
