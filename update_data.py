@@ -449,35 +449,33 @@ def fetch_real_results(api_key):
         if hg is None or ag is None:
             continue
 
-        # Comprobado con datos reales: cuando el partido termina en juego
-        # (normal o prórroga sin penaltis, como Bélgica-Senegal 3-2),
-        # 'fullTime' ya trae el marcador completo a 120' y es fiable. Pero
-        # cuando se decide por PENALTIS, esta API mete ahí un número que
-        # NO es el marcador real a 120' (nos dio 4-5 y 3-4 en partidos que
-        # en realidad fueron 1-1) — así que en ese caso no lo usamos como
-        # resultado; solo nos sirve para saber quién gana la tanda (más
-        # abajo). El marcador a 120' de esos partidos vendrá del Excel.
-        if duration != "PENALTY_SHOOTOUT":
-            # Guardamos en ambas orientaciones (normal e invertida) para
-            # que el resultado se encuentre aunque el Excel tenga el
-            # partido anotado con local/visitante distinto a como lo da
-            # la API — algo que puede pasar si alguien se equivocó al
-            # transcribir el fixture a mano.
-            results[(home_es, away_es)] = (hg, ag)
-            results[(away_es, home_es)] = (ag, hg)
-
-        # En fase KO, si el partido se decidió por penaltis, football-data.org
-        # lo marca con score.duration == 'PENALTY_SHOOTOUT' (o trae
-        # score.penalties/score.winner) — lo comprobamos siempre, sin
-        # exigir que fullTime venga empatado, porque para partidos de
-        # penaltis ese campo no es fiable en esta competición. El
-        # marcador de 120' que puntúa predicciones sigue viniendo del
-        # Excel (ver resolve_ko_result); esto es solo para saber quién
-        # avanza de ronda.
         winner_field = score_obj.get("winner")
         pens = score_obj.get("penalties") or {}
         hp, ap = pens.get("home"), pens.get("away")
         went_to_penalties = duration == "PENALTY_SHOOTOUT" or (hp is not None and ap is not None)
+
+        # Comprobado con datos reales: cuando el partido termina en juego
+        # (normal o prórroga sin penaltis, como Bélgica-Senegal 3-2),
+        # 'fullTime' ya trae el marcador completo a 120' y es fiable. Pero
+        # cuando se decide por PENALTIS, esta API mete en 'fullTime' el
+        # marcador a 120' MÁS los goles de la propia tanda ya sumados
+        # (nos dio 4-5 en un partido que a 120' fue 1-1, con penaltis
+        # 3-4: 1+3=4, 1+4=5) — así que en ese caso restamos 'penalties'
+        # de 'fullTime' para recuperar el marcador real a 120'.
+        if went_to_penalties and hp is not None and ap is not None:
+            real_hg, real_ag = hg - hp, ag - ap
+        else:
+            real_hg, real_ag = hg, ag
+
+        # Guardamos en ambas orientaciones (normal e invertida) para que el
+        # resultado se encuentre aunque el Excel tenga el partido anotado
+        # con local/visitante distinto a como lo da la API — algo que puede
+        # pasar si alguien se equivocó al transcribir el fixture a mano.
+        results[(home_es, away_es)] = (real_hg, real_ag)
+        results[(away_es, home_es)] = (real_ag, real_hg)
+
+        # Quién gana la tanda de penaltis (para saber quién avanza de
+        # ronda cuando el marcador a 120' queda empatado).
         if went_to_penalties:
             pen_winner_es = None
             if winner_field == "HOME_TEAM":
