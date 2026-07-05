@@ -273,11 +273,25 @@ def locate_ko_rows_by_ref(ws, match_rows, match_defs):
 
 
 def read_ko_predictions(ws, player_columns, group_standings_real=None, third_place_ranking=None,
-                         team_ko_opponent=None):
+                         team_ko_opponent=None, penalty_winners=None):
     """Lee, para cada ronda, la lista de equipos que predijo cada jugador
     (uno por slot) y los enfrentamientos con su resultado real si lo hay."""
     rounds_data = {}
     resolve_group_ref = build_group_ref_resolver(group_standings_real, third_place_ranking)
+
+    # Según van resolviéndose partidos ronda a ronda, guardamos aquí quién
+    # ganó cada uno (por número de partido) para poder resolver refs
+    # 'W##' a nombre de equipo real — necesario para ubicar filas de
+    # octavos/cuartos/semis por texto una vez el Excel ya no muestra
+    # 'W74-W77' sino los nombres reales de los equipos.
+    resolved_winners = {}
+
+    def resolve_progressive(ref):
+        if ref.startswith("W"):
+            return resolved_winners.get(ref[1:])
+        if ref.startswith("L"):
+            return None  # los perdedores no hacen falta para ubicar filas
+        return resolve_group_ref(ref)
 
     for round_name in ROUND_NAMES:
         qualifier_rows = EXCEL_ROWS[QUALIFIER_ROW_KEYS[round_name]]
@@ -328,20 +342,52 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
                         file=sys.stderr,
                     )
             else:
-                resolved_map = locate_ko_rows_by_ref(ws, match_rows, match_defs)
+                resolved_map = {}
+                # Primero, si ya conocemos (por rondas previas resueltas)
+                # los dos equipos de un cruce, ubicamos su fila por texto
+                # exacto — más fiable que buscar 'W##' una vez el Excel ya
+                # ha sustituido esas referencias por nombres reales.
+                used_rows = set()
+                for match_def in match_defs:
+                    home = resolve_progressive(match_def["home"])
+                    away = resolve_progressive(match_def["away"])
+                    if not home or not away:
+                        continue
+                    target_fwd, target_rev = f"{home}-{away}", f"{away}-{home}"
+                    for r in match_rows:
+                        if r in used_rows:
+                            continue
+                        cell_val = ws.cell(row=r, column=11).value
+                        cell_val = str(cell_val).strip() if cell_val else ""
+                        if cell_val in (target_fwd, target_rev):
+                            resolved_map[match_def["num"]] = r
+                            used_rows.add(r)
+                            break
+                # Lo que no se pudo ubicar así (partidos aún no resueltos,
+                # donde el Excel todavía tiene 'W##'), por los tokens W##/L##.
+                still_pending = [md for md in match_defs if md["num"] not in resolved_map]
+                if still_pending:
+                    remaining_rows = [r for r in match_rows if r not in resolved_map.values()]
+                    token_map = locate_ko_rows_by_ref(ws, remaining_rows, still_pending)
+                    resolved_map.update(token_map)
                 if resolved_map:
                     row_for_num.update(resolved_map)
                 if len(resolved_map) < len(match_defs):
                     print(
                         f"AVISO: solo se pudieron ubicar {len(resolved_map)}/{len(match_defs)} filas de "
-                        f"{round_name} por sus referencias W##/L## (columna 11). Se usa el orden posicional "
-                        "de respaldo para el resto.",
+                        f"{round_name} (por nombre de equipo o referencias W##/L##). Se usa el orden "
+                        "posicional de respaldo para el resto.",
                         file=sys.stderr,
                     )
 
             matches = []
             for match_def in match_defs:
                 row_idx = row_for_num[match_def["num"]]
+                if round_name == "dieciseisavos":
+                    home_team, away_team = r32_teams.get(match_def["num"], (None, None))
+                else:
+                    home_team = resolve_progressive(match_def["home"])
+                    away_team = resolve_progressive(match_def["away"])
                 # El resultado real en dieciseisavos vive en columna 13
                 # ("goles-goles"). La columna 12 en teoría trae el signo
                 # (1/X/2), pero en la práctica algunas versiones del Excel
@@ -365,6 +411,23 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
                     if col13s and "|" in col13s:
                         # fallback: formato completo en col13 (grupos o manual)
                         excel_actual = col13s
+                # Registramos quién gana este partido (si ya se sabe) para
+                # poder ubicar por nombre de equipo los partidos de la
+                # ronda siguiente que dependen de este resultado.
+                if excel_actual and home_team and away_team:
+                    try:
+                        _asign, _ascore = excel_actual.split("|")
+                        _ah, _ag = map(int, _ascore.split("-"))
+                        if _ah > _ag:
+                            resolved_winners[str(match_def["num"])] = home_team
+                        elif _ag > _ah:
+                            resolved_winners[str(match_def["num"])] = away_team
+                        else:
+                            pen_w = (penalty_winners or {}).get((home_team, away_team))
+                            if pen_w:
+                                resolved_winners[str(match_def["num"])] = pen_w
+                    except (ValueError, TypeError):
+                        pass
                 preds = {}
                 for player, col in player_columns.items():
                     val = ws.cell(row=row_idx, column=col).value
@@ -471,7 +534,7 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
     sin terminar), devuelve la estructura vacía mostrando solo los
     cruces teóricos, sin resultados ni predicciones resueltas."""
     players = list(player_columns.keys())
-    raw = read_ko_predictions(ws, player_columns, group_standings_real, third_place_ranking, team_ko_opponent)
+    raw = read_ko_predictions(ws, player_columns, group_standings_real, third_place_ranking, team_ko_opponent, penalty_winners)
 
     # --- Paso 1: ¿qué equipo real ocupa cada referencia de grupo? ---
     # ('1A' -> equipo 1º del grupo A, '3CDFGH' -> el mejor tercero entre
@@ -630,14 +693,14 @@ def build_ko_dataset(ws, player_columns, group_standings_real, third_place_ranki
                 if not team:
                     row["predictions"][p] = {"team": None, "status": "sin_apuesta", "pts": 0}
                     continue
-                if team in eliminated_teams:
-                    status = "eliminado"
-                    pts = 0
-                elif real_teams and team in real_teams:
+                if real_teams and team in real_teams:
                     status = "clasificado"
                     pts = q_pts
                     qualifier_pts[p] += q_pts
                     qualifier_pts_by_round[round_name][p] += q_pts
+                elif team in eliminated_teams:
+                    status = "eliminado"
+                    pts = 0
                 else:
                     status = "vivo"
                     pts = 0
