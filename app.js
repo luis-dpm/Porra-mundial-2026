@@ -1669,6 +1669,39 @@ function renderPredAwards() {
     predAwardCardHTML('Bota de Oro', '🥾', PD.golden) + predAwardCardHTML('Balón de Oro', '⚽', PD.ball);
 }
 
+// ---------- PRUEBA: quién va con quién ----------
+function renderPredAffinity() {
+  if (!PD || !PD.affinity) return;
+  const names = PRED_PLAYERS;
+  let maxPct = 0;
+  names.forEach(a => names.forEach(b => { if (a !== b) maxPct = Math.max(maxPct, PD.affinity[a][b].pct); }));
+
+  const head = `<th></th>` + names.map(n => `<th>${n}</th>`).join('');
+  const rows = names.map(a => {
+    const cells = names.map(b => {
+      if (a === b) return `<td class="pred-affinity-self">—</td>`;
+      const info = PD.affinity[a][b];
+      const alpha = (0.12 + 0.75 * (info.pct / maxPct)).toFixed(2);
+      return `<td class="pred-affinity-cell" style="background:rgba(190,127,30,${alpha})" title="${a} y ${b} coinciden en ${info.matches}/${info.total} picks">${info.pct}%</td>`;
+    }).join('');
+    return `<tr><th>${a}</th>${cells}</tr>`;
+  }).join('');
+  document.getElementById('predAffinityWrap').innerHTML =
+    `<div class="pred-chart-wrap"><table class="pred-affinity-table"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+
+  const callouts = names.map(a => {
+    const others = names.filter(b => b !== a).map(b => ({ name: b, ...PD.affinity[a][b] }));
+    const most = others.slice().sort((x, y) => y.pct - x.pct)[0];
+    const least = others.slice().sort((x, y) => x.pct - y.pct)[0];
+    return `<div class="pred-affinity-callout">
+      <span class="pred-affinity-name">${a}</span>
+      va más con <b>${most.name}</b> <span class="pred-affinity-pct">(${most.pct}%)</span>
+      y menos con <b>${least.name}</b> <span class="pred-affinity-pct">(${least.pct}%)</span>
+    </div>`;
+  }).join('');
+  document.getElementById('predAffinityCallouts').innerHTML = callouts;
+}
+
 function renderPredDeadList() {
   if (!PD) return;
   const rows = [];
@@ -1721,6 +1754,7 @@ function renderPredAll() {
     renderPredBracket();
     renderPredAwards();
   }
+  renderPredAffinity();
   renderPredDeadList();
   renderPredMethodology();
 }

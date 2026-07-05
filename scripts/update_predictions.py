@@ -620,6 +620,23 @@ def main():
         "tercerpuesto": {"label": "3º puesto", "top": top_n(T34_dist), "fromLosers": True},
     }
 
+    # ---- quién va con quién: cuántos picks comparten cada dos jugadores ----
+    def pick_list(p):
+        pk = picks[p]
+        return (pk["cuartofinalista"] + pk["semifinalista"] + pk["finalista"] + pk["tresycuatro"]
+                + [pk["campeon"], pk["subcampeon"], pk["tercerpuesto"], pk["botaoro"], pk["balonoro"]])
+
+    pick_lists = {p: pick_list(p) for p in players}
+    n_picks = len(pick_lists[players[0]])
+    affinity = {}
+    for p1 in players:
+        affinity[p1] = {}
+        for p2 in players:
+            if p1 == p2:
+                continue
+            matches = sum(1 for a, b in zip(pick_lists[p1], pick_lists[p2]) if a == b)
+            affinity[p1][p2] = {"matches": matches, "total": n_picks, "pct": round(100 * matches / n_picks, 1)}
+
     golden = {"candidates": [{"name": n, "pct": round(p * 100, 2)} for n, p in GOLDEN_CANDIDATES],
               "picks": {p: picks[p]["botaoro"] for p in players}}
     ball = {"candidates": [{"name": n, "pct": round(p * 100, 2)} for n, p in GOLDEN_BALL_CANDIDATES],
@@ -639,6 +656,7 @@ def main():
         "ball": ball,
         "elo": elo,
         "camino": camino_out,
+        "affinity": affinity,
     }
 
     out_path = ROOT / "predictions_data.js"

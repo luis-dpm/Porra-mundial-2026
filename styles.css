@@ -1715,3 +1715,24 @@ main {
   .pred-rankdist-name { flex-basis: 92px; font-size: 12px; }
   .pred-camino-event { grid-template-columns: 1fr; }
 }
+
+/* PRUEBA: quién va con quién */
+.pred-affinity-wrap { overflow-x: auto; }
+.pred-affinity-table { border-collapse: collapse; font-size: 12px; width: 100%; }
+.pred-affinity-table th, .pred-affinity-table td { padding: 8px 10px; text-align: center; white-space: nowrap; }
+.pred-affinity-table thead th { font-family: var(--font-display); font-weight: 500; color: var(--chalk-dim); font-size: 11px; }
+.pred-affinity-table tbody th { font-family: var(--font-display); font-weight: 500; text-align: left; color: var(--chalk); }
+.pred-affinity-self { color: var(--chalk-dim); opacity: 0.4; }
+.pred-affinity-cell { font-family: var(--font-mono); font-weight: 600; color: var(--chalk); border-radius: var(--radius-sm); }
+.pred-affinity-callout {
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--chalk-dim);
+}
+.pred-affinity-name { font-family: var(--font-display); font-weight: 500; color: var(--chalk); }
+.pred-affinity-callout b { color: var(--chalk); }
+.pred-affinity-pct { font-family: var(--font-mono); font-size: 11px; }
