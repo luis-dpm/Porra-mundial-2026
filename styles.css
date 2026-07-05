@@ -1582,7 +1582,7 @@ main {
 /* Alto fijo dentro del árbol para que los gaps calculados (ver
    .pred-tree-gap-*) mantengan el embudo hacia el centro alineado con
    independencia de si el contenido de cada tarjeta ocupa 1 o 2 líneas. */
-.pred-tree-scroll .pred-bracket-card { min-height: 52px; display: flex; flex-direction: column; justify-content: center; }
+.pred-tree-scroll .pred-bracket-card { min-height: 52px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .pred-bracket-card.resolved { border-color: rgba(212,162,60,0.4); background: rgba(212,162,60,0.06); }
 .pred-bracket-team { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; font-size: 13px; }
 .pred-bracket-team.fav { font-weight: 700; color: var(--chalk); }
@@ -1728,6 +1728,14 @@ main {
    Más separación horizontal aquí, solo en mi árbol. */
 .pred-tree-scroll .ko-tree { gap: 22px; }
 .pred-tree-scroll .ko-tree-center { padding: 0 6px; }
+/* .ko-tree-half trae flex:1 (se estira para llenar el espacio sobrante del
+   árbol real, que solo tiene 2 mitades y centro). Con eso, cuánto espacio
+   sobrante recibe cada mitad depende del ancho total disponible, así que la
+   distancia real hasta el centro no era predecible y a veces apretaba el
+   bloque central contra semis. Aquí cada mitad mide justo lo que ocupan sus
+   3 columnas + huecos, ni más ni menos, para que el gap de arriba sea
+   siempre el que realmente se ve. */
+.pred-tree-scroll .ko-tree-half { flex: 0 0 auto; }
 /* Para que cada tarjeta de una ronda quede centrada exactamente entre las
    dos que la alimentan, el hueco de la ronda siguiente tiene que ser
    Gap_siguiente = alturaTarjeta + 2×Gap_actual (con tarjetas de 52px):
@@ -1736,7 +1744,7 @@ main {
 .pred-tree-gap-1 { gap: 12px; }
 .pred-tree-gap-2 { gap: 76px; }
 .pred-tree-gap-3 { gap: 0; }
-.pred-tree-labels-row { min-width: 920px; margin-bottom: 6px; }
+.pred-tree-labels-row { min-width: 920px; margin-bottom: 18px; }
 .pred-tree-col-label {
   flex: 0 0 172px;
   text-align: center;
