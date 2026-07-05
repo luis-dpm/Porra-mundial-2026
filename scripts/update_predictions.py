@@ -285,9 +285,14 @@ def make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair):
 
     return simulate, n_bits, unresolved_idx
 
-def score_player_bracket(pk, O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34):
+def score_player_bracket(pk, O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, scoreable_octavos):
+    """scoreable_octavos: índices de octavos que hay que puntuar aquí. Los ya
+    resueltos (Francia, Marruecos) se excluyen porque sus 12 pts por acertar
+    cuartofinalista ya están sumados en current_total (viene de data.js, que
+    ya los contabiliza en cuanto el equipo queda "clasificado") -- puntuarlos
+    otra vez aquí los contaría dos veces."""
     s = 0
-    for slot in range(8):
+    for slot in scoreable_octavos:
         if pk["cuartofinalista"][slot] == O_winner[slot]: s += 12
     for slot in range(4):
         if pk["semifinalista"][slot] == Q_winner[slot]: s += 24
@@ -403,7 +408,7 @@ def main():
 
         for bits in all_bits:
             O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, bprob = simulate(bits, mode)
-            bracket_scores = {p: score_player_bracket(picks[p], O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34) for p in players}
+            bracket_scores = {p: score_player_bracket(picks[p], O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, unresolved_idx) for p in players}
             if mode == "uniform":
                 for p in players:
                     bracket_min[p] = bracket_scores[p] if bracket_min[p] is None else min(bracket_min[p], bracket_scores[p])
