@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T23:01:12.932343Z",
+  "generated_at": "2026-07-05T23:31:07.732725Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1252,8 +1252,8 @@
     {
       "home_api": "Mexico",
       "away_api": "England",
-      "status": "TIMED",
-      "utcDate": "2026-07-06T00:00:00Z"
+      "status": "SCHEDULED",
+      "utcDate": "2026-07-06T01:00:00Z"
     },
     {
       "home_api": "Portugal",
