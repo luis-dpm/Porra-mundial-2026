@@ -14,7 +14,9 @@ torneo (desde los octavos sin jugar hasta la final), combinando:
     Polymarket para Bota de Oro / Balón de Oro. Consultados 4-5 jul 2026.
 
 No se ejecuta en el workflow automático (update.yml) porque depende de estos
-datos de mercado, que hay que refrescar a mano cuando cambian.
+datos de mercado, que hay que refrescar a mano cuando cambian. Antes de cada
+refresco, corre `python3 scripts/check_market_data.py` para saber exactamente
+qué cuotas faltan o ya se pueden borrar según cómo va el torneo en data.js.
 """
 import json
 import re
