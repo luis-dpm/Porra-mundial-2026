@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T22:01:12.279965Z",
+  "generated_at": "2026-07-05T22:32:05.887844Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -694,6 +694,12 @@
       "away_api": "France",
       "score": "0-1",
       "utcDate": "2026-07-04T21:00:00Z"
+    },
+    {
+      "home_api": "Brazil",
+      "away_api": "Norway",
+      "score": "1-2",
+      "utcDate": "2026-07-05T20:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1240,7 +1246,7 @@
     {
       "home_api": "Brazil",
       "away_api": "Norway",
-      "status": "LIVE",
+      "status": "FINISHED",
       "utcDate": "2026-07-05T20:00:00Z"
     },
     {
