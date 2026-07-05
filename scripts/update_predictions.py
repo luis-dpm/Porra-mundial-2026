@@ -313,6 +313,17 @@ def ranks_with_ties(scores):
 def payment_for_rank(avg_rank):
     return (avg_rank - 1) / 3
 
+def rank_groups(scores):
+    """Grupos de empate (listas de jugadores), de mayor a menor puntuación."""
+    order = sorted(scores.items(), key=lambda kv: -kv[1])
+    n = len(order); groups = []; i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and order[j + 1][1] == order[i][1]: j += 1
+        groups.append([order[k][0] for k in range(i, j + 1)])
+        i = j + 1
+    return groups
+
 def wq(pairs, q, tot):
     items = sorted(pairs.items())
     target = q * tot; cum = 0.0
@@ -365,6 +376,13 @@ def main():
     matches_out = {}
     bracket_min = {p: None for p in players}
     bracket_max = {p: None for p in players}
+    rank_dist_pct = {}
+    total_prob_by_mode = {}
+    # Mejor escenario (mayor probabilidad conjunta) en el que cada jugador
+    # queda 1º (o empatado a 1º), solo en modo ponderado -- en equiprobable
+    # todas las ramas del cuadro pesan igual, así que "la más probable" no
+    # sería más que una cualquiera de las muchas empatadas al máximo.
+    camino_best = {p: {"w": -1.0, "bits": None, "gname": None, "bname": None, "score": None} for p in players}
 
     for mode in ["uniform", "weighted"]:
         win_mass = {p: 0.0 for p in players}
@@ -377,6 +395,7 @@ def main():
         impact_mass_b = [0.0] * n_matches
         impact_cuts_a = [{p: 0.0 for p in players} for _ in range(n_matches)]
         impact_cuts_b = [{p: 0.0 for p in players} for _ in range(n_matches)]
+        rank_dist = {p: [0.0] * len(players) for p in players}
         total_prob = 0.0
 
         for bits in all_bits:
@@ -401,6 +420,18 @@ def main():
                     maxscore = max(scores.values())
                     leaders = [p for p in players if scores[p] == maxscore]
                     for p in leaders: win_mass[p] += w / len(leaders)
+                    if mode == "weighted":
+                        for p in leaders:
+                            if w > camino_best[p]["w"]:
+                                camino_best[p] = {"w": w, "bits": bits, "gname": gname, "bname": bname, "score": scores[p]}
+                    groups = rank_groups(scores)
+                    pos = 0
+                    for group in groups:
+                        share = w / len(group)
+                        for gp in range(pos, pos + len(group)):
+                            for p in group:
+                                rank_dist[p][gp] += share
+                        pos += len(group)
                     pays = {}
                     for p in players:
                         score_sum[p] += w * scores[p]
@@ -417,6 +448,9 @@ def main():
                         else:
                             impact_mass_b[m] += w
                             for p in players: impact_cuts_b[m][p] += w * pays[p]
+
+        total_prob_by_mode[mode] = total_prob
+        rank_dist_pct[mode] = {p: [round(100 * v / total_prob, 2) for v in rank_dist[p]] for p in players}
 
         summary[mode] = {}
         chuleton_exp[mode] = {}
@@ -469,8 +503,41 @@ def main():
             "dead": dead[p],
             "chuleton": {"uniform": chuleton_exp["uniform"][p], "weighted": chuleton_exp["weighted"][p]},
             "chuleton_box": {"uniform": chuleton_dist["uniform"][p], "weighted": chuleton_dist["weighted"][p]},
+            "rank_dist": {"uniform": rank_dist_pct["uniform"][p], "weighted": rank_dist_pct["weighted"][p]},
             "golden_pick": picks[p]["botaoro"], "ball_pick": picks[p]["balonoro"],
         })
+
+    # ---- camino a la victoria: escenario más probable en el que cada
+    # jugador queda 1º (solo tiene sentido con probabilidades reales) ----
+    def describe_scenario(bits, gname, bname):
+        O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, _ = simulate(bits, "weighted")
+        events = []
+        for j, i in enumerate(unresolved_idx):
+            o = octavos[i]
+            events.append({"stage": "Octavos", "a": o["a"], "b": o["b"], "winner": O_winner[i]})
+        for k, (ia, ib) in enumerate(qf_pairs):
+            a = octavos[ia]["winner"] if octavos[ia]["resolved"] else f"Ganador({octavos[ia]['a']}/{octavos[ia]['b']})"
+            b = octavos[ib]["winner"] if octavos[ib]["resolved"] else f"Ganador({octavos[ib]['a']}/{octavos[ib]['b']})"
+            events.append({"stage": "Cuartos", "a": a, "b": b, "winner": Q_winner[k]})
+        for k, (ia, ib) in enumerate(sf_pairs):
+            events.append({"stage": "Semis", "a": Q_winner[ia], "b": Q_winner[ib], "winner": S_winner[k]})
+        ia, ib = f_pair
+        events.append({"stage": "Final", "a": S_winner[ia], "b": S_winner[ib], "winner": champion})
+        ia, ib = tp_pair
+        events.append({"stage": "3º-4º puesto", "a": S_loser[ia], "b": S_loser[ib], "winner": winner34})
+        return {"events": events, "champion": champion, "runner_up": runner, "tercer_puesto": winner34,
+                "golden": gname, "ball": bname}
+
+    camino_out = {}
+    for p in players:
+        cb = camino_best[p]
+        if cb["bits"] is None:
+            camino_out[p] = None
+            continue
+        desc = describe_scenario(cb["bits"], cb["gname"], cb["bname"])
+        desc["prob_pct"] = round(100 * cb["w"] / total_prob_by_mode["weighted"], 4)
+        desc["score"] = cb["score"]
+        camino_out[p] = desc
 
     # ---- bracket con probabilidades (DP exacto, sin enumerar 2^14) ----
     def next_round_dist(pairs, dists, btfn):
@@ -543,6 +610,7 @@ def main():
         "golden": golden,
         "ball": ball,
         "elo": elo,
+        "camino": camino_out,
     }
 
     out_path = ROOT / "predictions_data.js"

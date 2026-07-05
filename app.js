@@ -1302,6 +1302,7 @@ function scoreKoMatch(predStr, actualStr) {
 const PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
 let predMode = 'uniform';
+let predCaminoPlayer = PRED_PLAYERS[0] || null;
 let predRound = 'Octavos';
 const PRED_ROUNDS = ['Octavos', 'Cuartos', 'Semis', 'Final', '3º-4º puesto'];
 
@@ -1539,17 +1540,127 @@ function predBracketNodeHTML(node) {
     ${top.map(t => `<div class="pred-bracket-team ${t.pct === maxPct ? 'fav' : 'dim'}"><span>${t.team}</span><span class="pred-bracket-pct">${t.pct}%</span></div>`).join('')}
   </div>`;
 }
+// Árbol real del cuadro (mismo reparto en dos mitades que converge al centro
+// que usa "El bracket real" de Eliminatoria — ver bracket_structure.py
+// BRACKET_TREE), pero con probabilidades en vez de resultados.
+const PRED_BRACKET_TREE = {
+  left: { octavos: [90, 89, 93, 94], cuartos: [97, 98], semis: [101] },
+  right: { octavos: [91, 92, 95, 96], cuartos: [99, 100], semis: [102] },
+};
+const PRED_OCTAVOS_NUM_TO_IDX = { 89: 0, 90: 1, 91: 2, 92: 3, 93: 4, 94: 5, 95: 6, 96: 7 };
+const PRED_CUARTOS_NUM_TO_IDX = { 97: 0, 98: 1, 99: 2, 100: 3 };
+const PRED_SEMIS_NUM_TO_IDX = { 101: 0, 102: 1 };
+
+function renderPredBracketHalf(bk, side) {
+  const tree = PRED_BRACKET_TREE[side];
+  const octavosCards = tree.octavos.map(num => predBracketLeafHTML(bk.octavos[PRED_OCTAVOS_NUM_TO_IDX[num]])).join('');
+  const cuartosCards = tree.cuartos.map(num => predBracketNodeHTML(bk.qf[PRED_CUARTOS_NUM_TO_IDX[num]])).join('');
+  const semisCards = tree.semis.map(num => predBracketNodeHTML(bk.sf[PRED_SEMIS_NUM_TO_IDX[num]])).join('');
+  return `
+    <div class="ko-round-col ko-gap-r1">${octavosCards}</div>
+    <div class="ko-round-col ko-gap-r2">${cuartosCards}</div>
+    <div class="ko-round-col ko-gap-r3">${semisCards}</div>
+  `;
+}
+
 function renderPredBracket() {
   if (!PD) return;
   const bk = PD.bracket;
-  let html = '';
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Final &amp; 3º-4º puesto</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.final)}${predBracketNodeHTML(bk.tercerpuesto)}</div></div>`;
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
+  const centerHtml = `
+    <div class="ko-tree-center pred-tree-center">
+      <div class="pred-tree-center-stack">
+        ${predBracketNodeHTML(bk.final)}
+        <div class="pred-tree-center-label">🏆 Campeón</div>
+        ${predBracketNodeHTML(bk.campeon)}
+        <div class="pred-tree-center-label">3º-4º puesto</div>
+        ${predBracketNodeHTML(bk.tercerpuesto)}
+      </div>
+    </div>`;
+  const html = `
+    <div class="pred-tree-scroll">
+      <div class="ko-tree">
+        <div class="ko-tree-half left">${renderPredBracketHalf(bk, 'left')}</div>
+        ${centerHtml}
+        <div class="ko-tree-half right">${renderPredBracketHalf(bk, 'right')}</div>
+      </div>
+    </div>`;
   document.getElementById('predBracketWrap').innerHTML =
     `<p class="chart-desc">Esta vista usa siempre la cuota real (Kalshi + Elo), sea cual sea el modo elegido arriba — en equiprobable no tiene sentido dibujar un cuadro donde todos los equipos están empatados.</p>${html}`;
+}
+
+// ---------- Distribución de posición final ----------
+const PRED_RANK_COLORS = ['var(--gold-bright)', 'var(--gold)', '#B08A3E', '#8A7048', 'var(--chalk-dim)', '#5C4E3A', 'var(--rust)'];
+function renderPredRankDist() {
+  if (!PD) return;
+  const players = PD.players.slice().sort((a, b) => b[predMode].win_pct - a[predMode].win_pct);
+  const rows = players.map(p => {
+    const dist = p.rank_dist[predMode];
+    const segs = dist.map((pct, i) => {
+      if (pct <= 0) return '';
+      const label = pct >= 7 ? `${pct.toFixed(0)}%` : '';
+      return `<div class="pred-rankdist-seg" style="width:${pct}%;background:${PRED_RANK_COLORS[i]}" title="${p.name} · ${i + 1}º puesto: ${pct.toFixed(1)}%">${label}</div>`;
+    }).join('');
+    return `<div class="pred-rankdist-row">
+      <div class="pred-rankdist-name">${p.name}</div>
+      <div class="pred-rankdist-bar">${segs}</div>
+    </div>`;
+  }).join('');
+  const legend = PRED_RANK_COLORS.map((c, i) => `<span><span class="pred-rankdist-swatch" style="background:${c}"></span>${i + 1}º</span>`).join('');
+  document.getElementById('predRankDistWrap').innerHTML = rows + `<div class="pred-rankdist-legend">${legend}</div>`;
+}
+
+// ---------- Camino a la victoria ----------
+function renderPredCaminoSelector() {
+  if (!PD) return;
+  document.getElementById('predCaminoSelector').innerHTML = PRED_PLAYERS.map((name, i) =>
+    `<button class="pred-player-pill ${i === 0 ? 'active' : ''}" data-player="${name}">${name}</button>`
+  ).join('');
+  document.querySelectorAll('.pred-player-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pred-player-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      predCaminoPlayer = btn.dataset.player;
+      renderPredCaminoContent(predCaminoPlayer);
+    });
+  });
+}
+function renderPredCaminoContent(player) {
+  if (!PD) return;
+  const c = PD.camino[player];
+  const el = document.getElementById('predCaminoContent');
+  if (!c) { el.innerHTML = `<p class="chart-desc">Sin escenario ganador encontrado para ${player}.</p>`; return; }
+  const events = c.events.map(e => `
+    <div class="pred-camino-event">
+      <div class="pred-camino-stage">${e.stage}</div>
+      <div class="pred-camino-teams">
+        <span class="${e.winner === e.a ? 'won' : 'lost'}">${e.a}</span> vs
+        <span class="${e.winner === e.b ? 'won' : 'lost'}">${e.b}</span>
+      </div>
+      <div class="pred-camino-winner-tag">${e.winner}</div>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="pred-camino-summary">
+      <span>🏆 Campeón: <b>${c.champion}</b></span>
+      <span>🥈 Subcampeón: <b>${c.runner_up}</b></span>
+      <span>🥉 3º puesto: <b>${c.tercer_puesto}</b></span>
+      <span>🥾 Bota de Oro: <b>${c.golden}</b></span>
+      <span>⚽ Balón de Oro: <b>${c.ball}</b></span>
+      <span class="pred-camino-prob">${c.score} pts · ${c.prob_pct}% de probabilidad de este escenario exacto</span>
+    </div>
+    <div class="pred-camino-timeline">${events}</div>`;
+}
+
+// ---------- Partidos que más mueven la porra ----------
+function renderPredTopImpact() {
+  if (!PD) return;
+  const src = predMode === 'uniform' ? PD.matches_uniform : PD.matches_weighted;
+  const top3 = src.slice().sort((a, b) => b.impact - a.impact).slice(0, 3);
+  document.getElementById('predTopImpact').innerHTML = top3.map((m, i) => `
+    <div class="pred-top-impact-card">
+      <div class="pred-top-impact-rank">#${i + 1} · ${m.stage.toUpperCase()}</div>
+      <div class="pred-top-impact-teams">${m.a} <span style="color:var(--chalk-dim)">vs</span> ${m.b}</div>
+      <div class="pred-top-impact-val">impacto ${m.impact} chuletones</div>
+    </div>`).join('');
 }
 
 function predAwardCardHTML(title, icon, data) {
@@ -1599,8 +1710,11 @@ function renderPredAll() {
   renderPredIntro();
   renderPredModeNote();
   renderPredScoreboard();
+  renderPredRankDist();
+  if (predCaminoPlayer) renderPredCaminoContent(predCaminoPlayer);
   renderPredChuleton();
   renderPredBoxplot();
+  renderPredTopImpact();
   renderPredRoundSelector();
   renderPredRoundContent();
   renderPredHeatmap();
@@ -1624,4 +1738,5 @@ renderHonorBoard();
 renderTopScorers();
 renderKoPlayerSelector();
 renderKoPlayerBracket();
+renderPredCaminoSelector();
 renderPredAll();

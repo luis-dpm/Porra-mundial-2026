@@ -179,6 +179,15 @@
       <div class="section-divider"><span>Clasificación proyectada</span></div>
       <div id="predScoreboard"></div>
 
+      <div class="section-divider"><span>Distribución de posición final</span></div>
+      <p class="chart-desc">Probabilidad de acabar en cada puesto exacto (no solo de ser 1º). Los empates a puntos reparten la probabilidad entre las posiciones que ocupan.</p>
+      <div class="pred-chart-wrap" id="predRankDistWrap"></div>
+
+      <div class="section-divider"><span>🧭 Camino a la victoria</span></div>
+      <p class="chart-desc">Para cada jugador, el escenario individual más probable —entre todos los que le hacen ganar la porra— con cuotas reales (Kalshi + Elo). Ojo: aunque sea "el más probable", suele ser solo una fracción pequeña de su % total de ganar, porque hay muchísimos escenarios distintos que también le dan la victoria.</p>
+      <div class="pred-player-selector" id="predCaminoSelector"></div>
+      <div id="predCaminoContent"></div>
+
       <div class="section-divider"><span id="predChuletonIcon">🥩</span> La cena — chuletones esperados</div>
       <p class="chart-desc" id="predChuletonDesc"></p>
       <div id="predChuletonBoard"></div>
@@ -188,6 +197,10 @@
         <p class="chart-desc">Caja = percentil 25–75 · bigotes = percentil 10–90 · línea azul = mediana · rombo dorado = media</p>
         <div class="pred-chart-wrap" id="predBoxplotWrap"></div>
       </div>
+
+      <div class="section-divider"><span>🔥 Partidos que más mueven la porra</span></div>
+      <p class="chart-desc">Los 3 partidos con más chuletones en juego (mayor diferencia entre que gane un equipo u otro), en el modo elegido arriba.</p>
+      <div class="pred-bracket-grid" id="predTopImpact"></div>
 
       <div class="section-divider"><span>Partidos por ronda</span></div>
       <div class="pred-round-selector" id="predRoundSelector"></div>
