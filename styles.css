@@ -1576,13 +1576,19 @@ main {
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 8px 14px;
+  box-sizing: border-box;
 }
+/* Alto fijo dentro del árbol para que los gaps calculados (ver
+   .pred-tree-gap-*) mantengan el embudo hacia el centro alineado con
+   independencia de si el contenido de cada tarjeta ocupa 1 o 2 líneas. */
+.pred-tree-scroll .pred-bracket-card { min-height: 52px; display: flex; flex-direction: column; justify-content: center; }
 .pred-bracket-card.resolved { border-color: rgba(212,162,60,0.4); background: rgba(212,162,60,0.06); }
-.pred-bracket-team { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; font-size: 13px; }
+.pred-bracket-team { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; font-size: 13px; }
 .pred-bracket-team.fav { font-weight: 700; color: var(--chalk); }
 .pred-bracket-team.dim { color: var(--chalk-dim); }
-.pred-bracket-pct { font-family: var(--font-mono); font-size: 12px; }
+.pred-bracket-team span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pred-bracket-pct { font-family: var(--font-mono); font-size: 12px; flex-shrink: 0; }
 .pred-bracket-score { font-family: var(--font-mono); font-size: 11px; color: var(--gold-bright); text-align: center; padding: 2px 0; }
 
 /* bota / balon de oro */
@@ -1708,9 +1714,36 @@ main {
 
 /* arbol de probabilidades (reusa .ko-tree / .ko-round-col / .ko-gap-rN) */
 .pred-tree-scroll { overflow-x: auto; padding-bottom: 12px; margin-bottom: 16px; }
-.pred-tree-center { flex: 0 0 210px; }
-.pred-tree-center-stack { display: flex; flex-direction: column; gap: 10px; align-items: stretch; width: 100%; }
+/* Anchura y separación propias del árbol de predicciones -- escopadas a
+   .pred-tree-scroll para no tocar el árbol real de Eliminatoria, que usa
+   las mismas clases .ko-tree/.ko-round-col pero con tarjetas mucho más
+   altas (número de partido + 2 equipos + resultado), calibradas con sus
+   propios gaps (ko-gap-r0..r3). Mis tarjetas son de solo 2 filas, así que
+   necesitan huecos más cortos para que el embudo hacia el centro no se
+   vea desproporcionado. */
+.pred-tree-scroll .ko-round-col { flex-basis: 172px; }
+/* Para que cada tarjeta de una ronda quede centrada exactamente entre las
+   dos que la alimentan, el hueco de la ronda siguiente tiene que ser
+   Gap_siguiente = alturaTarjeta + 2×Gap_actual (con tarjetas de 52px):
+   octavos 12px -> cuartos 52+24=76px. Semis es una sola tarjeta por mitad,
+   así que su gap no afecta al embudo (se centra sola). */
+.pred-tree-gap-1 { gap: 12px; }
+.pred-tree-gap-2 { gap: 76px; }
+.pred-tree-gap-3 { gap: 0; }
+.pred-tree-labels-row { min-width: 920px; margin-bottom: 6px; }
+.pred-tree-col-label {
+  flex: 0 0 172px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.pred-tree-center { flex: 0 0 220px; }
+.pred-tree-center-stack { display: flex; flex-direction: column; gap: 8px; align-items: stretch; width: 100%; }
 .pred-tree-center-label { text-align: center; font-family: var(--font-display); font-size: 11px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+.pred-tree-center-label:first-child { color: var(--gold); }
 
 @media (max-width: 640px) {
   .pred-rankdist-name { flex-basis: 92px; font-size: 12px; }

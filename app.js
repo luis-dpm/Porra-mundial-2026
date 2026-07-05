@@ -1521,10 +1521,11 @@ function renderPredHeatmap() {
 
 function predBracketLeafHTML(o) {
   if (o.resolved) {
+    // Mismo alto de 2 filas que la tarjeta con cuota, para que la columna de
+    // octavos no quede más alta/baja que el resto y descuadre el árbol.
     return `<div class="pred-bracket-card resolved">
-      <div class="pred-bracket-team fav"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span></div>
-      <div class="pred-bracket-score">${o.score}</div>
-      <div class="pred-bracket-team fav"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span></div>
+      <div class="pred-bracket-team fav"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
+      <div class="pred-bracket-team dim"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
     </div>`;
   }
   const aFav = o.aProbW >= o.bProbW;
@@ -1557,11 +1558,16 @@ function renderPredBracketHalf(bk, side) {
   const cuartosCards = tree.cuartos.map(num => predBracketNodeHTML(bk.qf[PRED_CUARTOS_NUM_TO_IDX[num]])).join('');
   const semisCards = tree.semis.map(num => predBracketNodeHTML(bk.sf[PRED_SEMIS_NUM_TO_IDX[num]])).join('');
   return `
-    <div class="ko-round-col ko-gap-r1">${octavosCards}</div>
-    <div class="ko-round-col ko-gap-r2">${cuartosCards}</div>
-    <div class="ko-round-col ko-gap-r3">${semisCards}</div>
+    <div class="ko-round-col pred-tree-gap-1">${octavosCards}</div>
+    <div class="ko-round-col pred-tree-gap-2">${cuartosCards}</div>
+    <div class="ko-round-col pred-tree-gap-3">${semisCards}</div>
   `;
 }
+const PRED_TREE_LABELS = `
+  <div class="pred-tree-col-label">Octavos</div>
+  <div class="pred-tree-col-label">Cuartos</div>
+  <div class="pred-tree-col-label">Semis</div>
+`;
 
 function renderPredBracket() {
   if (!PD) return;
@@ -1569,6 +1575,7 @@ function renderPredBracket() {
   const centerHtml = `
     <div class="ko-tree-center pred-tree-center">
       <div class="pred-tree-center-stack">
+        <div class="pred-tree-center-label">Final</div>
         ${predBracketNodeHTML(bk.final)}
         <div class="pred-tree-center-label">🏆 Campeón</div>
         ${predBracketNodeHTML(bk.campeon)}
@@ -1576,8 +1583,15 @@ function renderPredBracket() {
         ${predBracketNodeHTML(bk.tercerpuesto)}
       </div>
     </div>`;
+  const labelsRow = `
+    <div class="ko-tree pred-tree-labels-row">
+      <div class="ko-tree-half left">${PRED_TREE_LABELS}</div>
+      <div class="ko-tree-center pred-tree-center"></div>
+      <div class="ko-tree-half right">${PRED_TREE_LABELS}</div>
+    </div>`;
   const html = `
     <div class="pred-tree-scroll">
+      ${labelsRow}
       <div class="ko-tree">
         <div class="ko-tree-half left">${renderPredBracketHalf(bk, 'left')}</div>
         ${centerHtml}
@@ -1702,7 +1716,6 @@ function renderPredMethodology() {
     <div class="pred-note"><b>Kalshi + Elo:</b> los octavos que quedan y Cuartos 1 (Marruecos-Francia, ya es un cruce real) usan la cuota "to advance" de <a href="https://kalshi.com/category/sports/soccer/fifa-world-cup/world-cup/games" target="_blank" rel="noopener">Kalshi</a>. El resto de cuartos, semis, final y el 3º-4º puesto usan el rating <a href="https://www.eloratings.net/2026_World_Cup" target="_blank" rel="noopener">World Football Elo</a> de cada selección (P(A gana a B) = 1/(1+10^(−(Elo_A−Elo_B)/400))) como ancla estable, porque el cruce concreto todavía no existe como mercado.</div>
     <div class="pred-note"><b>Bota y Balón de Oro:</b> probabilidades reales de los mercados "Golden Boot Winner" / "Golden Ball Winner" de <a href="https://polymarket.com/sports/world-cup" target="_blank" rel="noopener">Polymarket</a>, iguales en los dos modos.</div>
     <div class="pred-note"><b>La cena:</b> 1º no paga, 4º paga lo suyo (1 chuletón), 7º paga el doble (2 = lo suyo y lo de otro), con pasos de 1/3 entre medias. Empates a puntos reparten el chuletón de esas posiciones a partes iguales.</div>
-    <div class="pred-note"><b>Fuentes y limitaciones:</b> esta pestaña se genera con <code>scripts/update_predictions.py</code>, aparte del resto de <code>data.js</code> (que sigue reflejando solo resultados ya jugados). Los datos de mercado (Kalshi, Elo, Polymarket) hay que refrescarlos a mano cuando cambian — no forman parte del workflow automático que corre cada 2 horas.</div>
   `;
 }
 
@@ -1711,7 +1724,13 @@ function renderPredAll() {
   renderPredModeNote();
   renderPredScoreboard();
   renderPredRankDist();
-  if (predCaminoPlayer) renderPredCaminoContent(predCaminoPlayer);
+  // "Camino a la victoria" solo tiene sentido con probabilidades reales: en
+  // equiprobable todas las ramas del cuadro pesan igual, así que "el
+  // escenario más probable" no sería más que uno cualquiera de los muchos
+  // empatados al máximo -- se oculta la sección entera en ese modo.
+  const caminoSection = document.getElementById('predCaminoSection');
+  if (caminoSection) caminoSection.style.display = predMode === 'weighted' ? '' : 'none';
+  if (predCaminoPlayer && predMode === 'weighted') renderPredCaminoContent(predCaminoPlayer);
   renderPredChuleton();
   renderPredBoxplot();
   renderPredTopImpact();
