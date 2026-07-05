@@ -643,6 +643,22 @@ def main():
             "picks": {p: picks[p]["balonoro"] for p in players}}
     elo = [{"team": t, "elo": e} for t, e in sorted(ELO.items(), key=lambda kv: -kv[1])]
 
+    # ---- PRUEBA: simulador interactivo -- picks completos + topología del
+    # cuadro para poder recalcular la puntuación en el navegador sin Python ----
+    picks_out = {p: picks[p] for p in players}
+    topology = {
+        "octavos": [
+            ({"a": o["a"], "b": o["b"], "resolved": True, "winner": o["winner"]}
+             if o["resolved"] else {"a": o["a"], "b": o["b"], "resolved": False,
+                                     "favA": o["probA"] >= o["probB"]})
+            for o in octavos
+        ],
+        "qf_pairs": [list(pair) for pair in qf_pairs],
+        "sf_pairs": [list(pair) for pair in sf_pairs],
+        "f_pair": list(f_pair),
+        "tp_pair": list(tp_pair),
+    }
+
     n_unresolved = len(unresolved_idx)
     payload = {
         "generated_from_last_updated": porra.get("last_updated"),
@@ -657,6 +673,9 @@ def main():
         "elo": elo,
         "camino": camino_out,
         "affinity": affinity,
+        "picks": picks_out,
+        "topology": topology,
+        "current_total": current_total,
     }
 
     out_path = ROOT / "predictions_data.js"
