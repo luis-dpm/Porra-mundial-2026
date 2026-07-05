@@ -580,8 +580,12 @@ def main():
     tp_a, tp_b = tp_pair
     T34_dist = next_round_dist([(tp_a, tp_b)], L_dist, hybrid_prob)[0]
 
-    def top_n(dist, n=2):
-        items = sorted(dist.items(), key=lambda kv: -kv[1])[:n]
+    def top_n(dist, n=None):
+        """n=None -> todos los equipos que pueden llegar a esa casilla (todo
+        el soporte de la distribución), no solo los favoritos."""
+        items = sorted(dist.items(), key=lambda kv: -kv[1])
+        if n is not None:
+            items = items[:n]
         return [{"team": t, "pct": round(p * 100, 1)} for t, p in items]
 
     bracket = {
@@ -595,9 +599,9 @@ def main():
         ],
         "qf": [{"label": f"Cuartos {k+1}", "top": top_n(Q_dist[k]), "from": list(qf_pairs[k])} for k in range(4)],
         "sf": [{"label": f"Semifinal {k+1}", "top": top_n(S_dist[k]), "from": list(sf_pairs[k])} for k in range(2)],
-        "final": {"label": "Final", "top": top_n(F_dist, 2), "from": list(f_pair)},
-        "campeon": {"top": top_n(F_dist, 4)},
-        "tercerpuesto": {"label": "3º y 4º puesto", "top": top_n(T34_dist, 2), "fromLosers": True},
+        "final": {"label": "Final", "top": top_n(F_dist), "from": list(f_pair)},
+        "campeon": {"top": top_n(F_dist)},
+        "tercerpuesto": {"label": "3º y 4º puesto", "top": top_n(T34_dist), "fromLosers": True},
     }
 
     golden = {"candidates": [{"name": n, "pct": round(p * 100, 2)} for n, p in GOLDEN_CANDIDATES],
