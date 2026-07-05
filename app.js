@@ -1669,6 +1669,167 @@ function renderPredAwards() {
     predAwardCardHTML('Bota de Oro', '🥾', PD.golden) + predAwardCardHTML('Balón de Oro', '⚽', PD.ball);
 }
 
+// ---------- PRUEBA: simulador interactivo ----------
+// Reimplementa en JS la misma puntuación que scripts/update_predictions.py
+// (score_player_bracket + ranks_with_ties + payment_for_rank) para poder
+// recalcular la clasificación al vuelo sin volver a llamar a Python.
+let simState = null;
+
+function simDefaultState() {
+  if (!PD || !PD.topology) return null;
+  const topo = PD.topology;
+  const st = { octavos: {}, qf: {}, sf: {}, final: 0, tp: 0, golden: PD.golden.candidates[0].name, ball: PD.ball.candidates[0].name };
+  topo.octavos.forEach((o, i) => { if (!o.resolved) st.octavos[i] = o.favA ? 0 : 1; });
+  topo.qf_pairs.forEach((_, k) => { st.qf[k] = 0; });
+  topo.sf_pairs.forEach((_, k) => { st.sf[k] = 0; });
+  return st;
+}
+
+function simComputeWinners() {
+  const topo = PD.topology;
+  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (simState.octavos[i] === 0 ? o.a : o.b));
+  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => (simState.qf[k] === 0 ? O_winner[ia] : O_winner[ib]));
+  const S_winner = [], S_loser = [];
+  topo.sf_pairs.forEach(([ia, ib], k) => {
+    const teamA = Q_winner[ia], teamB = Q_winner[ib];
+    if (simState.sf[k] === 0) { S_winner.push(teamA); S_loser.push(teamB); }
+    else { S_winner.push(teamB); S_loser.push(teamA); }
+  });
+  const [fa, fb] = topo.f_pair;
+  const champion = simState.final === 0 ? S_winner[fa] : S_winner[fb];
+  const runner = simState.final === 0 ? S_winner[fb] : S_winner[fa];
+  const [ta, tb] = topo.tp_pair;
+  const winner34 = simState.tp === 0 ? S_loser[ta] : S_loser[tb];
+  return { O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34 };
+}
+
+const SIM_RESOLVED_OCTAVOS = () => new Set(PD.topology.octavos.map((o, i) => (o.resolved ? i : null)).filter(i => i !== null));
+
+function simScorePlayer(pk, w) {
+  let s = 0;
+  const resolved = SIM_RESOLVED_OCTAVOS();
+  for (let slot = 0; slot < 8; slot++) {
+    if (resolved.has(slot)) continue; // ya sumado en current_total, no contar dos veces
+    if (pk.cuartofinalista[slot] === w.O_winner[slot]) s += 12;
+  }
+  for (let slot = 0; slot < 4; slot++) if (pk.semifinalista[slot] === w.Q_winner[slot]) s += 24;
+  for (let slot = 0; slot < 2; slot++) if (pk.finalista[slot] === w.S_winner[slot]) s += 48;
+  for (let slot = 0; slot < 2; slot++) if (pk.tresycuatro[slot] === w.S_loser[slot]) s += 24;
+  if (pk.campeon === w.champion) s += 96;
+  if (pk.subcampeon === w.runner) s += 48;
+  if (pk.tercerpuesto === w.winner34) s += 16;
+  return s;
+}
+
+function simRankGroups(scores) {
+  const order = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const groups = []; let i = 0;
+  while (i < order.length) {
+    let j = i;
+    while (j + 1 < order.length && order[j + 1][1] === order[i][1]) j++;
+    groups.push(order.slice(i, j + 1).map(x => x[0]));
+    i = j + 1;
+  }
+  return groups;
+}
+function simPaymentForRank(avgRank) { return (avgRank - 1) / 3; }
+
+function simComputeStandings() {
+  const w = simComputeWinners();
+  const scores = {};
+  PRED_PLAYERS.forEach(p => {
+    const pk = PD.picks[p];
+    let s = PD.current_total[p] + simScorePlayer(pk, w);
+    if (pk.botaoro === simState.golden) s += 24;
+    if (pk.balonoro === simState.ball) s += 24;
+    scores[p] = s;
+  });
+  const groups = simRankGroups(scores);
+  const payment = {}; const rank = {};
+  groups.forEach((group, gi) => {
+    const avgRank = group.length === 1 ? gi + 1 : gi + 1 + (group.length - 1) / 2;
+    group.forEach(p => { payment[p] = simPaymentForRank(avgRank); rank[p] = avgRank; });
+  });
+  return { scores, payment, rank, w };
+}
+
+function simChoiceRow(matchKey, idx, label, teamA, teamB, currentPick) {
+  return `<div class="pred-sim-row">
+    <div class="pred-sim-row-label">${label}</div>
+    <div class="pred-sim-choices">
+      <button class="pred-sim-choice ${currentPick === 0 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="0">${teamA}</button>
+      <button class="pred-sim-choice ${currentPick === 1 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="1">${teamB}</button>
+    </div>
+  </div>`;
+}
+
+function renderSimControls() {
+  const topo = PD.topology;
+  const w = simComputeWinners();
+  let html = '';
+  html += `<div class="pred-sim-group-title">Octavos</div>`;
+  topo.octavos.forEach((o, i) => {
+    if (o.resolved) return;
+    html += simChoiceRow('octavos', i, 'Octavos', o.a, o.b, simState.octavos[i]);
+  });
+  html += `<div class="pred-sim-group-title">Cuartos</div>`;
+  topo.qf_pairs.forEach(([ia, ib], k) => {
+    html += simChoiceRow('qf', k, `Cuartos ${k + 1}`, w.O_winner[ia], w.O_winner[ib], simState.qf[k]);
+  });
+  html += `<div class="pred-sim-group-title">Semis</div>`;
+  topo.sf_pairs.forEach(([ia, ib], k) => {
+    html += simChoiceRow('sf', k, `Semifinal ${k + 1}`, w.Q_winner[ia], w.Q_winner[ib], simState.sf[k]);
+  });
+  html += `<div class="pred-sim-group-title">Final y 3º-4º puesto</div>`;
+  const [fa, fb] = topo.f_pair;
+  html += simChoiceRow('final', 0, 'Final', w.S_winner[fa], w.S_winner[fb], simState.final);
+  const [ta, tb] = topo.tp_pair;
+  html += simChoiceRow('tp', 0, '3º-4º puesto', w.S_loser[ta], w.S_loser[tb], simState.tp);
+  html += `<div class="pred-sim-group-title">🥾 Bota de Oro</div><div class="pred-sim-pill-row">`;
+  html += PD.golden.candidates.map(c => `<button class="pred-sim-pill ${simState.golden === c.name ? 'active' : ''}" data-match="golden" data-name="${c.name}">${c.name}</button>`).join('');
+  html += `</div><div class="pred-sim-group-title">⚽ Balón de Oro</div><div class="pred-sim-pill-row">`;
+  html += PD.ball.candidates.map(c => `<button class="pred-sim-pill ${simState.ball === c.name ? 'active' : ''}" data-match="ball" data-name="${c.name}">${c.name}</button>`).join('');
+  html += `</div>`;
+  document.getElementById('predSimControls').innerHTML = html;
+}
+
+function renderSimResults() {
+  const { scores, payment } = simComputeStandings();
+  const rows = PRED_PLAYERS.slice().sort((a, b) => scores[b] - scores[a]).map((p, i) => `
+    <div class="pred-sim-result-row ${i === 0 ? 'lead' : ''}">
+      <div class="pred-sim-result-rank">${i + 1}</div>
+      <div class="pred-sim-result-name">${p}</div>
+      <div class="pred-sim-result-pts">${scores[p]} pts</div>
+      <div class="pred-sim-result-chop">🥩 ${payment[p].toFixed(2)}</div>
+    </div>`).join('');
+  document.getElementById('predSimResults').innerHTML = rows;
+}
+
+function renderSimAll() {
+  if (!PD || !PD.topology) return;
+  if (!simState) simState = simDefaultState();
+  renderSimControls();
+  renderSimResults();
+}
+
+document.getElementById('predSimControls').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-match]');
+  if (!btn) return;
+  const match = btn.dataset.match;
+  if (match === 'golden') { simState.golden = btn.dataset.name; }
+  else if (match === 'ball') { simState.ball = btn.dataset.name; }
+  else {
+    const idx = Number(btn.dataset.idx);
+    const pick = Number(btn.dataset.pick);
+    simState[match][idx] = pick;
+  }
+  renderSimAll();
+});
+document.getElementById('predSimReset').addEventListener('click', () => {
+  simState = simDefaultState();
+  renderSimAll();
+});
+
 function renderPredDeadList() {
   if (!PD) return;
   const rows = [];
@@ -1741,3 +1902,4 @@ renderKoPlayerSelector();
 renderKoPlayerBracket();
 renderPredCaminoSelector();
 renderPredAll();
+renderSimAll();
