@@ -1737,8 +1737,17 @@ function renderPredAll() {
   renderPredRoundSelector();
   renderPredRoundContent();
   renderPredHeatmap();
-  renderPredBracket();
-  renderPredAwards();
+  // El cuadro y la Bota/Balón de Oro siempre usan la cuota real (Kalshi +
+  // Elo + Polymarket), así que en equiprobable no aportan nada -- se
+  // ocultan enteros en ese modo, igual que "Camino a la victoria".
+  const bracketSection = document.getElementById('predBracketSection');
+  const awardsSection = document.getElementById('predAwardsSection');
+  if (bracketSection) bracketSection.style.display = predMode === 'weighted' ? '' : 'none';
+  if (awardsSection) awardsSection.style.display = predMode === 'weighted' ? '' : 'none';
+  if (predMode === 'weighted') {
+    renderPredBracket();
+    renderPredAwards();
+  }
   renderPredDeadList();
   renderPredMethodology();
 }
