@@ -44,9 +44,15 @@ OCTAVOS_ODDS = {
     95: {"Argentina": 0.84, "Egipto": 0.16},
     96: {"Colombia": 0.61, "Suiza": 0.39},
 }
-# Cuartos 1 (partido 97, Marruecos-Francia) ya es un cruce real: cuota propia
-# de Kalshi, consultada 5 jul. 2026.
-CUARTOS1_ODDS = {"Francia": 0.76, "Marruecos": 0.24}
+# Cruces ya confirmados (los dos equipos conocidos) con mercado propio de
+# Kalshi, más allá de los octavos -- se va ampliando ronda a ronda según se
+# van jugando los octavos/cuartos/semis reales. Clave = frozenset con los dos
+# equipos; valor = precio "to advance" de cada uno (no hace falta que sumen 1,
+# hybrid_prob() ya normaliza). Ver scripts/check_market_data.py para saber qué
+# cruce hay que añadir aquí en cada momento.
+KNOWN_MATCHUPS = {
+    frozenset({"Francia", "Marruecos"}): {"Francia": 0.76, "Marruecos": 0.24},  # Cuartos 1, partido 97, consultada 5 jul. 2026
+}
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al sábado 4 jul.
 # 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
@@ -62,10 +68,12 @@ def elo_prob(a, b):
     return 1.0 / (1.0 + 10 ** (-(ELO[a] - ELO[b]) / 400.0))
 
 def hybrid_prob(a, b):
-    """Cuota real de mercado si el cruce ya existe como partido concreto
-    (Cuartos 1), si no cae al Elo."""
-    if a in CUARTOS1_ODDS and b in CUARTOS1_ODDS:
-        return CUARTOS1_ODDS[a] / (CUARTOS1_ODDS[a] + CUARTOS1_ODDS[b])
+    """Cuota real de mercado si el cruce ya existe como partido concreto (ver
+    KNOWN_MATCHUPS), si no cae al Elo."""
+    key = frozenset({a, b})
+    if key in KNOWN_MATCHUPS:
+        odds = KNOWN_MATCHUPS[key]
+        return odds[a] / (odds[a] + odds[b])
     return elo_prob(a, b)
 
 # Bota de Oro (Polymarket "Golden Boot Winner", 4 jul. 2026). Julián Álvarez no
