@@ -1472,7 +1472,7 @@ main {
 .pred-score-row.rank-1 .pred-score-rank { color: var(--gold-bright); }
 .pred-score-mid { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .pred-score-name-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-.pred-score-name { font-family: var(--font-display); font-size: 16px; font-weight: 500; }
+.pred-score-name { font-family: var(--font-display); font-size: 17px; font-weight: 500; }
 .pred-score-current { font-family: var(--font-mono); font-size: 12px; color: var(--chalk-dim); }
 .pred-range-track {
   position: relative;
@@ -1486,7 +1486,8 @@ main {
 .pred-range-label { font-family: var(--font-mono); font-size: 11px; color: var(--chalk-dim); }
 .pred-range-tag { opacity: 0.7; }
 .pred-score-side { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 74px; }
-.pred-win-pct { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--chalk); }
+.pred-win-pct { font-family: var(--font-mono); font-size: 26px; font-weight: 700; color: var(--chalk); }
+.pred-score-row.rank-1 .pred-win-pct { color: var(--gold-bright); }
 .pred-win-label { font-size: 10px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* chuleton esperado */
@@ -1576,9 +1577,8 @@ main {
 .pred-bracket-card {
   background: var(--panel);
   border: 1px solid var(--panel-line);
-  border-radius: var(--radius-md);
-  padding: 8px 14px;
-  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
 }
 .pred-bracket-card.resolved { border-color: rgba(212,162,60,0.4); background: rgba(212,162,60,0.06); }
 .pred-bracket-team { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; font-size: 13px; }
@@ -1626,7 +1626,7 @@ main {
   gap: 10px;
   background: var(--panel);
   border: 1px solid var(--panel-line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 12.5px;
 }
@@ -1689,7 +1689,7 @@ main {
   gap: 10px;
   background: var(--panel);
   border: 1px solid var(--panel-line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 12.5px;
 }
