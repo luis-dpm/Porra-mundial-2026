@@ -669,6 +669,13 @@ def main():
         "tp_pair": list(tp_pair),
     }
 
+    # Para que el simulador pueda calcular el favorito real (no solo en
+    # octavos) hace falta poder reproducir hybrid_prob() en el navegador.
+    known_matchups_out = []
+    for key, odds in KNOWN_MATCHUPS.items():
+        a, b = list(key)
+        known_matchups_out.append({"a": a, "b": b, "probA": round(odds[a] / (odds[a] + odds[b]), 4)})
+
     n_unresolved = len(unresolved_idx)
     payload = {
         "generated_from_last_updated": porra.get("last_updated"),
@@ -686,6 +693,7 @@ def main():
         "picks": picks_out,
         "topology": topology,
         "current_total": current_total,
+        "known_matchups": known_matchups_out,
     }
 
     out_path = ROOT / "predictions_data.js"

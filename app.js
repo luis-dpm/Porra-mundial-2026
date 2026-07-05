@@ -1708,13 +1708,48 @@ function renderPredAffinity() {
 // recalcular la clasificación al vuelo sin volver a llamar a Python.
 let simState = null;
 
+// hybrid_prob() de update_predictions.py, para poder calcular el favorito
+// real en cuartos/semis/final/3º-4º puesto (antes se asumía "el primer
+// equipo" por defecto, que no tenía por qué ser el favorito de verdad).
+const SIM_ELO = PD ? Object.fromEntries(PD.elo.map(e => [e.team, e.elo])) : {};
+const SIM_KNOWN_MATCHUPS = PD ? Object.fromEntries(
+  PD.known_matchups.flatMap(m => [[`${m.a}|${m.b}`, m.probA], [`${m.b}|${m.a}`, 1 - m.probA]])
+) : {};
+function simEloProb(a, b) { return 1 / (1 + Math.pow(10, -(SIM_ELO[a] - SIM_ELO[b]) / 400)); }
+function simHybridProb(a, b) {
+  const key = `${a}|${b}`;
+  if (key in SIM_KNOWN_MATCHUPS) return SIM_KNOWN_MATCHUPS[key];
+  return simEloProb(a, b);
+}
+
 function simDefaultState() {
   if (!PD || !PD.topology) return null;
   const topo = PD.topology;
   const st = { octavos: {}, qf: {}, sf: {}, final: 0, tp: 0, golden: PD.golden.candidates[0].name, ball: PD.ball.candidates[0].name };
   topo.octavos.forEach((o, i) => { if (!o.resolved) st.octavos[i] = o.favA ? 0 : 1; });
-  topo.qf_pairs.forEach((_, k) => { st.qf[k] = 0; });
-  topo.sf_pairs.forEach((_, k) => { st.sf[k] = 0; });
+
+  // Se calcula en cascada (igual que simComputeWinners): el favorito de
+  // cuartos depende de quién gane los octavos por defecto, el de semis de
+  // quién gane cuartos por defecto, etc.
+  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (st.octavos[i] === 0 ? o.a : o.b));
+  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+    const teamA = O_winner[ia], teamB = O_winner[ib];
+    const pA = simHybridProb(teamA, teamB);
+    st.qf[k] = pA >= 0.5 ? 0 : 1;
+    return pA >= 0.5 ? teamA : teamB;
+  });
+  const S_winner = [], S_loser = [];
+  topo.sf_pairs.forEach(([ia, ib], k) => {
+    const teamA = Q_winner[ia], teamB = Q_winner[ib];
+    const pA = simHybridProb(teamA, teamB);
+    st.sf[k] = pA >= 0.5 ? 0 : 1;
+    if (pA >= 0.5) { S_winner.push(teamA); S_loser.push(teamB); }
+    else { S_winner.push(teamB); S_loser.push(teamA); }
+  });
+  const [fa, fb] = topo.f_pair;
+  st.final = simHybridProb(S_winner[fa], S_winner[fb]) >= 0.5 ? 0 : 1;
+  const [ta, tb] = topo.tp_pair;
+  st.tp = simHybridProb(S_loser[ta], S_loser[tb]) >= 0.5 ? 0 : 1;
   return st;
 }
 
