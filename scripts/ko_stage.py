@@ -426,16 +426,11 @@ def read_ko_predictions(ws, player_columns, group_standings_real=None, third_pla
 def resolve_ko_result(excel_actual, home, away, api_results, openfootball_results, penalty_winners=None):
     """El marcador que puntúa predicciones es el de 120' (90' + prórroga),
     NO el resultado final tras penaltis. En fase KO la API manda primero
-    (ya viene con la prórroga incluida en 'fullTime', ver
+    (ya viene con la prórroga incluida en 'fullTime', y en partidos de
+    penaltis con la propia tanda restada para recuperar el 120' real, ver
     fetch_real_results) — el Excel solo rellena si ninguna fuente
-    automática tiene el partido todavía. EXCEPCIÓN: si el partido se
-    decidió por penaltis, ninguna fuente automática (ni football-data.org
-    ni openfootball) da un marcador de 120' fiable en esta competición,
-    así que en ese caso se usa directamente el Excel."""
+    automática tiene el partido todavía."""
     if not home or not away:
-        return excel_actual
-    went_to_penalties = (penalty_winners or {}).get((home, away)) is not None
-    if went_to_penalties:
         return excel_actual
     fd_res = (api_results or {}).get((home, away))
     of_res = (openfootball_results or {}).get((home, away))
