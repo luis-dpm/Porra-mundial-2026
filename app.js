@@ -444,8 +444,8 @@ function renderJornadaContentKo(roundName) {
     if (roundName === 'dieciseisavos' && m.breakdown) {
       return scoredMatchCardHTML(tag, home, away, actualScore, m.predictions, m.breakdown);
     }
-    const homeLost = ko.eliminated_teams && ko.eliminated_teams.includes(m.home_team);
-    const awayLost = ko.eliminated_teams && ko.eliminated_teams.includes(m.away_team);
+    const homeLost = ko.losers_by_match && ko.losers_by_match[m.num] === m.home_team;
+    const awayLost = ko.losers_by_match && ko.losers_by_match[m.num] === m.away_team;
     return simpleResultCardHTML(tag, home, away, actualScore, homeLost, awayLost);
   }).join('');
 }
@@ -886,8 +886,8 @@ function renderBracketHalf(ko, side, mode, player) {
           const score = formatKoScore(m);
           resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
         }
-        const homeLost = hasResult && m.home_team && ko.eliminated_teams.includes(m.home_team);
-        const awayLost = hasResult && m.away_team && ko.eliminated_teams.includes(m.away_team);
+        const homeLost = hasResult && m.home_team && ko.losers_by_match && ko.losers_by_match[m.num] === m.home_team;
+        const awayLost = hasResult && m.away_team && ko.losers_by_match && ko.losers_by_match[m.num] === m.away_team;
         const homeCriteria = koRefLabel(m.home_ref);
         const awayCriteria = koRefLabel(m.away_ref);
         return `
@@ -986,8 +986,8 @@ function renderFinalCenter(ko, mode, player) {
     const score = formatKoScore(fm);
     resultHtml = `<span class="ko-score">${score.replace('-', ' – ')}</span>`;
   }
-  const homeLost = hasResult && fm.home_team && ko.eliminated_teams.includes(fm.home_team);
-  const awayLost = hasResult && fm.away_team && ko.eliminated_teams.includes(fm.away_team);
+  const homeLost = hasResult && fm.home_team && ko.losers_by_match && ko.losers_by_match['F'] === fm.home_team;
+  const awayLost = hasResult && fm.away_team && ko.losers_by_match && ko.losers_by_match['F'] === fm.away_team;
 
   const honor = ko.honor || {};
   const honorHtml = mode === 'real' && (honor.champion || honor.runner_up) ? `
@@ -1046,8 +1046,8 @@ function renderKoListView(ko, mode, player) {
       const home = m.home_team || '?';
       const away = m.away_team || '?';
       const hasResult = !!m.actual;
-      const homeLost = hasResult && ko.eliminated_teams && ko.eliminated_teams.includes(m.home_team);
-      const awayLost = hasResult && ko.eliminated_teams && ko.eliminated_teams.includes(m.away_team);
+      const homeLost = hasResult && ko.losers_by_match && ko.losers_by_match[m.num] === m.home_team;
+      const awayLost = hasResult && ko.losers_by_match && ko.losers_by_match[m.num] === m.away_team;
 
       let scoreHtml = '<span class="kol-vs">vs</span>';
       if (hasResult) {
@@ -1133,8 +1133,8 @@ function renderKoListView(ko, mode, player) {
   if (finalMatch) {
     const fh = finalMatch.home_team || '?', fa = finalMatch.away_team || '?';
     const fHasResult = !!finalMatch.actual;
-    const fHomeLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.home_team);
-    const fAwayLost = fHasResult && ko.eliminated_teams && ko.eliminated_teams.includes(finalMatch.away_team);
+    const fHomeLost = fHasResult && ko.losers_by_match && ko.losers_by_match['F'] === finalMatch.home_team;
+    const fAwayLost = fHasResult && ko.losers_by_match && ko.losers_by_match['F'] === finalMatch.away_team;
     const fScore = fHasResult ? `<span class="kol-score">${formatKoScore(finalMatch).replace('-',' – ')}</span>` : '<span class="kol-vs">vs</span>';
     // honor
     const honor = ko.honor || {};
