@@ -254,6 +254,17 @@
 
 </main>
 
+<div class="pred-share-modal" id="predShareModal" hidden>
+  <div class="pred-share-modal-inner">
+    <button class="pred-share-close" id="predShareClose" aria-label="Cerrar">✕</button>
+    <canvas id="predShareCanvas" class="pred-share-canvas"></canvas>
+    <div class="pred-share-actions">
+      <a id="predShareDownload" class="pred-share-btn" download>⬇️ Descargar imagen</a>
+      <button id="predShareNative" class="pred-share-btn" hidden>📤 Compartir</button>
+    </div>
+  </div>
+</div>
+
 <script src="data.js"></script>
 <script src="predictions_data.js"></script>
 <script src="app.js"></script>

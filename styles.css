@@ -1708,6 +1708,72 @@ main {
 .pred-camino-teams span.won { font-weight: 700; color: var(--chalk); }
 .pred-camino-winner-tag { font-family: var(--font-mono); font-size: 10px; background: rgba(212,162,60,0.18); color: var(--gold-bright); padding: 2px 8px; border-radius: 99px; }
 
+.pred-camino-share-btn {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 22px;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.pred-camino-share-btn:hover { background: var(--gold-bright); }
+
+/* tarjeta compartible */
+.pred-share-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(46, 36, 23, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 200;
+}
+.pred-share-modal[hidden] { display: none; }
+.pred-share-modal-inner {
+  position: relative;
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  max-width: min(92vw, 520px);
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+.pred-share-canvas { width: 100%; height: auto; border-radius: var(--radius-md); display: block; }
+.pred-share-close {
+  position: absolute;
+  top: -14px; right: -14px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--cream);
+  border: 2px solid var(--panel);
+  font-size: 16px;
+  cursor: pointer;
+}
+.pred-share-actions { display: flex; gap: 10px; margin-top: 16px; }
+.pred-share-btn {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.pred-share-btn:hover { background: var(--gold-bright); }
+
 /* top impacto */
 .pred-top-impact-card {
   background: var(--panel);

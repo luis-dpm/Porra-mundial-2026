@@ -1644,8 +1644,160 @@ function renderPredCaminoContent(player) {
       <span>⚽ Balón de Oro: <b>${c.ball}</b></span>
       <span class="pred-camino-prob">${c.prob_pct}% de probabilidad de este escenario exacto</span>
     </div>
-    <div class="pred-camino-timeline">${events}</div>`;
+    <div class="pred-camino-timeline">${events}</div>
+    <button class="pred-camino-share-btn" data-share-player="${player}">📤 Compartir esta combinación</button>`;
 }
+
+// ---------- Tarjeta compartible de "camino a la victoria" ----------
+function caminoShareHeadline(c) {
+  if (c.tied_with && c.tied_with.length) {
+    return { headline: 'EMPATA EN EL 1º PUESTO', detail: `junto a ${c.tied_with.join(', ')}` };
+  }
+  if (c.second_name) {
+    const gap = c.score - c.second_score;
+    return { headline: 'GANA LA PORRA EN SOLITARIO', detail: `+${gap} pts sobre ${c.second_name} (2º con ${c.second_score} pts)` };
+  }
+  return { headline: 'GANA LA PORRA EN SOLITARIO', detail: '' };
+}
+
+const SHARE_COLORS = {
+  cream: '#FBF3E3', creamMid: '#F7EEDA', chalk: '#3B2E1F', chalkDim: '#7C6B4E',
+  gold: '#BE7F1E', goldBright: '#DE9C2E', rust: '#C0392B', ink: '#2E2417', panelLine: 'rgba(59,46,31,0.16)',
+};
+
+function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  if (!letterSpacing) { ctx.fillText(text, x, y); return; }
+  const widths = [...text].map(ch => ctx.measureText(ch).width + letterSpacing);
+  const total = widths.reduce((a, b) => a + b, 0) - letterSpacing;
+  let cx = x - total / 2;
+  ctx.textAlign = 'left';
+  [...text].forEach((ch, i) => { ctx.fillText(ch, cx, y); cx += widths[i]; });
+  ctx.textAlign = 'center';
+}
+
+function wrapLines(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach(w => {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+    else { line = test; }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+async function drawCaminoShareCard(canvas, player) {
+  const c = PD.camino[player];
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+  const S = 1080;
+  canvas.width = S; canvas.height = S;
+  const ctx = canvas.getContext('2d');
+  const CL = SHARE_COLORS;
+
+  ctx.fillStyle = CL.cream;
+  ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = CL.gold;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(24, 24, S - 48, S - 48);
+
+  drawCenteredText(ctx, '🥩 PORRA CHULETÓN · MUNDIAL 2026', S / 2, 100, "26px 'Space Mono'", CL.gold, 2);
+
+  ctx.strokeStyle = CL.panelLine;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(90, 130); ctx.lineTo(S - 90, 130); ctx.stroke();
+
+  drawCenteredText(ctx, player.toUpperCase(), S / 2, 225, "bold 66px 'Oswald'", CL.chalk);
+
+  const { headline, detail } = caminoShareHeadline(c);
+  const pillY = 268, pillH = 74;
+  ctx.font = "bold 34px 'Oswald'";
+  const textW = ctx.measureText(headline).width;
+  ctx.fillStyle = CL.goldBright;
+  ctx.beginPath();
+  const padX = 44;
+  const rectW = textW + padX * 2, rectX = S / 2 - rectW / 2;
+  const r = pillH / 2;
+  ctx.moveTo(rectX + r, pillY);
+  ctx.arcTo(rectX + rectW, pillY, rectX + rectW, pillY + pillH, r);
+  ctx.arcTo(rectX + rectW, pillY + pillH, rectX, pillY + pillH, r);
+  ctx.arcTo(rectX, pillY + pillH, rectX, pillY, r);
+  ctx.arcTo(rectX, pillY, rectX + rectW, pillY, r);
+  ctx.closePath();
+  ctx.fill();
+  drawCenteredText(ctx, headline, S / 2, pillY + pillH / 2 + 12, "bold 34px 'Oswald'", CL.ink);
+
+  drawCenteredText(ctx, `${c.score} pts`, S / 2, 470, "bold 84px 'Space Mono'", CL.goldBright);
+  if (detail) drawCenteredText(ctx, detail, S / 2, 520, "24px 'Inter'", CL.chalkDim);
+
+  ctx.strokeStyle = CL.panelLine;
+  ctx.beginPath(); ctx.moveTo(90, 570); ctx.lineTo(S - 90, 570); ctx.stroke();
+
+  const rows = [
+    ['⚽ Campeón del Mundial', c.champion],
+    ['🥈 Subcampeón', c.runner_up],
+    ['🥉 3º puesto', c.tercer_puesto],
+    ['🥾 Bota de Oro', c.golden],
+    ['⚽ Balón de Oro', c.ball],
+  ];
+  let ry = 630;
+  rows.forEach(([label, value]) => {
+    ctx.font = "26px 'Inter'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
+    ctx.fillText(label, 110, ry);
+    ctx.font = "bold 26px 'Inter'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'right';
+    ctx.fillText(value, S - 110, ry);
+    ry += 60;
+    ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(110, ry - 42); ctx.lineTo(S - 110, ry - 42); ctx.stroke();
+  });
+
+  drawCenteredText(ctx, `${c.prob_pct}% de probabilidad de este escenario exacto`, S / 2, 970, "20px 'Space Mono'", CL.chalkDim);
+  drawCenteredText(ctx, 'Entre miles de combinaciones posibles · Kalshi + Elo', S / 2, 1000, "18px 'Inter'", CL.chalkDim);
+}
+
+function openShareModal(player) {
+  const modal = document.getElementById('predShareModal');
+  const canvas = document.getElementById('predShareCanvas');
+  modal.hidden = false;
+  drawCaminoShareCard(canvas, player).then(() => {
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const dlLink = document.getElementById('predShareDownload');
+      dlLink.href = url;
+      dlLink.download = `camino-${player.replace(/\s+/g, '-').toLowerCase()}.png`;
+      const nativeBtn = document.getElementById('predShareNative');
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'camino.png', { type: 'image/png' })] })) {
+        nativeBtn.hidden = false;
+        nativeBtn.onclick = () => {
+          navigator.share({
+            files: [new File([blob], 'camino.png', { type: 'image/png' })],
+            title: 'Porra Chuletón Mundial 2026',
+            text: `El camino a la victoria de ${player}`,
+          }).catch(() => {});
+        };
+      } else {
+        nativeBtn.hidden = true;
+      }
+    }, 'image/png');
+  });
+}
+
+document.getElementById('predCaminoContent').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-share-player]');
+  if (!btn) return;
+  openShareModal(btn.dataset.sharePlayer);
+});
+document.getElementById('predShareClose').addEventListener('click', () => {
+  document.getElementById('predShareModal').hidden = true;
+});
+document.getElementById('predShareModal').addEventListener('click', (e) => {
+  if (e.target.id === 'predShareModal') document.getElementById('predShareModal').hidden = true;
+});
 
 // ---------- Partidos que más mueven la porra ----------
 function renderPredTopImpact() {
