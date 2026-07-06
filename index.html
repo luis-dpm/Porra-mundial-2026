@@ -35,6 +35,7 @@
     <button class="tab-btn" data-tab="proximos">⏳ Próximos</button>
     <button class="tab-btn" data-tab="grupos">🔠 Fase de grupos</button>
     <button class="tab-btn" data-tab="eliminatoria">🔥 Eliminatoria</button>
+    <button class="tab-btn" data-tab="predicciones">🔮 Predicciones</button>
   </nav>
 </header>
 <div class="nav-scrim" id="navScrim"></div>
@@ -161,9 +162,100 @@
     </div>
   </section>
 
+  <!-- ============ PAGE 7: PREDICCIONES ============ -->
+  <section class="page" id="page-predicciones">
+    <div class="page-inner">
+      <div class="page-head">
+        <h1>Predicciones: de aquí a la final</h1>
+        <p class="page-sub" id="predIntro">—</p>
+      </div>
+
+      <div class="pred-mode-toggle" id="predModeToggle">
+        <button class="pred-mode-btn active" data-mode="uniform">Equiprobable (50/50)</button>
+        <button class="pred-mode-btn" data-mode="weighted">Kalshi + Elo</button>
+      </div>
+      <p class="pred-mode-note" id="predModeNote"></p>
+
+      <!-- 1. Resumen -->
+      <div class="section-divider"><span>Clasificación proyectada</span></div>
+      <p class="chart-desc" id="predScoreboardDesc"></p>
+      <div id="predScoreboard"></div>
+
+      <div class="section-divider"><span>Distribución de posición final</span></div>
+      <p class="chart-desc">Probabilidad de acabar en cada puesto exacto (no solo de ser 1º). Los empates a puntos reparten la probabilidad entre las posiciones que ocupan.</p>
+      <div class="pred-chart-wrap" id="predRankDistWrap"></div>
+
+      <!-- 2. La apuesta -->
+      <div class="section-divider"><span id="predChuletonIcon">🥩</span> La cena — chuletones esperados</div>
+      <p class="chart-desc" id="predChuletonDesc"></p>
+      <div id="predChuletonBoard"></div>
+
+      <div class="chart-block">
+        <h2 class="chart-title">Dispersión por jugador</h2>
+        <p class="chart-desc">Caja = percentil 25–75 · bigotes = percentil 10–90 · línea azul = mediana · rombo dorado = media</p>
+        <div class="pred-chart-wrap" id="predBoxplotWrap"></div>
+      </div>
+
+      <!-- 3-4. Detalle partido a partido + lo más jugoso -->
+      <div class="section-divider"><span>Mapa de calor</span></div>
+      <p class="chart-desc" id="predHeatmapDesc"></p>
+      <div class="pred-chart-wrap" id="predHeatmapWrap"></div>
+
+      <div class="section-divider"><span>🔥 Partidos que más mueven la porra</span></div>
+      <p class="chart-desc">Los 3 partidos con más chuletones en juego (mayor diferencia entre que gane un equipo u otro), en el modo elegido arriba.</p>
+      <div class="pred-bracket-grid" id="predTopImpact"></div>
+
+      <div class="section-divider"><span>Partidos por ronda</span></div>
+      <div class="pred-round-selector" id="predRoundSelector"></div>
+      <div id="predRoundContent"></div>
+
+      <div id="predBracketSection">
+        <div class="section-divider"><span>El cuadro con probabilidades</span></div>
+        <div id="predBracketWrap"></div>
+      </div>
+
+      <div id="predCaminoSection">
+        <div class="section-divider"><span>🧭 Camino a la victoria</span></div>
+        <p class="chart-desc">Para cada jugador, el escenario individual más probable —entre todos los que le hacen ganar la porra— con cuotas reales (Kalshi + Elo), incluidas las probabilidades de Bota y Balón de Oro. Ojo: aunque sea "el más probable", suele ser solo una fracción pequeña de su % total de ganar, porque hay muchísimos escenarios distintos que también le dan la victoria.</p>
+        <div class="pred-player-selector" id="predCaminoSelector"></div>
+        <div id="predCaminoContent"></div>
+      </div>
+
+      <!-- 5. Premios -->
+      <div id="predAwardsSection">
+        <div class="section-divider"><span>🥾 Bota de Oro · ⚽ Balón de Oro</span></div>
+        <div class="groups-grid" id="predAwardsGrid"></div>
+      </div>
+
+      <!-- PRUEBA: simulador interactivo -->
+      <div class="section-divider"><span>🎮 Simulador: elige tú los resultados</span></div>
+      <p class="chart-desc">Marca quién gana cada partido que queda (y quién se lleva la Bota/Balón de Oro) y mira cómo cambia la clasificación al momento. Empieza con el favorito de cada cruce marcado.</p>
+      <div class="pred-sim-wrap">
+        <div class="pred-sim-controls" id="predSimControls"></div>
+        <div class="pred-sim-results" id="predSimResults"></div>
+      </div>
+      <button class="pred-sim-reset" id="predSimReset">↺ Reiniciar a favoritos</button>
+
+      <!-- PRUEBA: quién va con quién -->
+      <div class="section-divider"><span>🤝 Quién va con quién</span></div>
+      <p class="chart-desc">Cuántos de los 21 picks que quedan por decidir (cuartofinalistas, semifinalistas, finalistas, 3º-4º puesto, campeón, subcampeón, 3º puesto, Bota y Balón de Oro) coinciden entre cada dos jugadores. Más color = más se parecen sus apuestas.</p>
+      <div class="pred-affinity-wrap" id="predAffinityWrap"></div>
+      <div id="predAffinityCallouts"></div>
+
+      <!-- 6. Referencia -->
+      <div class="section-divider"><span>Picks ya descartados</span></div>
+      <p class="chart-desc">Equipos que un jugador marcó para llegar a una ronda pero que ya quedaron eliminados — no pueden sumar puntos, caiga lo que caiga.</p>
+      <div class="pred-dead-list" id="predDeadList"></div>
+
+      <div class="section-divider"><span>Metodología</span></div>
+      <div id="predMethodology"></div>
+    </div>
+  </section>
+
 </main>
 
 <script src="data.js"></script>
+<script src="predictions_data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
