@@ -36,13 +36,12 @@ PLAYER_COLUMNS = {
 }
 
 # ---------------------------------------------------------------- mercado --
-# Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 5 jul. 2026).
+# Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 6 jul. 2026).
 # Clave = número de partido FIFA.
 OCTAVOS_ODDS = {
-    91: {"Brasil": 0.70, "Noruega": 0.30},
-    92: {"Inglaterra": 0.52, "México": 0.48},
+    92: {"Inglaterra": 0.49, "México": 0.51},
     93: {"España": 0.66, "Portugal": 0.34},
-    94: {"Bélgica": 0.50, "Estados Unidos": 0.50},
+    94: {"Bélgica": 0.46, "Estados Unidos": 0.54},
     95: {"Argentina": 0.84, "Egipto": 0.16},
     96: {"Colombia": 0.61, "Suiza": 0.39},
 }
@@ -53,7 +52,7 @@ OCTAVOS_ODDS = {
 # hybrid_prob() ya normaliza). Ver scripts/check_market_data.py para saber qué
 # cruce hay que añadir aquí en cada momento.
 KNOWN_MATCHUPS = {
-    frozenset({"Francia", "Marruecos"}): {"Francia": 0.76, "Marruecos": 0.24},  # Cuartos 1, partido 97, consultada 5 jul. 2026
+    frozenset({"Francia", "Marruecos"}): {"Francia": 0.76, "Marruecos": 0.24},  # Cuartos 1, partido 97, consultada 6 jul. 2026
 }
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al sábado 4 jul.
@@ -138,6 +137,14 @@ def build_topology(porra):
     return octavos_matches, cuartos_matches, semis_matches, qf_pairs, sf_pairs, f_pair, tp_pair
 
 # ------------------------------------------------------------ octavos data --
+# Partidos ya decididos en la realidad pero que data.js todavía no refleja
+# (a la espera de que el pipeline automático del sitio recoja el resultado
+# oficial con marcador). Clave = número de partido FIFA, valor = ganador.
+# Quitar la entrada de aquí en cuanto data.js incorpore el resultado real.
+MANUAL_RESULTS = {
+    91: "Noruega",  # Brasil-Noruega, confirmado 5 jul. 2026, marcador pendiente en data.js
+}
+
 def build_octavos(porra, octavos_matches):
     winners = porra["ko_stage"]["winners_by_match"]
     out = []
@@ -148,6 +155,9 @@ def build_octavos(porra, octavos_matches):
             score = m["actual"].split("|")[1]
             out.append({"num": m["num"], "a": home, "b": away, "resolved": True,
                         "winner": winner, "score": score, "date": m["date"]})
+        elif m["num"] in MANUAL_RESULTS:
+            out.append({"num": m["num"], "a": home, "b": away, "resolved": True,
+                        "winner": MANUAL_RESULTS[m["num"]], "score": "—", "date": m["date"]})
         else:
             odds = OCTAVOS_ODDS[m["num"]]
             out.append({"num": m["num"], "a": home, "b": away, "resolved": False,
