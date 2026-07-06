@@ -1851,8 +1851,9 @@ main {
 .pred-sim-result-pts { font-family: var(--font-mono); font-weight: 700; }
 .pred-sim-result-chop { font-family: var(--font-mono); font-size: 12px; color: var(--chalk-dim); white-space: nowrap; }
 
+.pred-sim-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
 .pred-sim-reset {
-  margin-top: 14px;
   font-family: var(--font-display);
   font-size: 13px;
   background: var(--panel);
@@ -1863,6 +1864,19 @@ main {
   cursor: pointer;
 }
 .pred-sim-reset:hover { color: var(--chalk); border-color: var(--gold); }
+
+.pred-sim-share {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: var(--ink);
+  padding: 9px 16px;
+  border-radius: 99px;
+  cursor: pointer;
+}
+.pred-sim-share:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
 
 @media (max-width: 800px) {
   .pred-sim-wrap { grid-template-columns: 1fr; }
