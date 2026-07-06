@@ -39,7 +39,6 @@ PLAYER_COLUMNS = {
 # Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 6 jul. 2026).
 # Clave = número de partido FIFA.
 OCTAVOS_ODDS = {
-    93: {"España": 0.66, "Portugal": 0.34},
     94: {"Bélgica": 0.47, "Estados Unidos": 0.53},
     95: {"Argentina": 0.84, "Egipto": 0.16},
     96: {"Colombia": 0.60, "Suiza": 0.40},

@@ -72,6 +72,11 @@ def main():
             if num in UP.OCTAVOS_ODDS:
                 notes.append(f"Octavos partido {num} ({m['home_team']}-{m['away_team']}) ya se jugó "
                              f"-- puedes borrar su entrada de OCTAVOS_ODDS.")
+        elif num in UP.MANUAL_RESULTS:
+            octavos_winners[num] = UP.MANUAL_RESULTS[num]
+            notes.append(f"Octavos partido {num} ({m['home_team']}-{m['away_team']}) resuelto a mano "
+                         f"vía MANUAL_RESULTS ({UP.MANUAL_RESULTS[num]}) -- quítalo en cuanto data.js "
+                         f"traiga el resultado real.")
         else:
             if num not in UP.OCTAVOS_ODDS:
                 problems.append(f"Falta cuota Kalshi para octavos {m['home_team']}-{m['away_team']} "
