@@ -77,24 +77,25 @@ def hybrid_prob(a, b):
         return odds[a] / (odds[a] + odds[b])
     return elo_prob(a, b)
 
-# Bota de Oro (consultada 6 jul. 2026), cifras tal cual las da el mercado
-# (sin renormalizar): suman 100.1%, así que "Otros" se queda en 0 -- no hay
-# margen que repartirle. Ojo: la clave debe ser "Julián Álvarez" completo,
-# que es como aparece el pick en la hoja (JUAN lo tiene picado).
+# Bota de Oro (consultada 6 jul. 2026). El mercado da cifras que suman
+# 100.1% (overround típico); se normalizan aquí a 100% exacto, redondeando
+# al mismo decimal que el precio de mercado (el 0.1% sobrante se absorbe en
+# Mbappé, el candidato más grande). Ojo: la clave debe ser "Julián Álvarez"
+# completo, que es como aparece el pick en la hoja (JUAN lo tiene picado).
 GOLDEN_CANDIDATES = [
-    ("Mbappé", 0.49), ("Messi", 0.325), ("Haaland", 0.104),
+    ("Mbappé", 0.489), ("Messi", 0.325), ("Haaland", 0.104),
     ("Kane", 0.068), ("Oyarzabal", 0.013), ("Julián Álvarez", 0.001),
     ("Otros", 0.0),
 ]
-# Balón de Oro (consultada 6 jul. 2026), cifras tal cual (suman 102.1%,
-# "Otros" se queda en 0 igual que arriba). Ojo: la clave debe ser "Lamine
-# Yamal" completo (no solo "Yamal") y "Declan Rice" completo, que es como
-# aparecen esos picks en la hoja (Yamal lo tienen picado 5 de 7 jugadores;
-# Declan Rice, SU FLORENTINEZA).
+# Balón de Oro (consultada 6 jul. 2026). El mercado suma 102.1%; normalizado
+# igual que arriba (el sobrante de redondeo se absorbe en Mbappé). Ojo: la
+# clave debe ser "Lamine Yamal" completo (no solo "Yamal") y "Declan Rice"
+# completo, que es como aparecen esos picks en la hoja (Yamal lo tienen
+# picado 5 de 7 jugadores; Declan Rice, SU FLORENTINEZA).
 GOLDEN_BALL_CANDIDATES = [
-    ("Mbappé", 0.38), ("Messi", 0.26), ("Haaland", 0.093),
-    ("Olise", 0.086), ("Kane", 0.068), ("Bellingham", 0.062),
-    ("Lamine Yamal", 0.027), ("Ronaldo", 0.021), ("Dembélé", 0.018),
+    ("Mbappé", 0.371), ("Messi", 0.255), ("Haaland", 0.091),
+    ("Olise", 0.084), ("Kane", 0.067), ("Bellingham", 0.061),
+    ("Lamine Yamal", 0.026), ("Ronaldo", 0.021), ("Dembélé", 0.018),
     ("Pedri", 0.005), ("Declan Rice", 0.001), ("Otros", 0.0),
 ]
 
