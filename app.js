@@ -1625,14 +1625,24 @@ function renderPredCaminoContent(player) {
       </div>
       <div class="pred-camino-winner-tag">${e.winner}</div>
     </div>`).join('');
+  let porraResult;
+  if (c.tied_with && c.tied_with.length) {
+    porraResult = `🏆 <b>${player}</b> empata en el 1º puesto de la porra con ${c.score} pts, junto a ${c.tied_with.join(', ')}`;
+  } else if (c.second_name) {
+    const gap = c.score - c.second_score;
+    porraResult = `🏆 <b>${player}</b> gana la porra en solitario con ${c.score} pts (+${gap} sobre ${c.second_name}, 2º con ${c.second_score} pts)`;
+  } else {
+    porraResult = `🏆 <b>${player}</b> gana la porra en solitario con ${c.score} pts`;
+  }
   el.innerHTML = `
+    <p class="pred-camino-porra-result">${porraResult}</p>
     <div class="pred-camino-summary">
-      <span>🏆 Campeón: <b>${c.champion}</b></span>
+      <span>⚽ Campeón del Mundial: <b>${c.champion}</b></span>
       <span>🥈 Subcampeón: <b>${c.runner_up}</b></span>
       <span>🥉 3º puesto: <b>${c.tercer_puesto}</b></span>
       <span>🥾 Bota de Oro: <b>${c.golden}</b></span>
       <span>⚽ Balón de Oro: <b>${c.ball}</b></span>
-      <span class="pred-camino-prob">${c.score} pts · ${c.prob_pct}% de probabilidad de este escenario exacto</span>
+      <span class="pred-camino-prob">${c.prob_pct}% de probabilidad de este escenario exacto</span>
     </div>
     <div class="pred-camino-timeline">${events}</div>`;
 }
@@ -1886,7 +1896,9 @@ document.getElementById('predSimControls').addEventListener('click', (e) => {
   const match = btn.dataset.match;
   if (match === 'golden') { simState.golden = btn.dataset.name; }
   else if (match === 'ball') { simState.ball = btn.dataset.name; }
-  else {
+  else if (match === 'final' || match === 'tp') {
+    simState[match] = Number(btn.dataset.pick);
+  } else {
     const idx = Number(btn.dataset.idx);
     const pick = Number(btn.dataset.pick);
     simState[match][idx] = pick;

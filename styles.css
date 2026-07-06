@@ -1669,6 +1669,14 @@ main {
 .pred-player-pill:hover { color: var(--chalk); }
 .pred-player-pill.active { background: var(--gold); color: var(--ink); border-color: var(--gold); }
 
+.pred-camino-porra-result {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--chalk);
+  margin-bottom: 10px;
+}
+.pred-camino-porra-result b { color: var(--gold-bright); }
+
 .pred-camino-summary {
   display: flex;
   flex-wrap: wrap;

@@ -39,11 +39,10 @@ PLAYER_COLUMNS = {
 # Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 6 jul. 2026).
 # Clave = número de partido FIFA.
 OCTAVOS_ODDS = {
-    92: {"Inglaterra": 0.49, "México": 0.51},
     93: {"España": 0.66, "Portugal": 0.34},
-    94: {"Bélgica": 0.46, "Estados Unidos": 0.54},
+    94: {"Bélgica": 0.47, "Estados Unidos": 0.53},
     95: {"Argentina": 0.84, "Egipto": 0.16},
-    96: {"Colombia": 0.61, "Suiza": 0.39},
+    96: {"Colombia": 0.60, "Suiza": 0.40},
 }
 # Cruces ya confirmados (los dos equipos conocidos) con mercado propio de
 # Kalshi, más allá de los octavos -- se va ampliando ronda a ronda según se
@@ -53,15 +52,16 @@ OCTAVOS_ODDS = {
 # cruce hay que añadir aquí en cada momento.
 KNOWN_MATCHUPS = {
     frozenset({"Francia", "Marruecos"}): {"Francia": 0.76, "Marruecos": 0.24},  # Cuartos 1, partido 97, consultada 6 jul. 2026
+    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.36, "Inglaterra": 0.64},  # Cuartos 3, partido 99, consultada 6 jul. 2026
 }
 
-# World Football Elo (eloratings.net/2026_World_Cup), ratings al sábado 4 jul.
+# World Football Elo (eloratings.net/2026_World_Cup), ratings al lunes 6 jul.
 # 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
 # 2-4, semis, final, 3º-4º puesto).
 ELO = {
     "España": 2159, "Argentina": 2151, "Francia": 2143, "Inglaterra": 2046,
-    "Brasil": 2031, "Portugal": 2013, "Colombia": 2009, "México": 1943,
-    "Suiza": 1943, "Noruega": 1934, "Marruecos": 1921, "Bélgica": 1910,
+    "Brasil": 1993, "Portugal": 2013, "Colombia": 2009, "México": 1943,
+    "Suiza": 1943, "Noruega": 1972, "Marruecos": 1921, "Bélgica": 1910,
     "Paraguay": 1814, "Estados Unidos": 1798, "Canadá": 1729, "Egipto": 1747,
 }
 
@@ -77,20 +77,25 @@ def hybrid_prob(a, b):
         return odds[a] / (odds[a] + odds[b])
     return elo_prob(a, b)
 
-# Bota de Oro (Polymarket "Golden Boot Winner", 4 jul. 2026). Julián Álvarez no
-# tiene cifra propia en el mercado (agrupado en "resto") y sigue con 0 goles
-# mientras el máximo goleador del torneo ya lleva 7 -- 0.01% es un residuo
-# casi nulo (no cero, porque técnicamente aún podría encadenar un hat-trick
-# tras otro), muy por debajo de lo que sería repartir a partes iguales con
-# el resto de "Otros".
+# Bota de Oro (consultada 6 jul. 2026), cifras tal cual las da el mercado
+# (sin renormalizar): suman 100.1%, así que "Otros" se queda en 0 -- no hay
+# margen que repartirle. Ojo: la clave debe ser "Julián Álvarez" completo,
+# que es como aparece el pick en la hoja (JUAN lo tiene picado).
 GOLDEN_CANDIDATES = [
-    ("Mbappé", 0.49), ("Messi", 0.38), ("Kane", 0.04),
-    ("Oyarzabal", 0.02), ("Julián Álvarez", 0.0001), ("Otros", 0.0699),
+    ("Mbappé", 0.49), ("Messi", 0.325), ("Haaland", 0.104),
+    ("Kane", 0.068), ("Oyarzabal", 0.013), ("Julián Álvarez", 0.001),
+    ("Otros", 0.0),
 ]
-# Balón de Oro (Polymarket "Golden Ball Winner", 4 jul. 2026).
+# Balón de Oro (consultada 6 jul. 2026), cifras tal cual (suman 102.1%,
+# "Otros" se queda en 0 igual que arriba). Ojo: la clave debe ser "Lamine
+# Yamal" completo (no solo "Yamal") y "Declan Rice" completo, que es como
+# aparecen esos picks en la hoja (Yamal lo tienen picado 5 de 7 jugadores;
+# Declan Rice, SU FLORENTINEZA).
 GOLDEN_BALL_CANDIDATES = [
-    ("Mbappé", 0.38), ("Messi", 0.23), ("Lamine Yamal", 0.046),
-    ("Pedri", 0.014), ("Declan Rice", 0.002), ("Otros", 0.328),
+    ("Mbappé", 0.38), ("Messi", 0.26), ("Haaland", 0.093),
+    ("Olise", 0.086), ("Kane", 0.068), ("Bellingham", 0.062),
+    ("Lamine Yamal", 0.027), ("Ronaldo", 0.021), ("Dembélé", 0.018),
+    ("Pedri", 0.005), ("Declan Rice", 0.001), ("Otros", 0.0),
 ]
 
 # ------------------------------------------------------------- data.js I/O --
@@ -141,9 +146,7 @@ def build_topology(porra):
 # (a la espera de que el pipeline automático del sitio recoja el resultado
 # oficial con marcador). Clave = número de partido FIFA, valor = ganador.
 # Quitar la entrada de aquí en cuanto data.js incorpore el resultado real.
-MANUAL_RESULTS = {
-    91: "Noruega",  # Brasil-Noruega, confirmado 5 jul. 2026, marcador pendiente en data.js
-}
+MANUAL_RESULTS = {}
 
 def build_octavos(porra, octavos_matches):
     winners = porra["ko_stage"]["winners_by_match"]
@@ -220,12 +223,37 @@ def build_player_picks(porra, runner_up, third_place_winner, octavos, qf_pairs):
         )
     return picks
 
-def build_dead_list(porra, runner_up, third_place_winner):
-    q = porra["ko_stage"]["qualifiers"]
+def build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_matches, semis_matches, picks):
+    """Un pick solo cuenta como "muerto" si el partido real que decide ESE
+    slot concreto todavía no se ha jugado -- es decir, si el puesto sigue en
+    juego para el resto de jugadores pero este pick ya es matemáticamente
+    imposible. Si el partido que ocupa ese slot ya se jugó (haya acertado el
+    jugador o no), ya no es un pick "muerto": es un fallo normal, resuelto,
+    y no tiene sentido seguir listándolo (p. ej. un cuartofinalista picado
+    que perdió su propio octavos ya jugado -- ese cruce ya tiene ganador real
+    y punto). En cambio, un semifinalista ya eliminado en octavos SÍ sigue
+    siendo un pick muerto mientras el cruce de cuartos que alimenta ese
+    puesto no se haya jugado, porque el puesto en sí sigue abierto para
+    otros jugadores."""
     eliminated = set(porra["ko_stage"]["eliminated_teams"])
-    labels = {"cuartos": "Cuartofinalista", "semis": "Semifinalista",
-              "final": "Finalista", "tercer_puesto": "3º-4º puesto (clasificado)"}
     dead = {p: [] for p in porra["players"]}
+
+    for p in porra["players"]:
+        for i, o in enumerate(octavos):
+            team = picks[p]["cuartofinalista"][i]
+            if not o["resolved"] and team in eliminated:
+                dead[p].append({"stage": "Cuartofinalista", "pick": team, "match": None})
+        for k, m in enumerate(cuartos_matches):
+            team = picks[p]["semifinalista"][k]
+            if not m["actual"] and team in eliminated:
+                dead[p].append({"stage": "Semifinalista", "pick": team, "match": None})
+
+    # Finalista, 3º-4º puesto, Campeón, Subcampeón y 3º puesto (ganador) los
+    # decide un cruce de semis o la final, que a día de hoy no se ha jugado
+    # ninguno todavía -- así que, por ahora, cualquier equipo ya eliminado
+    # sigue siendo un pick muerto para estas categorías sin excepción.
+    q = porra["ko_stage"]["qualifiers"]
+    labels = {"final": "Finalista", "tercer_puesto": "3º-4º puesto (clasificado)"}
     for round_name, label in labels.items():
         for slot in q[round_name]:
             for p, info in slot["predictions"].items():
@@ -366,11 +394,11 @@ def main():
     players = porra["players"]
     current_total = {s["player"]: s["points"] for s in porra["standings"]}
     runner_up, third_place_winner = load_award_picks()
-    dead = build_dead_list(porra, runner_up, third_place_winner)
 
     octavos_matches, cuartos_matches, semis_matches, qf_pairs, sf_pairs, f_pair, tp_pair = build_topology(porra)
     octavos = build_octavos(porra, octavos_matches)
     picks = build_player_picks(porra, runner_up, third_place_winner, octavos, qf_pairs)
+    dead = build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_matches, semis_matches, picks)
 
     match_labels = []
     for o in octavos:
@@ -410,7 +438,8 @@ def main():
     # queda 1º (o empatado a 1º), solo en modo ponderado -- en equiprobable
     # todas las ramas del cuadro pesan igual, así que "la más probable" no
     # sería más que una cualquiera de las muchas empatadas al máximo.
-    camino_best = {p: {"w": -1.0, "bits": None, "gname": None, "bname": None, "score": None} for p in players}
+    camino_best = {p: {"w": -1.0, "bits": None, "gname": None, "bname": None, "score": None,
+                       "tied_with": [], "second_name": None, "second_score": None} for p in players}
 
     for mode in ["uniform", "weighted"]:
         win_mass = {p: 0.0 for p in players}
@@ -449,9 +478,16 @@ def main():
                     leaders = [p for p in players if scores[p] == maxscore]
                     for p in leaders: win_mass[p] += w / len(leaders)
                     if mode == "weighted":
+                        groups_for_camino = rank_groups(scores)
+                        second_group = groups_for_camino[1] if len(groups_for_camino) > 1 else []
                         for p in leaders:
                             if w > camino_best[p]["w"]:
-                                camino_best[p] = {"w": w, "bits": bits, "gname": gname, "bname": bname, "score": scores[p]}
+                                camino_best[p] = {
+                                    "w": w, "bits": bits, "gname": gname, "bname": bname, "score": scores[p],
+                                    "tied_with": [q for q in leaders if q != p],
+                                    "second_name": second_group[0] if second_group else None,
+                                    "second_score": scores[second_group[0]] if second_group else None,
+                                }
                     groups = rank_groups(scores)
                     pos = 0
                     for group in groups:
@@ -565,6 +601,9 @@ def main():
         desc = describe_scenario(cb["bits"], cb["gname"], cb["bname"])
         desc["prob_pct"] = round(100 * cb["w"] / total_prob_by_mode["weighted"], 4)
         desc["score"] = cb["score"]
+        desc["tied_with"] = cb["tied_with"]
+        desc["second_name"] = cb["second_name"]
+        desc["second_score"] = cb["second_score"]
         camino_out[p] = desc
 
     # ---- bracket con probabilidades (DP exacto, sin enumerar 2^14) ----
