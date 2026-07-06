@@ -238,6 +238,8 @@ def build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_match
     otros jugadores."""
     eliminated = set(porra["ko_stage"]["eliminated_teams"])
     dead = {p: [] for p in porra["players"]}
+    final_match = porra["ko_stage"]["rounds"]["final"]["matches"][0]
+    tp_match = porra["ko_stage"]["rounds"]["tercer_puesto"]["matches"][0]
 
     for p in porra["players"]:
         for i, o in enumerate(octavos):
@@ -248,25 +250,25 @@ def build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_match
             team = picks[p]["semifinalista"][k]
             if not m["actual"] and team in eliminated:
                 dead[p].append({"stage": "Semifinalista", "pick": team, "match": None})
-
-    # Finalista, 3º-4º puesto, Campeón, Subcampeón y 3º puesto (ganador) los
-    # decide un cruce de semis o la final, que a día de hoy no se ha jugado
-    # ninguno todavía -- así que, por ahora, cualquier equipo ya eliminado
-    # sigue siendo un pick muerto para estas categorías sin excepción.
-    q = porra["ko_stage"]["qualifiers"]
-    labels = {"final": "Finalista", "tercer_puesto": "3º-4º puesto (clasificado)"}
-    for round_name, label in labels.items():
-        for slot in q[round_name]:
-            for p, info in slot["predictions"].items():
-                if info["status"] == "eliminado":
-                    dead[p].append({"stage": label, "pick": info["team"], "match": None})
-    for p in porra["players"]:
-        if third_place_winner[p] in eliminated:
-            dead[p].append({"stage": "3º puesto (ganador)", "pick": third_place_winner[p], "match": None})
-        if runner_up[p] in eliminated:
-            dead[p].append({"stage": "Subcampeón", "pick": runner_up[p], "match": None})
-        if porra["final_predictions"][p]["campeon"] in eliminated:
-            dead[p].append({"stage": "Campeón", "pick": porra["final_predictions"][p]["campeon"], "match": None})
+        for k, m in enumerate(semis_matches):
+            # finalista[k]/tresycuatro[k] los decide ese mismo cruce de
+            # semis: si gana, es finalista; si pierde, juega el 3º-4º puesto.
+            if m["actual"]:
+                continue
+            fteam = picks[p]["finalista"][k]
+            if fteam in eliminated:
+                dead[p].append({"stage": "Finalista", "pick": fteam, "match": None})
+            tteam = picks[p]["tresycuatro"][k]
+            if tteam in eliminated:
+                dead[p].append({"stage": "3º-4º puesto (clasificado)", "pick": tteam, "match": None})
+        if not final_match["actual"]:
+            if runner_up[p] in eliminated:
+                dead[p].append({"stage": "Subcampeón", "pick": runner_up[p], "match": None})
+            if porra["final_predictions"][p]["campeon"] in eliminated:
+                dead[p].append({"stage": "Campeón", "pick": porra["final_predictions"][p]["campeon"], "match": None})
+        if not tp_match["actual"]:
+            if third_place_winner[p] in eliminated:
+                dead[p].append({"stage": "3º puesto (ganador)", "pick": third_place_winner[p], "match": None})
     return dead
 
 # --------------------------------------------------------------- simulate --
@@ -334,20 +336,25 @@ def make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair):
 
     return simulate, n_bits, unresolved_idx
 
-def score_player_bracket(pk, O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, scoreable_octavos):
-    """scoreable_octavos: índices de octavos que hay que puntuar aquí. Los ya
-    resueltos (Francia, Marruecos) se excluyen porque sus 12 pts por acertar
-    cuartofinalista ya están sumados en current_total (viene de data.js, que
-    ya los contabiliza en cuanto el equipo queda "clasificado") -- puntuarlos
-    otra vez aquí los contaría dos veces."""
+def score_player_bracket(pk, O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34,
+                          scoreable_octavos, scoreable_cuartos, scoreable_semis):
+    """scoreable_octavos/scoreable_cuartos/scoreable_semis: índices de esa
+    ronda que hay que puntuar aquí porque el partido real que los decide
+    TODAVÍA no se ha jugado. Los ya resueltos se excluyen porque sus puntos
+    por acertar cuartofinalista/semifinalista/finalista/tresycuatro ya están
+    sumados en current_total (viene de data.js, que los contabiliza en
+    cuanto el equipo real queda "clasificado" para esa ronda) -- puntuarlos
+    otra vez aquí los contaría dos veces. Campeón/Subcampeón/3º puesto
+    (ganador) no necesitan este filtro: el pipeline en vivo (update_data.py)
+    no tiene ningún mecanismo que sume puntos por acertarlos, así que nunca
+    están en current_total y jamás se cuentan dos veces."""
     s = 0
     for slot in scoreable_octavos:
         if pk["cuartofinalista"][slot] == O_winner[slot]: s += 12
-    for slot in range(4):
+    for slot in scoreable_cuartos:
         if pk["semifinalista"][slot] == Q_winner[slot]: s += 24
-    for slot in range(2):
+    for slot in scoreable_semis:
         if pk["finalista"][slot] == S_winner[slot]: s += 48
-    for slot in range(2):
         if pk["tresycuatro"][slot] == S_loser[slot]: s += 24
     if pk["campeon"] == champion: s += 96
     if pk["subcampeon"] == runner: s += 48
@@ -421,6 +428,12 @@ def main():
     all_bits = list(itertools.product([0, 1], repeat=n_bits))
     print(f"bracket branches: {len(all_bits)} ({n_bits} bits)", file=sys.stderr)
 
+    # Igual que unresolved_idx para octavos, pero para cuartos y semis: solo
+    # hay que puntuar aquí los slots cuyo partido real todavía no se ha
+    # jugado (si ya se jugó, sus puntos ya están en current_total).
+    scoreable_cuartos = [k for k, m in enumerate(cuartos_matches) if not m["actual"]]
+    scoreable_semis = [k for k, m in enumerate(semis_matches) if not m["actual"]]
+
     golden_bonus = {}
     for p in players:
         prob_real = dict(GOLDEN_CANDIDATES).get(picks[p]["botaoro"], 0.0)
@@ -458,7 +471,7 @@ def main():
 
         for bits in all_bits:
             O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, bprob = simulate(bits, mode)
-            bracket_scores = {p: score_player_bracket(picks[p], O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, unresolved_idx) for p in players}
+            bracket_scores = {p: score_player_bracket(picks[p], O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34, unresolved_idx, scoreable_cuartos, scoreable_semis) for p in players}
             if mode == "uniform":
                 for p in players:
                     bracket_min[p] = bracket_scores[p] if bracket_min[p] is None else min(bracket_min[p], bracket_scores[p])
@@ -717,6 +730,8 @@ def main():
         "sf_pairs": [list(pair) for pair in sf_pairs],
         "f_pair": list(f_pair),
         "tp_pair": list(tp_pair),
+        "qf_resolved": [bool(m["actual"]) for m in cuartos_matches],
+        "sf_resolved": [bool(m["actual"]) for m in semis_matches],
     }
 
     # Para que el simulador pueda calcular el favorito real (no solo en

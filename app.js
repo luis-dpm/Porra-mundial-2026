@@ -1782,17 +1782,27 @@ function simComputeWinners() {
 }
 
 const SIM_RESOLVED_OCTAVOS = () => new Set(PD.topology.octavos.map((o, i) => (o.resolved ? i : null)).filter(i => i !== null));
+const SIM_RESOLVED_CUARTOS = () => new Set(PD.topology.qf_resolved.map((r, i) => (r ? i : null)).filter(i => i !== null));
+const SIM_RESOLVED_SEMIS = () => new Set(PD.topology.sf_resolved.map((r, i) => (r ? i : null)).filter(i => i !== null));
 
 function simScorePlayer(pk, w) {
   let s = 0;
-  const resolved = SIM_RESOLVED_OCTAVOS();
+  const resolvedOctavos = SIM_RESOLVED_OCTAVOS();
+  const resolvedCuartos = SIM_RESOLVED_CUARTOS();
+  const resolvedSemis = SIM_RESOLVED_SEMIS();
   for (let slot = 0; slot < 8; slot++) {
-    if (resolved.has(slot)) continue; // ya sumado en current_total, no contar dos veces
+    if (resolvedOctavos.has(slot)) continue; // ya sumado en current_total, no contar dos veces
     if (pk.cuartofinalista[slot] === w.O_winner[slot]) s += 12;
   }
-  for (let slot = 0; slot < 4; slot++) if (pk.semifinalista[slot] === w.Q_winner[slot]) s += 24;
-  for (let slot = 0; slot < 2; slot++) if (pk.finalista[slot] === w.S_winner[slot]) s += 48;
-  for (let slot = 0; slot < 2; slot++) if (pk.tresycuatro[slot] === w.S_loser[slot]) s += 24;
+  for (let slot = 0; slot < 4; slot++) {
+    if (resolvedCuartos.has(slot)) continue;
+    if (pk.semifinalista[slot] === w.Q_winner[slot]) s += 24;
+  }
+  for (let slot = 0; slot < 2; slot++) {
+    if (resolvedSemis.has(slot)) continue;
+    if (pk.finalista[slot] === w.S_winner[slot]) s += 48;
+    if (pk.tresycuatro[slot] === w.S_loser[slot]) s += 24;
+  }
   if (pk.campeon === w.champion) s += 96;
   if (pk.subcampeon === w.runner) s += 48;
   if (pk.tercerpuesto === w.winner34) s += 16;
@@ -1824,9 +1834,11 @@ function simComputeStandings() {
   });
   const groups = simRankGroups(scores);
   const payment = {}; const rank = {};
-  groups.forEach((group, gi) => {
-    const avgRank = group.length === 1 ? gi + 1 : gi + 1 + (group.length - 1) / 2;
+  let pos = 0;
+  groups.forEach(group => {
+    const avgRank = pos + 1 + (group.length - 1) / 2;
     group.forEach(p => { payment[p] = simPaymentForRank(avgRank); rank[p] = avgRank; });
+    pos += group.length;
   });
   return { scores, payment, rank, w };
 }

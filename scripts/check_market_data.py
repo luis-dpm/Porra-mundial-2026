@@ -22,17 +22,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_predictions as UP
 
 
-def check_round(label, matches, prev_winners, winners_by_match, problems, notes):
-    """prev_winners: {num_partido_ronda_anterior: equipo_ganador}.
-    Devuelve {num_partido_esta_ronda: equipo_ganador} para encadenar con la
-    siguiente ronda."""
-    this_round_winners = {}
+def check_round(label, matches, prev_winners, prev_losers, winners_by_match, problems, notes):
+    """prev_winners/prev_losers: {num_partido_ronda_anterior: equipo}. Los
+    refs empiezan por "W" (gana ese partido) o "L" (pierde ese partido, solo
+    lo usa el cruce de 3º-4º puesto) -- hay que mirar el prefijo, no solo el
+    número, o se acaba comparando a los ganadores de semis contra sí mismos
+    en vez de a los dos perdedores. Devuelve (this_round_winners,
+    this_round_losers) para encadenar con la siguiente ronda."""
+    this_round_winners, this_round_losers = {}, {}
     for m in matches:
         num = m.get("num")
-        ref_a, ref_b = UP.ref_num(m["home_ref"]), UP.ref_num(m["away_ref"])
-        team_a, team_b = prev_winners.get(ref_a), prev_winners.get(ref_b)
+        home_ref, away_ref = m["home_ref"], m["away_ref"]
+        src_a = prev_losers if home_ref[0] == "L" else prev_winners
+        src_b = prev_losers if away_ref[0] == "L" else prev_winners
+        team_a, team_b = src_a.get(UP.ref_num(home_ref)), src_b.get(UP.ref_num(away_ref))
         if num is not None and m.get("actual"):
-            this_round_winners[num] = winners_by_match[str(num)]
+            winner = winners_by_match[str(num)]
+            this_round_winners[num] = winner
+            this_round_losers[num] = m["away_team"] if winner == m["home_team"] else m["home_team"]
 
         if team_a and team_b:
             key = frozenset({team_a, team_b})
@@ -47,7 +54,7 @@ def check_round(label, matches, prev_winners, winners_by_match, problems, notes)
         elif team_a or team_b:
             notes.append(f"{label}{(' partido ' + str(num)) if num else ''}: un lado ya resuelto "
                          f"({team_a or team_b}), esperando al otro.")
-    return this_round_winners
+    return this_round_winners, this_round_losers
 
 
 def main():
@@ -71,10 +78,10 @@ def main():
                                  f"(partido {num}) en OCTAVOS_ODDS -- update_predictions.py reventará.")
 
     # ---- cuartos / semis / final / 3º-4º puesto: cruces que ya son reales ----
-    cuartos_winners = check_round("Cuartos", ko["cuartos"]["matches"], octavos_winners, winners_by_match, problems, notes)
-    semis_winners = check_round("Semifinal", ko["semis"]["matches"], cuartos_winners, winners_by_match, problems, notes)
-    check_round("Final", ko["final"]["matches"], semis_winners, winners_by_match, problems, notes)
-    check_round("3º-4º puesto", ko["tercer_puesto"]["matches"], semis_winners, winners_by_match, problems, notes)
+    cuartos_winners, _ = check_round("Cuartos", ko["cuartos"]["matches"], octavos_winners, {}, winners_by_match, problems, notes)
+    semis_winners, semis_losers = check_round("Semifinal", ko["semis"]["matches"], cuartos_winners, {}, winners_by_match, problems, notes)
+    check_round("Final", ko["final"]["matches"], semis_winners, semis_losers, winners_by_match, problems, notes)
+    check_round("3º-4º puesto", ko["tercer_puesto"]["matches"], semis_winners, semis_losers, winners_by_match, problems, notes)
 
     # ---- recordatorios sin comprobación automática posible ----
     notes.append("Elo (eloratings.net/2026_World_Cup): sin forma de comprobar si está desactualizado "
