@@ -1667,11 +1667,37 @@ function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
   ctx.textAlign = 'center';
 }
 
+function simMatchRows(w) {
+  const topo = PD.topology;
+  const rows = [];
+  topo.octavos.forEach((o, i) => {
+    if (o.resolved) return;
+    rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: simState.octavos[i] === 0 ? o.a : o.b });
+  });
+  topo.qf_pairs.forEach(([ia, ib], k) => {
+    const teamA = w.O_winner[ia], teamB = w.O_winner[ib];
+    rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: simState.qf[k] === 0 ? teamA : teamB });
+  });
+  topo.sf_pairs.forEach(([ia, ib], k) => {
+    const teamA = w.Q_winner[ia], teamB = w.Q_winner[ib];
+    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: simState.sf[k] === 0 ? teamA : teamB });
+  });
+  const [fa, fb] = topo.f_pair;
+  rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
+  const [ta, tb] = topo.tp_pair;
+  rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
+  return rows;
+}
+
 async function drawSimShareCard(canvas) {
   const { scores, payment, w } = simComputeStandings();
   const ranked = PRED_PLAYERS.slice().sort((a, b) => scores[b] - scores[a]);
+  const matchRows = simMatchRows(w);
   if (document.fonts && document.fonts.ready) await document.fonts.ready;
-  const W = 1080, H = 1350;
+
+  const matchRowH = 42, leaderRowH = 88, outcomeRowH = 44;
+  const W = 1080;
+  const H = 300 + 40 + matchRows.length * matchRowH + 30 + outcomeRowH * 5 + 90 + ranked.length * leaderRowH + 90;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const CL = SHARE_COLORS;
@@ -1688,6 +1714,30 @@ async function drawSimShareCard(canvas) {
 
   drawCenteredText(ctx, 'SI EL MUNDIAL TERMINA ASÍ...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
 
+  drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
+
+  let my = 280;
+  matchRows.forEach(m => {
+    ctx.font = "13px 'Space Mono'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
+    ctx.fillText(m.label.toUpperCase(), 100, my);
+    ctx.font = "18px 'Inter'"; ctx.textAlign = 'left';
+    ctx.fillStyle = m.winner === m.teamA ? CL.chalk : CL.chalkDim;
+    ctx.fillText(m.teamA, 280, my);
+    const wA = ctx.measureText(m.teamA).width;
+    ctx.fillStyle = CL.chalkDim;
+    ctx.fillText(' vs ', 280 + wA, my);
+    const wVs = ctx.measureText(' vs ').width;
+    ctx.fillStyle = m.winner === m.teamB ? CL.chalk : CL.chalkDim;
+    ctx.fillText(m.teamB, 280 + wA + wVs, my);
+    ctx.font = "bold 18px 'Inter'"; ctx.fillStyle = CL.goldBright; ctx.textAlign = 'right';
+    ctx.fillText(`→ ${m.winner}`, W - 100, my);
+    my += matchRowH;
+  });
+
+  ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(90, my + 8); ctx.lineTo(W - 90, my + 8); ctx.stroke();
+  my += 30;
+
   const outcomes = [
     ['⚽ Campeón del Mundial', w.champion],
     ['🥈 Subcampeón', w.runner],
@@ -1695,13 +1745,13 @@ async function drawSimShareCard(canvas) {
     ['🥾 Bota de Oro', simState.golden],
     ['⚽ Balón de Oro', simState.ball],
   ];
-  let oy = 250;
+  let oy = my + 20;
   outcomes.forEach(([label, value]) => {
     ctx.font = "22px 'Inter'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
     ctx.fillText(label, 100, oy);
     ctx.font = "bold 22px 'Inter'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'right';
     ctx.fillText(value, W - 100, oy);
-    oy += 44;
+    oy += outcomeRowH;
   });
 
   ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
@@ -1709,7 +1759,7 @@ async function drawSimShareCard(canvas) {
   drawCenteredText(ctx, '· ASÍ QUEDA LA PORRA ·', W / 2, oy + 55, "bold 22px 'Oswald'", CL.goldBright, 1.5);
 
   let ry = oy + 100;
-  const rowH = 88;
+  const rowH = leaderRowH;
   ranked.forEach((p, i) => {
     const rank = i + 1;
     const cy = ry + rowH / 2;
