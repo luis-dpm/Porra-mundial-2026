@@ -1650,7 +1650,7 @@ function renderPredCaminoContent(player) {
 // ---------- Tarjeta compartible de la clasificación del simulador ----------
 const SHARE_COLORS = {
   cream: '#FBF3E3', creamMid: '#F7EEDA', chalk: '#3B2E1F', chalkDim: '#7C6B4E',
-  gold: '#BE7F1E', goldBright: '#DE9C2E', rust: '#C0392B', ink: '#2E2417', panelLine: 'rgba(59,46,31,0.16)',
+  gold: '#BE7F1E', goldBright: '#DE9C2E', rust: '#C0392B', ink: '#2E2417', panelLine: 'rgba(59,46,31,0.14)',
 };
 
 function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
@@ -1675,10 +1675,12 @@ function simMatchRows(w) {
     rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: simState.octavos[i] === 0 ? o.a : o.b });
   });
   topo.qf_pairs.forEach(([ia, ib], k) => {
+    if (topo.qf_resolved[k]) return; // ya jugado de verdad, no es un pick del usuario
     const teamA = w.O_winner[ia], teamB = w.O_winner[ib];
     rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: simState.qf[k] === 0 ? teamA : teamB });
   });
   topo.sf_pairs.forEach(([ia, ib], k) => {
+    if (topo.sf_resolved[k]) return;
     const teamA = w.Q_winner[ia], teamB = w.Q_winner[ib];
     rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: simState.sf[k] === 0 ? teamA : teamB });
   });
@@ -1788,15 +1790,20 @@ async function drawSimShareCard(canvas) {
   drawCenteredText(ctx, 'Simulación hecha a mano · predicciones', W / 2, H - 55, "18px 'Inter'", CL.chalkDim);
 }
 
+let lastShareUrl = null;
+
 function openShareModal() {
+  if (!PD || !simState) return;
   const modal = document.getElementById('predShareModal');
   const canvas = document.getElementById('predShareCanvas');
   modal.hidden = false;
   drawSimShareCard(canvas).then(() => {
     canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
+      if (!blob) return;
+      if (lastShareUrl) URL.revokeObjectURL(lastShareUrl);
+      lastShareUrl = URL.createObjectURL(blob);
       const dlLink = document.getElementById('predShareDownload');
-      dlLink.href = url;
+      dlLink.href = lastShareUrl;
       dlLink.download = 'simulador-porra-mundial-2026.png';
       const nativeBtn = document.getElementById('predShareNative');
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'simulador.png', { type: 'image/png' })] })) {
@@ -1812,6 +1819,9 @@ function openShareModal() {
         nativeBtn.hidden = true;
       }
     }, 'image/png');
+  }).catch(err => {
+    console.error('No se pudo generar la tarjeta compartible:', err);
+    modal.hidden = true;
   });
 }
 

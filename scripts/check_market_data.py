@@ -72,6 +72,9 @@ def main():
             if num in UP.OCTAVOS_ODDS:
                 notes.append(f"Octavos partido {num} ({m['home_team']}-{m['away_team']}) ya se jugó "
                              f"-- puedes borrar su entrada de OCTAVOS_ODDS.")
+            if num in UP.MANUAL_RESULTS:
+                notes.append(f"Octavos partido {num} ({m['home_team']}-{m['away_team']}) ya trae el "
+                             f"resultado real en data.js -- puedes borrar su entrada de MANUAL_RESULTS.")
         elif num in UP.MANUAL_RESULTS:
             octavos_winners[num] = UP.MANUAL_RESULTS[num]
             notes.append(f"Octavos partido {num} ({m['home_team']}-{m['away_team']}) resuelto a mano "

@@ -1708,22 +1708,6 @@ main {
 .pred-camino-teams span.won { font-weight: 700; color: var(--chalk); }
 .pred-camino-winner-tag { font-family: var(--font-mono); font-size: 10px; background: rgba(212,162,60,0.18); color: var(--gold-bright); padding: 2px 8px; border-radius: 99px; }
 
-.pred-camino-share-btn {
-  display: block;
-  margin: 16px auto 0;
-  padding: 12px 22px;
-  background: var(--gold);
-  color: var(--ink);
-  border: none;
-  border-radius: var(--radius-md);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-}
-.pred-camino-share-btn:hover { background: var(--gold-bright); }
-
 /* tarjeta compartible */
 .pred-share-modal {
   position: fixed;
