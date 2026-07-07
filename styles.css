@@ -26,6 +26,11 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 14px;
+
+  --shadow-card: 0 1px 2px rgba(46, 36, 23, 0.06), 0 4px 14px rgba(46, 36, 23, 0.07);
+  --shadow-lead: 0 1px 2px rgba(190, 127, 30, 0.1), 0 6px 22px rgba(190, 127, 30, 0.22);
+  --shadow-pop: 0 10px 30px rgba(46, 36, 23, 0.16);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,13 +67,34 @@ body {
   inset: 0;
   background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(46,36,23,0.04), rgba(46,36,23,0.1) 70%);
 }
+/* Marcas de campo apenas visibles, ancladas al centro del viewport a modo
+   de marca de agua del "terreno de juego" -- firma visual del sitio. */
+.field-lines::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(70vmin, 640px);
+  height: min(70vmin, 640px);
+  transform: translate(-50%, -50%);
+  border: 1.5px solid rgba(59, 46, 31, 0.05);
+  border-radius: 50%;
+}
 
 /* ============ TOPBAR ============ */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--ink);
+  background: linear-gradient(180deg, #33280F 0%, var(--ink) 100%);
+  box-shadow: 0 2px 16px rgba(20, 15, 8, 0.35);
+}
+.topbar::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold) 15%, var(--gold-bright) 50%, var(--gold) 85%, transparent);
+  opacity: 0.8;
 }
 .topbar-inner {
   max-width: 980px;
@@ -211,7 +237,6 @@ body {
   border: 1.5px solid var(--panel-line);
   border-radius: var(--radius-lg);
   padding: 14px 16px;
-  box-shadow: 0 4px 14px rgba(46, 36, 23, 0.08);
 }
 .honor-player {
   font-family: var(--font-display);
@@ -248,7 +273,6 @@ body {
   border: 1.5px solid var(--panel-line);
   border-radius: var(--radius-lg);
   padding: 12px 16px;
-  box-shadow: 0 4px 14px rgba(46, 36, 23, 0.08);
 }
 .scorer-card.scorer-1 { border-color: var(--gold); background: linear-gradient(135deg, rgba(222,156,46,0.14), var(--panel) 60%); }
 .scorer-card.scorer-2 { border-color: #A8A8A8; }
@@ -289,20 +313,29 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 .page-inner { padding-top: 32px; }
-.page-head { margin-bottom: 28px; }
+.page-head {
+  margin-bottom: 30px;
+  padding-left: 16px;
+  border-left: 3px solid var(--gold);
+}
 .page-head h1 {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 30px;
-  letter-spacing: 0.01em;
+  font-size: 32px;
+  letter-spacing: 0.005em;
   color: var(--chalk);
   margin-bottom: 6px;
+  text-wrap: balance;
 }
 .page-sub {
   color: var(--chalk-dim);
   font-size: 14px;
 }
 .page-sub span { color: var(--gold); font-weight: 600; }
+
+@media (max-width: 640px) {
+  .page-head { padding-left: 12px; }
+}
 
 /* ============ SCOREBOARD (ranking page) ============ */
 .scoreboard {
@@ -392,11 +425,20 @@ main {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.section-divider::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--gold);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
 .section-divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--panel-line);
+  background: linear-gradient(90deg, var(--panel-line), transparent);
 }
 
 /* ============ DAY SELECTOR ============ */
@@ -938,9 +980,9 @@ main {
   justify-content: center;
   gap: 14px;
 }
-/* Cada ronda dobla el espacio entre tarjetas respecto a la anterior, asÃ­
+/* Cada ronda dobla el espacio entre tarjetas respecto a la anterior, así
    cada partido queda visualmente centrado entre los dos que lo alimentan
-   â€” es lo que produce el efecto de "embudo" hacia el centro. */
+   — es lo que produce el efecto de "embudo" hacia el centro. */
 .ko-gap-r0 { gap: 10px; }
 .ko-gap-r1 { gap: 34px; }
 .ko-gap-r2 { gap: 82px; }
@@ -1035,7 +1077,7 @@ main {
 .ko-honor-item.silver { border-color: rgba(201,212,199,0.4); color: var(--chalk); }
 .ko-honor-item.bronze { border-color: rgba(196,138,84,0.4); color: #8A5A28; }
 
-/* Tarjetas de predicciÃ³n de cada jugador (en dieciseisavos) */
+/* Tarjetas de predicción de cada jugador (en dieciseisavos) */
 .ko-pred-card {
   border-radius: var(--radius-md);
   padding: 7px 8px;
@@ -1072,7 +1114,7 @@ main {
   margin-bottom: 20px;
 }
 
-/* Franja de "equipos predichos que pasan", debajo del Ã¡rbol (de octavos
+/* Franja de "equipos predichos que pasan", debajo del árbol (de octavos
    en adelante el jugador predijo equipo por slot, no cruce a cruce) */
 .ko-qual-strip {
   display: flex;
@@ -1137,7 +1179,7 @@ main {
 .sb-note {
   font-size: 12px;
   padding: 8px 12px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   border-left: 3px solid;
   margin: 0;
   line-height: 1.5;
@@ -1197,7 +1239,7 @@ main {
   align-items: center;
   gap: 6px;
   padding: 6px 4px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   position: relative;
 }
 .sb-col-row.rank-1 {
@@ -1291,7 +1333,7 @@ main {
 .sb-general-list .sb-col-name, .round-breakdown-list .sb-col-name { font-size: 14px; }
 .sb-general-list .sb-col-pts, .round-breakdown-list .sb-col-pts { font-size: 16px; }
 
-/* ============ KNOCKOUT LIST VIEW (mÃ³vil) ============ */
+/* ============ KNOCKOUT LIST VIEW (móvil) ============ */
 .ko-list-view {
   display: flex;
   flex-direction: column;
@@ -1590,7 +1632,7 @@ main {
   border-radius: 3px;
   overflow: visible;
 }
-.pred-range-fill { position: absolute; top: 0; bottom: 0; background: var(--gold); opacity: 0.55; border-radius: 3px; }
+.pred-range-fill { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); opacity: 0.55; border-radius: 3px; }
 .pred-range-marker { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--chalk); border-radius: 1px; }
 .pred-range-label { font-family: var(--font-mono); font-size: 11px; color: var(--chalk-dim); }
 .pred-range-tag { opacity: 0.7; }
@@ -1671,7 +1713,7 @@ main {
 .pred-match-card.hypothetical .pred-match-resolved { color: var(--rust); }
 .pred-odds-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--chalk-dim); }
 .pred-odds-track { flex: 1 1 140px; max-width: 280px; height: 6px; background: rgba(59, 46, 31, 0.08); border-radius: 3px; overflow: hidden; }
-.pred-odds-fill { height: 100%; background: var(--gold); }
+.pred-odds-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); }
 .pred-cuts-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .pred-cuts-table th { text-align: left; color: var(--chalk-dim); font-weight: 500; font-size: 11px; padding: 4px 8px; text-transform: uppercase; letter-spacing: 0.03em; }
 .pred-cuts-table th.num, .pred-cuts-table td.num { text-align: right; }
@@ -1942,3 +1984,70 @@ main {
 .pred-affinity-name { font-family: var(--font-display); font-weight: 500; color: var(--chalk); }
 .pred-affinity-callout b { color: var(--chalk); }
 .pred-affinity-pct { font-family: var(--font-mono); font-size: 11px; }
+
+/* ============ ELEVATION ============
+   Un pase de pulido: todas las tarjetas "panel" comparten ahora una sombra
+   suave para que lean como fichas físicas sobre la hierba, no como cajas
+   planas con borde. El líder de cada ranking recibe un halo dorado en vez
+   de la sombra neutra -- es la única tarjeta que "brilla". */
+.honor-card, .scorer-card, .score-row, .day-row, .chart-wrap, .legend-strip,
+.match-card, .group-card, .group-pts-summary, .third-place-row,
+.sb-col, .sb-general-list, .round-breakdown-list, .kol-section,
+.pred-filter-bar, .pred-score-row, .pred-chop-row, .pred-chart-wrap,
+.pred-match-card, .pred-bracket-card, .pred-award-card, .pred-note,
+.pred-dead-row, .pred-camino-summary, .pred-camino-event,
+.pred-affinity-callout, .pred-sim-result-row, .pred-top-impact-card,
+.ko-real-card, .ko-honor-item, .ko-qual-strip, .ko-empty {
+  box-shadow: var(--shadow-card);
+}
+
+.score-row.rank-1, .day-row.rank-1, .sb-col-row.rank-1,
+.pred-score-row.rank-1, .pred-sim-result-row.lead, .scorer-card.scorer-1 {
+  box-shadow: var(--shadow-lead);
+}
+
+/* ============ INTERACCIÓN: pills, botones, foco ============
+   Todas las píldoras seleccionables comparten ahora el mismo resorte al
+   pasar el ratón y un pequeño levantamiento + sombra dorada cuando están
+   activas, para que "elegido" se sienta tanto como se lee. */
+.tab-btn, .jornada-pill, .player-pill, .pred-mode-btn, .pred-filter-choice,
+.pred-filter-pill, .pred-round-pill, .pred-player-pill, .day-select,
+.pred-share-btn, .pred-sim-share, .hamburger-btn {
+  transition: background 0.16s var(--ease), color 0.16s var(--ease),
+    border-color 0.16s var(--ease), box-shadow 0.16s var(--ease),
+    transform 0.16s var(--ease);
+}
+
+.tab-btn.active, .jornada-pill.active, .player-pill.active, .pred-mode-btn.active,
+.pred-filter-choice.active:not(.pred-filter-unmark),
+.pred-filter-pill.active:not(.pred-filter-unmark), .pred-round-pill.active,
+.pred-player-pill.active {
+  box-shadow: 0 3px 10px rgba(190, 127, 30, 0.3);
+}
+
+.jornada-pill:hover, .player-pill:hover, .pred-round-pill:hover,
+.pred-player-pill:hover {
+  transform: translateY(-1px);
+}
+
+.pred-share-btn:hover, .pred-sim-share:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(190, 127, 30, 0.35);
+}
+.pred-share-btn:active, .pred-sim-share:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.hamburger-btn:hover { background: rgba(251, 243, 227, 0.16); }
+
+/* Foco visible consistente para todo lo interactivo que no lo tuviera ya */
+.jornada-pill:focus-visible, .player-pill:focus-visible,
+.pred-mode-btn:focus-visible, .pred-filter-choice:focus-visible,
+.pred-filter-pill:focus-visible, .pred-round-pill:focus-visible,
+.pred-player-pill:focus-visible, .pred-share-btn:focus-visible,
+.pred-sim-share:focus-visible, .hamburger-btn:focus-visible,
+.pred-share-close:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
