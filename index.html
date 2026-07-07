@@ -235,11 +235,12 @@
         <div class="groups-grid" id="predAwardsGrid"></div>
       </div>
 
-      <!-- Clasificación de un único escenario (el fijado arriba en "Filtra
-           por resultado", completado con favoritos donde no se haya
-           marcado nada) -- compartible como imagen. -->
-      <div class="section-divider"><span>🎯 Clasificación de este escenario</span></div>
-      <p class="chart-desc">Puntos y chuletones si los partidos que sigan sin marcar en "Filtra por resultado" caen del lado favorito.</p>
+      <!-- Clasificación con solo los puntos ya seguros: resultados reales +
+           lo que se haya fijado arriba en "Filtra por resultado". Un
+           partido que se deje sin marcar no suma ni resta -- no se asume
+           ningún favorito. Compartible como imagen. -->
+      <div class="section-divider"><span>🎯 Clasificación con lo ya decidido</span></div>
+      <p class="chart-desc">Puntos y chuletones contando solo resultados reales y lo que hayas fijado en "Filtra por resultado" arriba. Lo que sigas dejando sin marcar no suma ni resta todavía.</p>
       <div class="pred-sim-wrap">
         <div class="pred-sim-results" id="predSimResults"></div>
       </div>

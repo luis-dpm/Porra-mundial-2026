@@ -1702,27 +1702,36 @@ function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
   ctx.textAlign = 'center';
 }
 
+// Solo lista partidos con un resultado ya fijado (real o marcado a mano
+// arriba en "Filtra por resultado"); uno que se ha dejado sin marcar no
+// tiene ganador que enseñar, así que no aparece en absoluto en la imagen.
 function simMatchRows(w) {
   const topo = PD.topology;
   const rows = [];
   topo.octavos.forEach((o, i) => {
     if (o.resolved) return;
-    rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: simState.octavos[i] === 0 ? o.a : o.b });
+    const pick = simState.octavos[i];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: pick === 0 ? o.a : o.b });
   });
   topo.qf_pairs.forEach(([ia, ib], k) => {
     if (topo.qf_resolved[k]) return; // ya jugado de verdad, no es un pick del usuario
     const teamA = w.O_winner[ia], teamB = w.O_winner[ib];
-    rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: simState.qf[k] === 0 ? teamA : teamB });
+    const pick = simState.qf[k];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: pick === 0 ? teamA : teamB });
   });
   topo.sf_pairs.forEach(([ia, ib], k) => {
     if (topo.sf_resolved[k]) return;
     const teamA = w.Q_winner[ia], teamB = w.Q_winner[ib];
-    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: simState.sf[k] === 0 ? teamA : teamB });
+    const pick = simState.sf[k];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: pick === 0 ? teamA : teamB });
   });
   const [fa, fb] = topo.f_pair;
-  rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
+  if (w.champion) rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
   const [ta, tb] = topo.tp_pair;
-  rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
+  if (w.winner34) rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
   return rows;
 }
 
@@ -1734,7 +1743,8 @@ async function drawSimShareCard(canvas) {
 
   const matchRowH = 42, leaderRowH = 88, outcomeRowH = 44;
   const W = 1080;
-  const H = 300 + 40 + matchRows.length * matchRowH + 30 + outcomeRowH * 5 + 90 + ranked.length * leaderRowH + 90;
+  const headerGap = matchRows.length > 0 ? 40 : 0;
+  const H = 260 + headerGap + matchRows.length * matchRowH + 30 + outcomeRowH * 5 + 90 + ranked.length * leaderRowH + 90;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const CL = SHARE_COLORS;
@@ -1749,11 +1759,13 @@ async function drawSimShareCard(canvas) {
   ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(90, 122); ctx.lineTo(W - 90, 122); ctx.stroke();
 
-  drawCenteredText(ctx, 'SI EL MUNDIAL TERMINA ASÍ...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
+  drawCenteredText(ctx, 'CON LO YA DECIDIDO...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
 
-  drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
-
-  let my = 280;
+  let my = 240;
+  if (matchRows.length > 0) {
+    drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
+    my = 280;
+  }
   matchRows.forEach(m => {
     ctx.font = "13px 'Space Mono'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
     ctx.fillText(m.label.toUpperCase(), 100, my);
@@ -1786,8 +1798,8 @@ async function drawSimShareCard(canvas) {
   outcomes.forEach(([label, value]) => {
     ctx.font = "22px 'Inter'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
     ctx.fillText(label, 100, oy);
-    ctx.font = "bold 22px 'Inter'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'right';
-    ctx.fillText(value, W - 100, oy);
+    ctx.font = "bold 22px 'Inter'"; ctx.fillStyle = value ? CL.chalk : CL.chalkDim; ctx.textAlign = 'right';
+    ctx.fillText(value || '— sin decidir', W - 100, oy);
     oy += outcomeRowH;
   });
 
@@ -1967,68 +1979,93 @@ function simHybridProb(a, b) {
 // dejado sin marcar, del favorito real (Kalshi/Elo). feLocks vive en
 // scripts/filter_engine.js (se carga después de este archivo); si por lo
 // que sea no está definido, se trata como "nada fijado".
+// Un partido que se deja "sin marcar" en el filtro se queda sin marcar de
+// verdad aquí (null): no se le asigna el favorito, así que no suma ni
+// resta puntos hasta que se decida de verdad o se fije a mano. Por eso la
+// clasificación de esta sección es "puntos ya seguros", no una proyección.
 function simDefaultState() {
   if (!PD || !PD.topology) return null;
   const topo = PD.topology;
   const locks = (typeof feLocks !== 'undefined' && feLocks) ? feLocks : { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
   const st = {
-    octavos: {}, qf: {}, sf: {}, final: 0, tp: 0,
-    golden: locks.golden || PD.golden.candidates[0].name,
-    ball: locks.ball || PD.ball.candidates[0].name,
+    octavos: {}, qf: {}, sf: {}, final: null, tp: null,
+    golden: locks.golden || null,
+    ball: locks.ball || null,
   };
   topo.octavos.forEach((o, i) => {
     if (o.resolved) return;
-    st.octavos[i] = locks.octavos[i] !== undefined ? locks.octavos[i] : (o.favA ? 0 : 1);
+    st.octavos[i] = locks.octavos[i] !== undefined ? locks.octavos[i] : null;
   });
 
-  // Se calcula en cascada (igual que simComputeWinners): el favorito de
-  // cuartos depende de quién gane los octavos por defecto, el de semis de
-  // quién gane cuartos por defecto, etc.
-  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (st.octavos[i] === 0 ? o.a : o.b));
+  // Cascada: si un partido se queda sin marcar (null), todo lo que dependa
+  // de él (las rondas siguientes) también se queda sin marcar, aunque esa
+  // ronda en sí tenga un lock propio -- ya no tendría equipos que resolver.
+  const O_winner = topo.octavos.map((o, i) => {
+    if (o.resolved) return o.winner;
+    return st.octavos[i] === 0 ? o.a : (st.octavos[i] === 1 ? o.b : null);
+  });
   const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+    if (topo.qf_resolved[k]) return topo.qf_winner[k];
     const teamA = O_winner[ia], teamB = O_winner[ib];
-    if (locks.qf[k] !== undefined) { st.qf[k] = locks.qf[k]; return locks.qf[k] === 0 ? teamA : teamB; }
-    const pA = simHybridProb(teamA, teamB);
-    st.qf[k] = pA >= 0.5 ? 0 : 1;
-    return pA >= 0.5 ? teamA : teamB;
+    const pick = (teamA && teamB && locks.qf[k] !== undefined) ? locks.qf[k] : null;
+    st.qf[k] = pick;
+    if (pick === 0) return teamA;
+    if (pick === 1) return teamB;
+    return null;
   });
   const S_winner = [], S_loser = [];
   topo.sf_pairs.forEach(([ia, ib], k) => {
     const teamA = Q_winner[ia], teamB = Q_winner[ib];
-    if (locks.sf[k] !== undefined) {
-      st.sf[k] = locks.sf[k];
-      if (locks.sf[k] === 0) { S_winner.push(teamA); S_loser.push(teamB); } else { S_winner.push(teamB); S_loser.push(teamA); }
+    if (topo.sf_resolved[k]) {
+      const w = topo.sf_winner[k];
+      S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
       return;
     }
-    const pA = simHybridProb(teamA, teamB);
-    st.sf[k] = pA >= 0.5 ? 0 : 1;
-    if (pA >= 0.5) { S_winner.push(teamA); S_loser.push(teamB); }
-    else { S_winner.push(teamB); S_loser.push(teamA); }
+    const pick = (teamA && teamB && locks.sf[k] !== undefined) ? locks.sf[k] : null;
+    st.sf[k] = pick;
+    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
+    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
+    else { S_winner.push(null); S_loser.push(null); }
   });
   const [fa, fb] = topo.f_pair;
-  if (locks.final !== null && locks.final !== undefined) st.final = locks.final;
-  else st.final = simHybridProb(S_winner[fa], S_winner[fb]) >= 0.5 ? 0 : 1;
+  st.final = (S_winner[fa] && S_winner[fb] && locks.final !== null && locks.final !== undefined) ? locks.final : null;
   const [ta, tb] = topo.tp_pair;
-  if (locks.tp !== null && locks.tp !== undefined) st.tp = locks.tp;
-  else st.tp = simHybridProb(S_loser[ta], S_loser[tb]) >= 0.5 ? 0 : 1;
+  st.tp = (S_loser[ta] && S_loser[tb] && locks.tp !== null && locks.tp !== undefined) ? locks.tp : null;
   return st;
 }
 
 function simComputeWinners() {
   const topo = PD.topology;
-  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (simState.octavos[i] === 0 ? o.a : o.b));
-  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => (simState.qf[k] === 0 ? O_winner[ia] : O_winner[ib]));
+  const O_winner = topo.octavos.map((o, i) => {
+    if (o.resolved) return o.winner;
+    const pick = simState.octavos[i];
+    return pick === 0 ? o.a : (pick === 1 ? o.b : null);
+  });
+  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+    if (topo.qf_resolved[k]) return topo.qf_winner[k];
+    const pick = simState.qf[k];
+    if (pick === 0) return O_winner[ia];
+    if (pick === 1) return O_winner[ib];
+    return null;
+  });
   const S_winner = [], S_loser = [];
   topo.sf_pairs.forEach(([ia, ib], k) => {
     const teamA = Q_winner[ia], teamB = Q_winner[ib];
-    if (simState.sf[k] === 0) { S_winner.push(teamA); S_loser.push(teamB); }
-    else { S_winner.push(teamB); S_loser.push(teamA); }
+    if (topo.sf_resolved[k]) {
+      const w = topo.sf_winner[k];
+      S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
+      return;
+    }
+    const pick = simState.sf[k];
+    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
+    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
+    else { S_winner.push(null); S_loser.push(null); }
   });
   const [fa, fb] = topo.f_pair;
-  const champion = simState.final === 0 ? S_winner[fa] : S_winner[fb];
-  const runner = simState.final === 0 ? S_winner[fb] : S_winner[fa];
+  const champion = simState.final === 0 ? S_winner[fa] : (simState.final === 1 ? S_winner[fb] : null);
+  const runner = simState.final === 0 ? S_winner[fb] : (simState.final === 1 ? S_winner[fa] : null);
   const [ta, tb] = topo.tp_pair;
-  const winner34 = simState.tp === 0 ? S_loser[ta] : S_loser[tb];
+  const winner34 = simState.tp === 0 ? S_loser[ta] : (simState.tp === 1 ? S_loser[tb] : null);
   return { O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34 };
 }
 
