@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T20:01:11.180497Z",
+  "generated_at": "2026-07-07T20:31:13.286894Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1300,7 +1300,7 @@
     {
       "home_api": "Switzerland",
       "away_api": "Colombia",
-      "status": "TIMED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-07T20:00:00Z"
     },
     {
