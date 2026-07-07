@@ -691,22 +691,48 @@ def main():
         "tercerpuesto": {"label": "3º puesto", "top": top_n(T34_dist), "fromLosers": True},
     }
 
-    # ---- quién va con quién: cuántos picks comparten cada dos jugadores ----
+    # ---- quién va con quién: cuántos de los picks que QUEDAN comparten
+    # cada dos jugadores. Un pick cuyo partido real decisivo ya se jugó
+    # (acertase o no) ya no dice nada sobre cómo les va a ir DESDE AHORA,
+    # así que no cuenta ni en el numerador ni en el total -- si no, dos
+    # jugadores que coincidieron en un pick ya certificado hace días
+    # seguirían pareciendo "parecidos" aunque a partir de aquí sus
+    # apuestas restantes no tengan nada que ver.
     def pick_list(p):
         pk = picks[p]
         return (pk["cuartofinalista"] + pk["semifinalista"] + pk["finalista"] + pk["tresycuatro"]
                 + [pk["campeon"], pk["subcampeon"], pk["tercerpuesto"], pk["botaoro"], pk["balonoro"]])
 
+    final_match = porra["ko_stage"]["rounds"]["final"]["matches"][0]
+    tp_match = porra["ko_stage"]["rounds"]["tercer_puesto"]["matches"][0]
+    # cuartofinalista/semifinalista usan el mismo índice real de bracket
+    # para todos los jugadores (ver derive_slot_permutation), así que su
+    # partido decisivo es el mismo sea quien sea el jugador. finalista/
+    # tresycuatro no tienen esa alineación por jugador (orden crudo del
+    # Excel), así que se tratan en bloque: vivos mientras no se haya
+    # jugado ninguna semifinal real.
+    semis_any_played = any(m["actual"] for m in semis_matches)
+    pick_remaining = (
+        [not o["resolved"] for o in octavos]
+        + [not m["actual"] for m in cuartos_matches]
+        + [not semis_any_played] * 2
+        + [not semis_any_played] * 2
+        + [not final_match["actual"], not final_match["actual"], not tp_match["actual"]]
+        + [True, True]  # Bota/Balón de Oro: no hay partido que los decida antes del final
+    )
+
     pick_lists = {p: pick_list(p) for p in players}
-    n_picks = len(pick_lists[players[0]])
+    remaining_idx = [i for i, r in enumerate(pick_remaining) if r]
+    n_picks = len(remaining_idx)
     affinity = {}
     for p1 in players:
         affinity[p1] = {}
         for p2 in players:
             if p1 == p2:
                 continue
-            matches = sum(1 for a, b in zip(pick_lists[p1], pick_lists[p2]) if a == b)
-            affinity[p1][p2] = {"matches": matches, "total": n_picks, "pct": round(100 * matches / n_picks, 1)}
+            matches = sum(1 for i in remaining_idx if pick_lists[p1][i] == pick_lists[p2][i])
+            affinity[p1][p2] = {"matches": matches, "total": n_picks,
+                                 "pct": round(100 * matches / n_picks, 1) if n_picks else 0.0}
 
     golden = {"candidates": [{"name": n, "pct": round(p * 100, 2)} for n, p in GOLDEN_CANDIDATES],
               "picks": {p: picks[p]["botaoro"] for p in players}}

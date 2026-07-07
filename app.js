@@ -1916,6 +1916,9 @@ function renderPredAwards() {
 function renderPredAffinity() {
   if (!PD || !PD.affinity) return;
   const names = PRED_PLAYERS;
+  const nPicks = PD.affinity[names[0]][names[1]].total;
+  document.getElementById('predAffinityDesc').textContent =
+    `Cuántos de los ${nPicks} picks que quedan por decidir (cuartofinalistas, semifinalistas, finalistas, 3º-4º puesto, campeón, subcampeón, 3º puesto, Bota y Balón de Oro) coinciden entre cada dos jugadores. Los picks ya certificados por un partido real (acertados o no) ya no cuentan. Más color = más se parecen sus apuestas restantes.`;
   let maxPct = 0;
   names.forEach(a => names.forEach(b => { if (a !== b) maxPct = Math.max(maxPct, PD.affinity[a][b].pct); }));
 
