@@ -1299,7 +1299,7 @@ function scoreKoMatch(predStr, actualStr) {
 // scripts/update_predictions.py (aparte del resto de data.js: combina el
 // estado real ya calculado con cuotas de mercado externas que hay que
 // refrescar a mano). Ver la pestaña "Metodología" dentro de Predicciones.
-const PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
+let PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
 let predMode = 'uniform';
 let predCaminoPlayer = PRED_PLAYERS[0] || null;

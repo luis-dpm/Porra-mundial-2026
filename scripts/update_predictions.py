@@ -722,7 +722,7 @@ def main():
         "octavos": [
             ({"a": o["a"], "b": o["b"], "resolved": True, "winner": o["winner"]}
              if o["resolved"] else {"a": o["a"], "b": o["b"], "resolved": False,
-                                     "favA": o["probA"] >= o["probB"]})
+                                     "favA": o["probA"] >= o["probB"], "probA": round(o["probA"], 4)})
             for o in octavos
         ],
         "qf_pairs": [list(pair) for pair in qf_pairs],
@@ -731,6 +731,10 @@ def main():
         "tp_pair": list(tp_pair),
         "qf_resolved": [bool(m["actual"]) for m in cuartos_matches],
         "sf_resolved": [bool(m["actual"]) for m in semis_matches],
+        "qf_winner": [porra["ko_stage"]["winners_by_match"].get(str(m["num"])) if m["actual"] else None
+                      for m in cuartos_matches],
+        "sf_winner": [porra["ko_stage"]["winners_by_match"].get(str(m["num"])) if m["actual"] else None
+                      for m in semis_matches],
     }
 
     # Para que el simulador pueda calcular el favorito real (no solo en
