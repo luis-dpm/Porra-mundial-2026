@@ -27,11 +27,13 @@ const ORIGINAL_PD = PD;
 // locks: qué partidos ha fijado el usuario. Cada ronda es un objeto
 // {indice: 0|1} (0 = gana el equipo "a", 1 = gana "b"); si el índice no
 // está presente, el partido sigue sin marcar. final/tp son un único 0/1/null.
-let feLocks = { octavos: {}, qf: {}, sf: {}, final: null, tp: null };
+// golden/ball son el nombre del candidato fijado (o null si sigue sin marcar).
+let feLocks = { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
 
 function feAnyLockActive() {
   return Object.keys(feLocks.octavos).length > 0 || Object.keys(feLocks.qf).length > 0 ||
-         Object.keys(feLocks.sf).length > 0 || feLocks.final !== null || feLocks.tp !== null;
+         Object.keys(feLocks.sf).length > 0 || feLocks.final !== null || feLocks.tp !== null ||
+         feLocks.golden !== null || feLocks.ball !== null;
 }
 
 function feRound1(x) { return Math.round(x * 10) / 10; }
@@ -356,8 +358,12 @@ function computeFilteredPD(locks) {
   const players = PRED_PLAYERS;
   const picks = ORIGINAL_PD.picks;
   const currentTotal = ORIGINAL_PD.current_total;
-  const goldenCandidates = ORIGINAL_PD.golden.candidates.map(c => [c.name, c.pct / 100]);
-  const ballCandidates = ORIGINAL_PD.ball.candidates.map(c => [c.name, c.pct / 100]);
+  const goldenCandidates = locks.golden
+    ? [[locks.golden, 1.0]]
+    : ORIGINAL_PD.golden.candidates.map(c => [c.name, c.pct / 100]);
+  const ballCandidates = locks.ball
+    ? [[locks.ball, 1.0]]
+    : ORIGINAL_PD.ball.candidates.map(c => [c.name, c.pct / 100]);
   const matchLabels = feMatchLabels(locks, sim);
   const nCombos = 1 << sim.nBits;
 
@@ -555,6 +561,19 @@ function feSanitizeLocks() {
   if (feLocks.tp !== null && !(SLoser[ta] && SLoser[tb])) feLocks.tp = null;
 }
 
+function feAwardRowHTML(kind, label, candidates, currentLock) {
+  const unmarked = currentLock === null || currentLock === undefined;
+  let html = `<div class="pred-filter-award-row">
+    <div class="pred-filter-row-label">${label}</div>
+    <div class="pred-filter-award-pills">
+      <button class="pred-filter-pill pred-filter-unmark ${unmarked ? 'active' : ''}" data-fkind="${kind}" data-fname="">❓ sin marcar</button>`;
+  candidates.forEach(c => {
+    html += `<button class="pred-filter-pill ${currentLock === c.name ? 'active' : ''}" data-fkind="${kind}" data-fname="${c.name}">${c.name}</button>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
 function feFilterRowHTML(kind, idx, label, teamA, teamB, currentLock) {
   if (!teamA || !teamB) {
     return `<div class="pred-filter-row pred-filter-row-pending">
@@ -612,6 +631,10 @@ function renderPredFilterBar() {
   html += feFilterRowHTML('final', 0, 'Final', kw.finalTeams[0], kw.finalTeams[1], feLocks.final);
   html += feFilterRowHTML('tp', 0, '3º-4º puesto', kw.tpTeams[0], kw.tpTeams[1], feLocks.tp);
 
+  html += `<div class="pred-filter-group-title">Premios</div>`;
+  html += feAwardRowHTML('golden', '🥾 Bota de Oro', ORIGINAL_PD.golden.candidates, feLocks.golden);
+  html += feAwardRowHTML('ball', '⚽ Balón de Oro', ORIGINAL_PD.ball.candidates, feLocks.ball);
+
   document.getElementById('predFilterBar').innerHTML = html;
 
   const statusEl = document.getElementById('predFilterStatus');
@@ -631,7 +654,7 @@ function feApplyFilter() {
 }
 
 function feClearFilter() {
-  feLocks = { octavos: {}, qf: {}, sf: {}, final: null, tp: null };
+  feLocks = { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
   PD = ORIGINAL_PD;
   renderPredFilterBar();
   renderPredAll();
@@ -641,10 +664,13 @@ document.getElementById('predFilterBar').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-fkind]');
   if (!btn) return;
   const kind = btn.dataset.fkind;
-  const pick = btn.dataset.fpick;
-  if (kind === 'final' || kind === 'tp') {
+  if (kind === 'golden' || kind === 'ball') {
+    feLocks[kind] = btn.dataset.fname || null;
+  } else if (kind === 'final' || kind === 'tp') {
+    const pick = btn.dataset.fpick;
     feLocks[kind] = pick === 'unmark' ? null : Number(pick);
   } else {
+    const pick = btn.dataset.fpick;
     const idx = Number(btn.dataset.fidx);
     if (pick === 'unmark') delete feLocks[kind][idx];
     else feLocks[kind][idx] = Number(pick);

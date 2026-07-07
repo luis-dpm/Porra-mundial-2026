@@ -1526,6 +1526,31 @@ main {
 .pred-filter-choice.pred-filter-unmark { flex: 0 0 auto; font-size: 11px; }
 .pred-filter-choice.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
 
+.pred-filter-award-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+.pred-filter-award-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pred-filter-pill {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--chalk-dim);
+  background: var(--cream);
+  border: 1px solid var(--panel-line);
+  border-radius: 99px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.pred-filter-pill:hover { border-color: var(--gold); color: var(--chalk); }
+.pred-filter-pill.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+.pred-filter-pill.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
+
 @media (max-width: 640px) {
   .pred-filter-bar { grid-template-columns: 1fr; }
 }
