@@ -1961,11 +1961,25 @@ function simHybridProb(a, b) {
   return simEloProb(a, b);
 }
 
+// Ya no hay controles propios del simulador -- el único mando es "Filtra
+// por resultado" arriba de la página. Este estado se deriva siempre de
+// feLocks (si hay algo fijado ahí) y, para cualquier partido que se haya
+// dejado sin marcar, del favorito real (Kalshi/Elo). feLocks vive en
+// scripts/filter_engine.js (se carga después de este archivo); si por lo
+// que sea no está definido, se trata como "nada fijado".
 function simDefaultState() {
   if (!PD || !PD.topology) return null;
   const topo = PD.topology;
-  const st = { octavos: {}, qf: {}, sf: {}, final: 0, tp: 0, golden: PD.golden.candidates[0].name, ball: PD.ball.candidates[0].name };
-  topo.octavos.forEach((o, i) => { if (!o.resolved) st.octavos[i] = o.favA ? 0 : 1; });
+  const locks = (typeof feLocks !== 'undefined' && feLocks) ? feLocks : { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
+  const st = {
+    octavos: {}, qf: {}, sf: {}, final: 0, tp: 0,
+    golden: locks.golden || PD.golden.candidates[0].name,
+    ball: locks.ball || PD.ball.candidates[0].name,
+  };
+  topo.octavos.forEach((o, i) => {
+    if (o.resolved) return;
+    st.octavos[i] = locks.octavos[i] !== undefined ? locks.octavos[i] : (o.favA ? 0 : 1);
+  });
 
   // Se calcula en cascada (igual que simComputeWinners): el favorito de
   // cuartos depende de quién gane los octavos por defecto, el de semis de
@@ -1973,6 +1987,7 @@ function simDefaultState() {
   const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (st.octavos[i] === 0 ? o.a : o.b));
   const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
     const teamA = O_winner[ia], teamB = O_winner[ib];
+    if (locks.qf[k] !== undefined) { st.qf[k] = locks.qf[k]; return locks.qf[k] === 0 ? teamA : teamB; }
     const pA = simHybridProb(teamA, teamB);
     st.qf[k] = pA >= 0.5 ? 0 : 1;
     return pA >= 0.5 ? teamA : teamB;
@@ -1980,15 +1995,22 @@ function simDefaultState() {
   const S_winner = [], S_loser = [];
   topo.sf_pairs.forEach(([ia, ib], k) => {
     const teamA = Q_winner[ia], teamB = Q_winner[ib];
+    if (locks.sf[k] !== undefined) {
+      st.sf[k] = locks.sf[k];
+      if (locks.sf[k] === 0) { S_winner.push(teamA); S_loser.push(teamB); } else { S_winner.push(teamB); S_loser.push(teamA); }
+      return;
+    }
     const pA = simHybridProb(teamA, teamB);
     st.sf[k] = pA >= 0.5 ? 0 : 1;
     if (pA >= 0.5) { S_winner.push(teamA); S_loser.push(teamB); }
     else { S_winner.push(teamB); S_loser.push(teamA); }
   });
   const [fa, fb] = topo.f_pair;
-  st.final = simHybridProb(S_winner[fa], S_winner[fb]) >= 0.5 ? 0 : 1;
+  if (locks.final !== null && locks.final !== undefined) st.final = locks.final;
+  else st.final = simHybridProb(S_winner[fa], S_winner[fb]) >= 0.5 ? 0 : 1;
   const [ta, tb] = topo.tp_pair;
-  st.tp = simHybridProb(S_loser[ta], S_loser[tb]) >= 0.5 ? 0 : 1;
+  if (locks.tp !== null && locks.tp !== undefined) st.tp = locks.tp;
+  else st.tp = simHybridProb(S_loser[ta], S_loser[tb]) >= 0.5 ? 0 : 1;
   return st;
 }
 
@@ -2072,46 +2094,6 @@ function simComputeStandings() {
   return { scores, payment, rank, w };
 }
 
-function simChoiceRow(matchKey, idx, label, teamA, teamB, currentPick) {
-  return `<div class="pred-sim-row">
-    <div class="pred-sim-row-label">${label}</div>
-    <div class="pred-sim-choices">
-      <button class="pred-sim-choice ${currentPick === 0 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="0">${teamA}</button>
-      <button class="pred-sim-choice ${currentPick === 1 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="1">${teamB}</button>
-    </div>
-  </div>`;
-}
-
-function renderSimControls() {
-  const topo = PD.topology;
-  const w = simComputeWinners();
-  let html = '';
-  html += `<div class="pred-sim-group-title">Octavos</div>`;
-  topo.octavos.forEach((o, i) => {
-    if (o.resolved) return;
-    html += simChoiceRow('octavos', i, 'Octavos', o.a, o.b, simState.octavos[i]);
-  });
-  html += `<div class="pred-sim-group-title">Cuartos</div>`;
-  topo.qf_pairs.forEach(([ia, ib], k) => {
-    html += simChoiceRow('qf', k, `Cuartos ${k + 1}`, w.O_winner[ia], w.O_winner[ib], simState.qf[k]);
-  });
-  html += `<div class="pred-sim-group-title">Semis</div>`;
-  topo.sf_pairs.forEach(([ia, ib], k) => {
-    html += simChoiceRow('sf', k, `Semifinal ${k + 1}`, w.Q_winner[ia], w.Q_winner[ib], simState.sf[k]);
-  });
-  html += `<div class="pred-sim-group-title">Final y 3º-4º puesto</div>`;
-  const [fa, fb] = topo.f_pair;
-  html += simChoiceRow('final', 0, 'Final', w.S_winner[fa], w.S_winner[fb], simState.final);
-  const [ta, tb] = topo.tp_pair;
-  html += simChoiceRow('tp', 0, '3º-4º puesto', w.S_loser[ta], w.S_loser[tb], simState.tp);
-  html += `<div class="pred-sim-group-title">🥾 Bota de Oro</div><div class="pred-sim-pill-row">`;
-  html += PD.golden.candidates.map(c => `<button class="pred-sim-pill ${simState.golden === c.name ? 'active' : ''}" data-match="golden" data-name="${c.name}">${c.name}</button>`).join('');
-  html += `</div><div class="pred-sim-group-title">⚽ Balón de Oro</div><div class="pred-sim-pill-row">`;
-  html += PD.ball.candidates.map(c => `<button class="pred-sim-pill ${simState.ball === c.name ? 'active' : ''}" data-match="ball" data-name="${c.name}">${c.name}</button>`).join('');
-  html += `</div>`;
-  document.getElementById('predSimControls').innerHTML = html;
-}
-
 function renderSimResults() {
   const { scores, payment } = simComputeStandings();
   const rows = PRED_PLAYERS.slice().sort((a, b) => scores[b] - scores[a]).map((p, i) => `
@@ -2124,32 +2106,15 @@ function renderSimResults() {
   document.getElementById('predSimResults').innerHTML = rows;
 }
 
+// Ya no hay controles propios: simState se deriva siempre de nuevo (real +
+// feLocks + favorito), así que se recalcula en cada render en vez de
+// guardarse entre renders -- refleja "Filtra por resultado" en cuanto
+// cambia, sin necesitar su propio botón de reinicio.
 function renderSimAll() {
   if (!PD || !PD.topology) return;
-  if (!simState) simState = simDefaultState();
-  renderSimControls();
+  simState = simDefaultState();
   renderSimResults();
 }
-
-document.getElementById('predSimControls').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-match]');
-  if (!btn) return;
-  const match = btn.dataset.match;
-  if (match === 'golden') { simState.golden = btn.dataset.name; }
-  else if (match === 'ball') { simState.ball = btn.dataset.name; }
-  else if (match === 'final' || match === 'tp') {
-    simState[match] = Number(btn.dataset.pick);
-  } else {
-    const idx = Number(btn.dataset.idx);
-    const pick = Number(btn.dataset.pick);
-    simState[match][idx] = pick;
-  }
-  renderSimAll();
-});
-document.getElementById('predSimReset').addEventListener('click', () => {
-  simState = simDefaultState();
-  renderSimAll();
-});
 
 function renderPredDeadList() {
   if (!PD) return;
@@ -2206,6 +2171,7 @@ function renderPredAll() {
   renderPredAffinity();
   renderPredDeadList();
   renderPredMethodology();
+  renderSimAll();
 }
 
 // ============ INIT ============
@@ -2224,4 +2190,3 @@ renderKoPlayerSelector();
 renderKoPlayerBracket();
 renderPredCaminoSelector();
 renderPredAll();
-renderSimAll();

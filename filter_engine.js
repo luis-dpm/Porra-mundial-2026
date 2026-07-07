@@ -607,44 +607,46 @@ function feFilterRowHTML(kind, idx, label, teamA, teamB, currentLock) {
   </div>`;
 }
 
+// Los partidos ya resueltos de verdad no se pueden fijar a mano (no hay
+// nada que decidir), así que no aportan nada aquí -- se omiten del todo en
+// vez de dejar una fila informativa "ya jugado" ocupando sitio. Cada grupo
+// solo aparece si le queda al menos un partido por marcar.
+function feGroupHTML(title, rowsHtml) {
+  return rowsHtml ? `<div class="pred-filter-group-title">${title}</div>${rowsHtml}` : '';
+}
+
 function renderPredFilterBar() {
   if (!ORIGINAL_PD) return;
   const topo = ORIGINAL_PD.topology;
   const kw = feKnownWinners(feLocks);
   let html = '';
 
-  html += `<div class="pred-filter-group-title">Octavos</div>`;
+  let octavosRows = '';
   topo.octavos.forEach((o, i) => {
-    if (o.resolved) {
-      html += `<div class="pred-filter-row pred-filter-row-real"><div class="pred-filter-row-label">Octavos</div><div class="pred-filter-row-real-text">✅ ${o.winner} (real${o.score && o.score !== '—' ? ', ' + o.score : ''})</div></div>`;
-      return;
-    }
-    html += feFilterRowHTML('octavos', i, 'Octavos', o.a, o.b, feLocks.octavos[i]);
+    if (o.resolved) return;
+    octavosRows += feFilterRowHTML('octavos', i, 'Octavos', o.a, o.b, feLocks.octavos[i]);
   });
+  html += feGroupHTML('Octavos', octavosRows);
 
-  html += `<div class="pred-filter-group-title">Cuartos</div>`;
+  let qfRows = '';
   topo.qf_pairs.forEach((pair, k) => {
-    if (topo.qf_resolved[k]) {
-      html += `<div class="pred-filter-row pred-filter-row-real"><div class="pred-filter-row-label">Cuartos ${k + 1}</div><div class="pred-filter-row-real-text">✅ ${topo.qf_winner[k]} (real)</div></div>`;
-      return;
-    }
+    if (topo.qf_resolved[k]) return;
     const [teamA, teamB] = kw.Qteams[k];
-    html += feFilterRowHTML('qf', k, `Cuartos ${k + 1}`, teamA, teamB, feLocks.qf[k]);
+    qfRows += feFilterRowHTML('qf', k, `Cuartos ${k + 1}`, teamA, teamB, feLocks.qf[k]);
   });
+  html += feGroupHTML('Cuartos', qfRows);
 
-  html += `<div class="pred-filter-group-title">Semis</div>`;
+  let sfRows = '';
   topo.sf_pairs.forEach((pair, k) => {
-    if (topo.sf_resolved[k]) {
-      html += `<div class="pred-filter-row pred-filter-row-real"><div class="pred-filter-row-label">Semifinal ${k + 1}</div><div class="pred-filter-row-real-text">✅ ${topo.sf_winner[k]} (real)</div></div>`;
-      return;
-    }
+    if (topo.sf_resolved[k]) return;
     const [teamA, teamB] = kw.Steams[k];
-    html += feFilterRowHTML('sf', k, `Semifinal ${k + 1}`, teamA, teamB, feLocks.sf[k]);
+    sfRows += feFilterRowHTML('sf', k, `Semifinal ${k + 1}`, teamA, teamB, feLocks.sf[k]);
   });
+  html += feGroupHTML('Semis', sfRows);
 
-  html += `<div class="pred-filter-group-title">Final y 3º-4º puesto</div>`;
-  html += feFilterRowHTML('final', 0, 'Final', kw.finalTeams[0], kw.finalTeams[1], feLocks.final);
-  html += feFilterRowHTML('tp', 0, '3º-4º puesto', kw.tpTeams[0], kw.tpTeams[1], feLocks.tp);
+  const finalTpRows = feFilterRowHTML('final', 0, 'Final', kw.finalTeams[0], kw.finalTeams[1], feLocks.final)
+    + feFilterRowHTML('tp', 0, '3º-4º puesto', kw.tpTeams[0], kw.tpTeams[1], feLocks.tp);
+  html += feGroupHTML('Final y 3º-4º puesto', finalTpRows);
 
   html += `<div class="pred-filter-group-title">Premios</div>`;
   html += feAwardRowHTML('golden', '🥾 Bota de Oro', ORIGINAL_PD.golden.candidates, feLocks.golden);
