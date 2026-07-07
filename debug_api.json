@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T18:01:15.461745Z",
+  "generated_at": "2026-07-07T18:31:08.074254Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -718,6 +718,12 @@
       "away_api": "Belgium",
       "score": "1-4",
       "utcDate": "2026-07-07T00:00:00Z"
+    },
+    {
+      "home_api": "Argentina",
+      "away_api": "Egypt",
+      "score": "3-2",
+      "utcDate": "2026-07-07T16:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1288,7 +1294,7 @@
     {
       "home_api": "Argentina",
       "away_api": "Egypt",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-07T16:00:00Z"
     },
     {
