@@ -1300,6 +1300,9 @@ function scoreKoMatch(predStr, actualStr) {
 // estado real ya calculado con cuotas de mercado externas que hay que
 // refrescar a mano). Ver la pestaña "Metodología" dentro de Predicciones.
 let PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
+// El roster de jugadores no cambia con el filtro global de resultados (ver
+// nota sobre SIM_ELO más abajo), así que calcularlo una sola vez aquí es
+// seguro; scripts/filter_engine.js reutiliza esta misma lista.
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
 let predMode = 'uniform';
 let predCaminoPlayer = PRED_PLAYERS[0] || null;
@@ -1432,13 +1435,25 @@ function renderPredRoundSelector() {
 }
 
 function predResolvedCardHTML(o) {
+  const statusText = o.locked ? '🔒 Fijado (hipotético)' : `Jugado · ${o.score}`;
   return `
-    <div class="pred-match-card">
+    <div class="pred-match-card${o.locked ? ' hypothetical' : ''}">
       <div class="pred-match-head">
         <div class="pred-match-teams">${o.a} <span style="color:var(--chalk-dim)">vs</span> ${o.b}</div>
-        <div class="pred-match-resolved">Jugado · ${o.score}</div>
+        <div class="pred-match-resolved">${statusText}</div>
       </div>
       <div class="pred-odds-line">Pasa a cuartos: <b style="color:var(--chalk)">${o.winner}</b></div>
+    </div>`;
+}
+
+function predResolvedNodeCardHTML(label, team, isReal) {
+  return `
+    <div class="pred-match-card${isReal ? '' : ' hypothetical'}">
+      <div class="pred-match-head">
+        <div class="pred-match-teams">${label}</div>
+        <div class="pred-match-resolved">${isReal ? 'Jugado' : '🔒 Fijado (hipotético)'}</div>
+      </div>
+      <div class="pred-odds-line">Pasa: <b style="color:var(--chalk)">${team}</b></div>
     </div>`;
 }
 
@@ -1480,6 +1495,25 @@ function renderPredRoundContent() {
   let html = '';
   if (predRound === 'Octavos') {
     html += PD.bracket.octavos.filter(o => o.resolved).map(predResolvedCardHTML).join('');
+  }
+  // Un cuartos/semis/final/3º-4º puesto ya decidido (de verdad o fijado a
+  // mano con el filtro) no tiene "partido que mueva la porra" -- si no se
+  // muestra aquí, desaparece sin más de la pestaña de su ronda.
+  if (predRound === 'Cuartos') {
+    PD.bracket.qf.forEach((node, k) => {
+      if (node.top.length === 1) html += predResolvedNodeCardHTML(`Cuartos ${k + 1}`, node.top[0].team, !!(PD.topology.qf_resolved && PD.topology.qf_resolved[k]));
+    });
+  }
+  if (predRound === 'Semis') {
+    PD.bracket.sf.forEach((node, k) => {
+      if (node.top.length === 1) html += predResolvedNodeCardHTML(`Semifinal ${k + 1}`, node.top[0].team, !!(PD.topology.sf_resolved && PD.topology.sf_resolved[k]));
+    });
+  }
+  if (predRound === 'Final' && PD.bracket.campeon.top.length === 1) {
+    html += predResolvedNodeCardHTML('Final', PD.bracket.campeon.top[0].team, false);
+  }
+  if (predRound === '3º-4º puesto' && PD.bracket.tercerpuesto.top.length === 1) {
+    html += predResolvedNodeCardHTML('3º-4º puesto', PD.bracket.tercerpuesto.top[0].team, false);
   }
   html += src.filter(m => m.stage === predRound).map(predMatchCardHTML).join('');
   document.getElementById('predRoundContent').innerHTML = html || '<p class="chart-desc">Nada que mostrar en esta ronda.</p>';
@@ -1527,9 +1561,10 @@ function predBracketLeafHTML(o) {
   if (o.resolved) {
     // Mismo alto de 2 filas que la tarjeta con cuota, para que la columna de
     // octavos no quede más alta/baja que el resto y descuadre el árbol.
-    return `<div class="pred-bracket-card resolved">
-      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
-      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
+    const tag = o.locked ? '🔒 ' : '★ ';
+    return `<div class="pred-bracket-card resolved${o.locked ? ' hypothetical' : ''}">
+      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? tag : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
+      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? tag : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
     </div>`;
   }
   const aFav = o.aProbW >= o.bProbW;
@@ -1907,6 +1942,14 @@ let simState = null;
 // hybrid_prob() de update_predictions.py, para poder calcular el favorito
 // real en cuartos/semis/final/3º-4º puesto (antes se asumía "el primer
 // equipo" por defecto, que no tenía por qué ser el favorito de verdad).
+//
+// OJO: se calculan una sola vez al cargar la página, a partir de PD en ese
+// momento. PD pasa de const a let porque scripts/filter_engine.js lo
+// reasigna al activar el filtro global de resultados -- eso es seguro
+// porque el Elo y las cuotas de mercado son hechos del mundo real, no
+// dependen del escenario que se esté mirando, y computeFilteredPD() los
+// reenvía siempre sin tocar. Si algún día el filtro necesitara Elo/cuotas
+// distintas por escenario, esto habría que recalcularlo en cada cambio.
 const SIM_ELO = PD ? Object.fromEntries(PD.elo.map(e => [e.team, e.elo])) : {};
 const SIM_KNOWN_MATCHUPS = PD ? Object.fromEntries(
   PD.known_matchups.flatMap(m => [[`${m.a}|${m.b}`, m.probA], [`${m.b}|${m.a}`, 1 - m.probA]])

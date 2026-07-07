@@ -1551,6 +1551,13 @@ main {
 .pred-filter-pill.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
 .pred-filter-pill.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
 
+.pred-filter-stale-note {
+  color: var(--rust);
+  font-size: 12px;
+  font-weight: 600;
+  margin: -8px 0 14px;
+}
+
 @media (max-width: 640px) {
   .pred-filter-bar { grid-template-columns: 1fr; }
 }
@@ -1661,6 +1668,8 @@ main {
   border-radius: 99px;
 }
 .pred-match-resolved { color: var(--gold-bright); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+.pred-match-card.hypothetical { border-color: rgba(192,57,43,0.35); background: rgba(192,57,43,0.05); }
+.pred-match-card.hypothetical .pred-match-resolved { color: var(--rust); }
 .pred-odds-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--chalk-dim); }
 .pred-odds-track { flex: 1 1 140px; max-width: 280px; height: 6px; background: rgba(59, 46, 31, 0.08); border-radius: 3px; overflow: hidden; }
 .pred-odds-fill { height: 100%; background: var(--gold); }
@@ -1686,6 +1695,7 @@ main {
   padding: 10px 14px;
 }
 .pred-bracket-card.resolved { border-color: rgba(212,162,60,0.4); background: rgba(212,162,60,0.06); }
+.pred-bracket-card.resolved.hypothetical { border-color: rgba(192,57,43,0.35); background: rgba(192,57,43,0.05); }
 .pred-bracket-team { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; font-size: 13px; }
 .pred-bracket-team.fav { font-weight: 700; color: var(--chalk); }
 .pred-bracket-team.dim { color: var(--chalk-dim); }

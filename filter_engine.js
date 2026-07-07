@@ -40,6 +40,10 @@ function feRound1(x) { return Math.round(x * 10) / 10; }
 function feRound2(x) { return Math.round(x * 100) / 100; }
 function feRound3(x) { return Math.round(x * 1000) / 1000; }
 function feRound4(x) { return Math.round(x * 10000) / 10000; }
+function feRound6(x) { return Math.round(x * 1e6) / 1e6; }
+
+// Puntos por acertar Bota/Balón de Oro (igual que en scripts/update_predictions.py).
+const FE_AWARD_BONUS = 24;
 
 // ---------------------------------------------------------- cascada de equipos conocidos --
 // Para cada ronda, qué equipos concretos juegan (null si su ronda anterior
@@ -283,28 +287,34 @@ function feMakeSimulator(locks) {
   return { simulate, nBits, freeOctavos, freeQf, freeSf, freeFinal, freeTp };
 }
 
-function feMatchLabels(locks, sim) {
+function feMatchLabels(locks, sim, kw) {
   const topo = ORIGINAL_PD.topology;
   const labels = [];
   sim.freeOctavos.forEach(i => { const o = topo.octavos[i]; labels.push(['Octavos', o.a, o.b]); });
   sim.freeQf.forEach(k => {
     const [ia, ib] = topo.qf_pairs[k];
     const oa = topo.octavos[ia], ob = topo.octavos[ib];
-    const a = oa.resolved ? oa.winner : (locks.octavos[ia] !== undefined ? (locks.octavos[ia] === 0 ? oa.a : oa.b) : `Ganador(${oa.a}/${oa.b})`);
-    const b = ob.resolved ? ob.winner : (locks.octavos[ib] !== undefined ? (locks.octavos[ib] === 0 ? ob.a : ob.b) : `Ganador(${ob.a}/${ob.b})`);
+    const a = kw.O[ia] || `Ganador(${oa.a}/${oa.b})`;
+    const b = kw.O[ib] || `Ganador(${ob.a}/${ob.b})`;
     labels.push(['Cuartos', a, b]);
   });
   sim.freeSf.forEach(k => {
     const [ia, ib] = topo.sf_pairs[k];
-    labels.push(['Semis', `Ganador(Cuartos ${ia + 1})`, `Ganador(Cuartos ${ib + 1})`]);
+    const a = kw.Q[ia] || `Ganador(Cuartos ${ia + 1})`;
+    const b = kw.Q[ib] || `Ganador(Cuartos ${ib + 1})`;
+    labels.push(['Semis', a, b]);
   });
   if (sim.freeFinal) {
     const [fa, fb] = topo.f_pair;
-    labels.push(['Final', `Ganador(Semis ${fa + 1})`, `Ganador(Semis ${fb + 1})`]);
+    const a = kw.S[fa] || `Ganador(Semis ${fa + 1})`;
+    const b = kw.S[fb] || `Ganador(Semis ${fb + 1})`;
+    labels.push(['Final', a, b]);
   }
   if (sim.freeTp) {
     const [ta, tb] = topo.tp_pair;
-    labels.push(['3º-4º puesto', `Perdedor(Semis ${ta + 1})`, `Perdedor(Semis ${tb + 1})`]);
+    const a = kw.SLoser[ta] || `Perdedor(Semis ${ta + 1})`;
+    const b = kw.SLoser[tb] || `Perdedor(Semis ${tb + 1})`;
+    labels.push(['3º-4º puesto', a, b]);
   }
   return labels;
 }
@@ -332,14 +342,14 @@ function feWq(pairsMap, q, tot) {
   return items[items.length - 1][0];
 }
 
-function feDescribeScenario(w, gname, bname, score, tiedWith, secondName, secondScore, branchW, totalProbWeighted) {
+function feDescribeScenario(w, gname, bname, score, tiedWith, secondName, secondScore, branchW, totalProbWeighted, locks) {
   const topo = ORIGINAL_PD.topology;
   const events = [];
   topo.octavos.forEach((o, i) => { if (!o.resolved) events.push({ stage: 'Octavos', a: o.a, b: o.b, winner: w.O_winner[i] }); });
   topo.qf_pairs.forEach(([ia, ib], k) => {
     const oa = topo.octavos[ia], ob = topo.octavos[ib];
-    const a = oa.resolved ? oa.winner : `Ganador(${oa.a}/${oa.b})`;
-    const b = ob.resolved ? ob.winner : `Ganador(${ob.a}/${ob.b})`;
+    const a = (oa.resolved || locks.octavos[ia] !== undefined) ? w.O_winner[ia] : `Ganador(${oa.a}/${oa.b})`;
+    const b = (ob.resolved || locks.octavos[ib] !== undefined) ? w.O_winner[ib] : `Ganador(${ob.a}/${ob.b})`;
     events.push({ stage: 'Cuartos', a, b, winner: w.Q_winner[k] });
   });
   topo.sf_pairs.forEach(([ia, ib], k) => { events.push({ stage: 'Semis', a: w.Q_winner[ia], b: w.Q_winner[ib], winner: w.S_winner[k] }); });
@@ -364,7 +374,8 @@ function computeFilteredPD(locks) {
   const ballCandidates = locks.ball
     ? [[locks.ball, 1.0]]
     : ORIGINAL_PD.ball.candidates.map(c => [c.name, c.pct / 100]);
-  const matchLabels = feMatchLabels(locks, sim);
+  const kw = feKnownWinners(locks);
+  const matchLabels = feMatchLabels(locks, sim, kw);
   const nCombos = 1 << sim.nBits;
 
   const modes = ['uniform', 'weighted'];
@@ -400,8 +411,8 @@ function computeFilteredPD(locks) {
         const scores = {};
         players.forEach(p => {
           let s = currentTotal[p] + bracketScores[p];
-          if (picks[p].botaoro === gname) s += 24;
-          if (picks[p].balonoro === bname) s += 24;
+          if (picks[p].botaoro === gname) s += FE_AWARD_BONUS;
+          if (picks[p].balonoro === bname) s += FE_AWARD_BONUS;
           scores[p] = s;
         });
         const maxscore = Math.max(...players.map(p => scores[p]));
@@ -436,7 +447,7 @@ function computeFilteredPD(locks) {
           players.forEach(p => {
             A.scoreSum[p] += weight * scores[p];
             A.scorePairs[p][scores[p]] = (A.scorePairs[p][scores[p]] || 0) + weight;
-            const pay = Math.round(payment[p] * 1e6) / 1e6;
+            const pay = feRound6(payment[p]);
             A.cutsSum[p] += weight * pay;
             A.cutsPairs[p][pay] = (A.cutsPairs[p][pay] || 0) + weight;
           });
@@ -485,11 +496,16 @@ function computeFilteredPD(locks) {
   });
 
   const origByName = {}; ORIGINAL_PD.players.forEach(p => { origByName[p.name] = p; });
+  // Si Bota/Balón de Oro está fijado a un candidato, el bonus de +24 solo
+  // sigue siendo alcanzable para quien lo tenga picado exactamente a él --
+  // para el resto, ese máximo teórico ya no es real y hay que descontarlo.
+  const goldenBonusMax = p => (locks.golden ? (picks[p].botaoro === locks.golden ? FE_AWARD_BONUS : 0) : FE_AWARD_BONUS);
+  const ballBonusMax = p => (locks.ball ? (picks[p].balonoro === locks.ball ? FE_AWARD_BONUS : 0) : FE_AWARD_BONUS);
   const playersOut = players.map(p => ({
     name: p, current: currentTotal[p],
     ko_min: bracketMin[p], ko_max: bracketMax[p],
     total_min: currentTotal[p] + bracketMin[p],
-    total_max: currentTotal[p] + bracketMax[p] + 24 + 24,
+    total_max: currentTotal[p] + bracketMax[p] + goldenBonusMax(p) + ballBonusMax(p),
     uniform: { total_avg: summary.uniform[p].mean, win_pct: summary.uniform[p].win_pct },
     weighted: {
       mean: summary.weighted[p].mean, p10: summary.weighted[p].p10, p50: summary.weighted[p].p50,
@@ -507,11 +523,22 @@ function computeFilteredPD(locks) {
     const cb = caminoBest[p];
     if (cb.bits === null) { caminoOut[p] = null; return; }
     const w = sim.simulate(cb.bits);
-    caminoOut[p] = feDescribeScenario(w, cb.gname, cb.bname, cb.score, cb.tiedWith, cb.secondName, cb.secondScore, cb.w, acc.weighted.totalProb);
+    caminoOut[p] = feDescribeScenario(w, cb.gname, cb.bname, cb.score, cb.tiedWith, cb.secondName, cb.secondScore, cb.w, acc.weighted.totalProb, locks);
   });
 
   const dists = feBuildDists(locks);
   const bracket = feBuildBracket(locks, dists);
+
+  // Si Bota/Balón de Oro está fijado, la sección de Premios debe reflejarlo
+  // (100% el fijado, 0% el resto) -- si no, mostraría las cuotas reales de
+  // mercado contradiciendo al resto de la página, que ya lo trata como seguro.
+  const feAwardOut = (original, lockedName) => {
+    if (!lockedName) return original;
+    return {
+      candidates: original.candidates.map(c => ({ name: c.name, pct: c.name === lockedName ? 100 : 0 })),
+      picks: original.picks,
+    };
+  };
 
   return {
     generated_from_last_updated: ORIGINAL_PD.generated_from_last_updated,
@@ -521,7 +548,7 @@ function computeFilteredPD(locks) {
     matches_uniform: matchesOut.uniform,
     matches_weighted: matchesOut.weighted,
     bracket,
-    golden: ORIGINAL_PD.golden, ball: ORIGINAL_PD.ball, elo: ORIGINAL_PD.elo,
+    golden: feAwardOut(ORIGINAL_PD.golden, locks.golden), ball: feAwardOut(ORIGINAL_PD.ball, locks.ball), elo: ORIGINAL_PD.elo,
     camino: caminoOut,
     affinity: ORIGINAL_PD.affinity,
     picks: ORIGINAL_PD.picks, topology: ORIGINAL_PD.topology,
@@ -534,31 +561,19 @@ function computeFilteredPD(locks) {
 // se desmarca el octavos del que dependía), el bloqueo de la ronda
 // siguiente deja de tener sentido -- se retira solo, en vez de arrastrar un
 // equipo fantasma por el resto del cálculo.
+// Reutiliza feKnownWinners() en vez de recorrer la cascada octavos->qf->sf
+// por su cuenta (antes lo hacía dos veces, una en cada función). Se
+// recalcula tras cada poda porque quitar un lock de una ronda puede dejar
+// inválido el de la siguiente (p. ej. desmarcar un octavos invalida el
+// cuartos que dependía de él, lo que a su vez invalidaría una semifinal).
 function feSanitizeLocks() {
-  const topo = ORIGINAL_PD.topology;
-  const O = topo.octavos.map((o, i) => o.resolved ? o.winner : (feLocks.octavos[i] !== undefined ? (feLocks.octavos[i] === 0 ? o.a : o.b) : null));
-  topo.qf_pairs.forEach(([ia, ib], k) => {
-    if (feLocks.qf[k] !== undefined && !(O[ia] && O[ib])) delete feLocks.qf[k];
-  });
-  const Q = topo.qf_pairs.map(([ia, ib], k) => {
-    if (topo.qf_resolved[k]) return topo.qf_winner[k];
-    if (feLocks.qf[k] !== undefined && O[ia] && O[ib]) return feLocks.qf[k] === 0 ? O[ia] : O[ib];
-    return null;
-  });
-  topo.sf_pairs.forEach(([ia, ib], k) => {
-    if (feLocks.sf[k] !== undefined && !(Q[ia] && Q[ib])) delete feLocks.sf[k];
-  });
-  const S = topo.sf_pairs.map(([ia, ib], k) => {
-    if (topo.sf_resolved[k]) return topo.sf_winner[k];
-    if (feLocks.sf[k] !== undefined && Q[ia] && Q[ib]) return feLocks.sf[k] === 0 ? Q[ia] : Q[ib];
-    return null;
-  });
-  const Steams = topo.sf_pairs.map(([ia, ib]) => [Q[ia], Q[ib]]);
-  const [fa, fb] = topo.f_pair;
-  if (feLocks.final !== null && !(S[fa] && S[fb])) feLocks.final = null;
-  const SLoser = topo.sf_pairs.map((_, k) => { if (!S[k]) return null; const [ta, tb] = Steams[k]; return S[k] === ta ? tb : ta; });
-  const [ta, tb] = topo.tp_pair;
-  if (feLocks.tp !== null && !(SLoser[ta] && SLoser[tb])) feLocks.tp = null;
+  let kw = feKnownWinners(feLocks);
+  Object.keys(feLocks.qf).forEach(k => { if (!kw.Q[+k]) delete feLocks.qf[+k]; });
+  kw = feKnownWinners(feLocks);
+  Object.keys(feLocks.sf).forEach(k => { if (!kw.S[+k]) delete feLocks.sf[+k]; });
+  kw = feKnownWinners(feLocks);
+  if (feLocks.final !== null && !(kw.finalTeams[0] && kw.finalTeams[1])) feLocks.final = null;
+  if (feLocks.tp !== null && !(kw.tpTeams[0] && kw.tpTeams[1])) feLocks.tp = null;
 }
 
 function feAwardRowHTML(kind, label, candidates, currentLock) {
@@ -646,11 +661,18 @@ function renderPredFilterBar() {
   }
 }
 
+function feUpdateStaleNotes() {
+  const active = feAnyLockActive();
+  document.getElementById('predFilterStaleAffinity').hidden = !active;
+  document.getElementById('predFilterStaleDead').hidden = !active;
+}
+
 function feApplyFilter() {
   feSanitizeLocks();
   PD = feAnyLockActive() ? computeFilteredPD(feLocks) : ORIGINAL_PD;
   renderPredFilterBar();
   renderPredAll();
+  feUpdateStaleNotes();
 }
 
 function feClearFilter() {
@@ -658,6 +680,7 @@ function feClearFilter() {
   PD = ORIGINAL_PD;
   renderPredFilterBar();
   renderPredAll();
+  feUpdateStaleNotes();
 }
 
 document.getElementById('predFilterBar').addEventListener('click', (e) => {
