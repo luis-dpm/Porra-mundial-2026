@@ -39,7 +39,6 @@ PLAYER_COLUMNS = {
 # Octavos sin jugar: cuota real "to advance" de Kalshi (consultada 6 jul. 2026).
 # Clave = número de partido FIFA.
 OCTAVOS_ODDS = {
-    94: {"Bélgica": 0.47, "Estados Unidos": 0.53},
     95: {"Argentina": 0.84, "Egipto": 0.16},
     96: {"Colombia": 0.60, "Suiza": 0.40},
 }
@@ -50,8 +49,9 @@ OCTAVOS_ODDS = {
 # hybrid_prob() ya normaliza). Ver scripts/check_market_data.py para saber qué
 # cruce hay que añadir aquí en cada momento.
 KNOWN_MATCHUPS = {
-    frozenset({"Francia", "Marruecos"}): {"Francia": 0.76, "Marruecos": 0.24},  # Cuartos 1, partido 97, consultada 6 jul. 2026
-    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.36, "Inglaterra": 0.64},  # Cuartos 3, partido 99, consultada 6 jul. 2026
+    frozenset({"Francia", "Marruecos"}): {"Francia": 0.77, "Marruecos": 0.23},  # Cuartos 1, partido 97, consultada 7 jul. 2026
+    frozenset({"España", "Bélgica"}): {"España": 0.73, "Bélgica": 0.27},  # Cuartos 2, partido 98, consultada 7 jul. 2026
+    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.37, "Inglaterra": 0.63},  # Cuartos 3, partido 99, consultada 7 jul. 2026
 }
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al lunes 6 jul.
