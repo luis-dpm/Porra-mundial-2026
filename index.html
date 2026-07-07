@@ -170,6 +170,14 @@
         <p class="page-sub" id="predIntro">—</p>
       </div>
 
+      <!-- PRUEBA: filtro global de resultados -->
+      <div class="pred-filter-section">
+        <div class="section-divider"><span>🎛️ Filtra por resultado</span></div>
+        <p class="chart-desc">Fija el resultado de cualquier partido que quede (o déjalo "sin marcar") y toda la página de abajo se recalcula para ese escenario. Los partidos sin marcar siguen pesando por su probabilidad real.</p>
+        <p class="pred-filter-status" id="predFilterStatus"></p>
+        <div class="pred-filter-bar" id="predFilterBar"></div>
+      </div>
+
       <div class="pred-mode-toggle" id="predModeToggle">
         <button class="pred-mode-btn active" data-mode="uniform">Equiprobable (50/50)</button>
         <button class="pred-mode-btn" data-mode="weighted">Kalshi + Elo</button>
@@ -227,27 +235,30 @@
         <div class="groups-grid" id="predAwardsGrid"></div>
       </div>
 
-      <!-- PRUEBA: simulador interactivo -->
-      <div class="section-divider"><span>🎮 Simulador: elige tú los resultados</span></div>
-      <p class="chart-desc">Marca quién gana cada partido que queda (y quién se lleva la Bota/Balón de Oro) y mira cómo cambia la clasificación al momento. Empieza con el favorito de cada cruce marcado.</p>
+      <!-- Clasificación con solo los puntos ya seguros: resultados reales +
+           lo que se haya fijado arriba en "Filtra por resultado". Un
+           partido que se deje sin marcar no suma ni resta -- no se asume
+           ningún favorito. Compartible como imagen. -->
+      <div class="section-divider"><span>🎯 Clasificación con lo ya decidido</span></div>
+      <p class="chart-desc">Puntos y chuletones contando solo resultados reales y lo que hayas fijado en "Filtra por resultado" arriba. Lo que sigas dejando sin marcar no suma ni resta todavía.</p>
       <div class="pred-sim-wrap">
-        <div class="pred-sim-controls" id="predSimControls"></div>
         <div class="pred-sim-results" id="predSimResults"></div>
       </div>
       <div class="pred-sim-btn-row">
-        <button class="pred-sim-reset" id="predSimReset">↺ Reiniciar a favoritos</button>
         <button class="pred-sim-share" id="predSimShareBtn">📤 Compartir esta clasificación</button>
       </div>
 
       <!-- PRUEBA: quién va con quién -->
       <div class="section-divider"><span>🤝 Quién va con quién</span></div>
-      <p class="chart-desc">Cuántos de los 21 picks que quedan por decidir (cuartofinalistas, semifinalistas, finalistas, 3º-4º puesto, campeón, subcampeón, 3º puesto, Bota y Balón de Oro) coinciden entre cada dos jugadores. Más color = más se parecen sus apuestas.</p>
+      <p class="chart-desc" id="predAffinityDesc"></p>
+      <p class="pred-filter-stale-note" id="predFilterStaleAffinity" hidden>⚠️ Esta tabla no cambia con el filtro de resultados de arriba — siempre muestra los picks reales, no el escenario fijado.</p>
       <div class="pred-affinity-wrap" id="predAffinityWrap"></div>
       <div id="predAffinityCallouts"></div>
 
       <!-- 6. Referencia -->
       <div class="section-divider"><span>Picks ya descartados</span></div>
       <p class="chart-desc">Equipos que un jugador marcó para llegar a una ronda pero que ya quedaron eliminados — no pueden sumar puntos, caiga lo que caiga.</p>
+      <p class="pred-filter-stale-note" id="predFilterStaleDead" hidden>⚠️ Esta lista no cambia con el filtro de resultados de arriba — siempre muestra la eliminación real, no la del escenario fijado.</p>
       <div class="pred-dead-list" id="predDeadList"></div>
 
       <div class="section-divider"><span>Metodología</span></div>
@@ -271,5 +282,6 @@
 <script src="data.js"></script>
 <script src="predictions_data.js"></script>
 <script src="app.js"></script>
+<script src="filter_engine.js"></script>
 </body>
 </html>

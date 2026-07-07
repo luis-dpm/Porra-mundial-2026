@@ -1299,7 +1299,10 @@ function scoreKoMatch(predStr, actualStr) {
 // scripts/update_predictions.py (aparte del resto de data.js: combina el
 // estado real ya calculado con cuotas de mercado externas que hay que
 // refrescar a mano). Ver la pestaña "Metodología" dentro de Predicciones.
-const PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
+let PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
+// El roster de jugadores no cambia con el filtro global de resultados (ver
+// nota sobre SIM_ELO más abajo), así que calcularlo una sola vez aquí es
+// seguro; scripts/filter_engine.js reutiliza esta misma lista.
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
 let predMode = 'uniform';
 let predCaminoPlayer = PRED_PLAYERS[0] || null;
@@ -1432,13 +1435,25 @@ function renderPredRoundSelector() {
 }
 
 function predResolvedCardHTML(o) {
+  const statusText = o.locked ? '🔒 Fijado (hipotético)' : `Jugado · ${o.score}`;
   return `
-    <div class="pred-match-card">
+    <div class="pred-match-card${o.locked ? ' hypothetical' : ''}">
       <div class="pred-match-head">
         <div class="pred-match-teams">${o.a} <span style="color:var(--chalk-dim)">vs</span> ${o.b}</div>
-        <div class="pred-match-resolved">Jugado · ${o.score}</div>
+        <div class="pred-match-resolved">${statusText}</div>
       </div>
       <div class="pred-odds-line">Pasa a cuartos: <b style="color:var(--chalk)">${o.winner}</b></div>
+    </div>`;
+}
+
+function predResolvedNodeCardHTML(label, team, isReal) {
+  return `
+    <div class="pred-match-card${isReal ? '' : ' hypothetical'}">
+      <div class="pred-match-head">
+        <div class="pred-match-teams">${label}</div>
+        <div class="pred-match-resolved">${isReal ? 'Jugado' : '🔒 Fijado (hipotético)'}</div>
+      </div>
+      <div class="pred-odds-line">Pasa: <b style="color:var(--chalk)">${team}</b></div>
     </div>`;
 }
 
@@ -1480,6 +1495,25 @@ function renderPredRoundContent() {
   let html = '';
   if (predRound === 'Octavos') {
     html += PD.bracket.octavos.filter(o => o.resolved).map(predResolvedCardHTML).join('');
+  }
+  // Un cuartos/semis/final/3º-4º puesto ya decidido (de verdad o fijado a
+  // mano con el filtro) no tiene "partido que mueva la porra" -- si no se
+  // muestra aquí, desaparece sin más de la pestaña de su ronda.
+  if (predRound === 'Cuartos') {
+    PD.bracket.qf.forEach((node, k) => {
+      if (node.top.length === 1) html += predResolvedNodeCardHTML(`Cuartos ${k + 1}`, node.top[0].team, !!(PD.topology.qf_resolved && PD.topology.qf_resolved[k]));
+    });
+  }
+  if (predRound === 'Semis') {
+    PD.bracket.sf.forEach((node, k) => {
+      if (node.top.length === 1) html += predResolvedNodeCardHTML(`Semifinal ${k + 1}`, node.top[0].team, !!(PD.topology.sf_resolved && PD.topology.sf_resolved[k]));
+    });
+  }
+  if (predRound === 'Final' && PD.bracket.campeon.top.length === 1) {
+    html += predResolvedNodeCardHTML('Final', PD.bracket.campeon.top[0].team, false);
+  }
+  if (predRound === '3º-4º puesto' && PD.bracket.tercerpuesto.top.length === 1) {
+    html += predResolvedNodeCardHTML('3º-4º puesto', PD.bracket.tercerpuesto.top[0].team, false);
   }
   html += src.filter(m => m.stage === predRound).map(predMatchCardHTML).join('');
   document.getElementById('predRoundContent').innerHTML = html || '<p class="chart-desc">Nada que mostrar en esta ronda.</p>';
@@ -1527,9 +1561,10 @@ function predBracketLeafHTML(o) {
   if (o.resolved) {
     // Mismo alto de 2 filas que la tarjeta con cuota, para que la columna de
     // octavos no quede más alta/baja que el resto y descuadre el árbol.
-    return `<div class="pred-bracket-card resolved">
-      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? '★ ' : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
-      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? '★ ' : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
+    const tag = o.locked ? '🔒 ' : '★ ';
+    return `<div class="pred-bracket-card resolved${o.locked ? ' hypothetical' : ''}">
+      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? tag : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
+      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? tag : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
     </div>`;
   }
   const aFav = o.aProbW >= o.bProbW;
@@ -1667,27 +1702,36 @@ function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
   ctx.textAlign = 'center';
 }
 
+// Solo lista partidos con un resultado ya fijado (real o marcado a mano
+// arriba en "Filtra por resultado"); uno que se ha dejado sin marcar no
+// tiene ganador que enseñar, así que no aparece en absoluto en la imagen.
 function simMatchRows(w) {
   const topo = PD.topology;
   const rows = [];
   topo.octavos.forEach((o, i) => {
     if (o.resolved) return;
-    rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: simState.octavos[i] === 0 ? o.a : o.b });
+    const pick = simState.octavos[i];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: 'Octavos', teamA: o.a, teamB: o.b, winner: pick === 0 ? o.a : o.b });
   });
   topo.qf_pairs.forEach(([ia, ib], k) => {
     if (topo.qf_resolved[k]) return; // ya jugado de verdad, no es un pick del usuario
     const teamA = w.O_winner[ia], teamB = w.O_winner[ib];
-    rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: simState.qf[k] === 0 ? teamA : teamB });
+    const pick = simState.qf[k];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: `Cuartos ${k + 1}`, teamA, teamB, winner: pick === 0 ? teamA : teamB });
   });
   topo.sf_pairs.forEach(([ia, ib], k) => {
     if (topo.sf_resolved[k]) return;
     const teamA = w.Q_winner[ia], teamB = w.Q_winner[ib];
-    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: simState.sf[k] === 0 ? teamA : teamB });
+    const pick = simState.sf[k];
+    if (pick !== 0 && pick !== 1) return;
+    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: pick === 0 ? teamA : teamB });
   });
   const [fa, fb] = topo.f_pair;
-  rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
+  if (w.champion) rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
   const [ta, tb] = topo.tp_pair;
-  rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
+  if (w.winner34) rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
   return rows;
 }
 
@@ -1699,7 +1743,8 @@ async function drawSimShareCard(canvas) {
 
   const matchRowH = 42, leaderRowH = 88, outcomeRowH = 44;
   const W = 1080;
-  const H = 300 + 40 + matchRows.length * matchRowH + 30 + outcomeRowH * 5 + 90 + ranked.length * leaderRowH + 90;
+  const headerGap = matchRows.length > 0 ? 40 : 0;
+  const H = 260 + headerGap + matchRows.length * matchRowH + 30 + outcomeRowH * 5 + 90 + ranked.length * leaderRowH + 90;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const CL = SHARE_COLORS;
@@ -1714,11 +1759,13 @@ async function drawSimShareCard(canvas) {
   ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(90, 122); ctx.lineTo(W - 90, 122); ctx.stroke();
 
-  drawCenteredText(ctx, 'SI EL MUNDIAL TERMINA ASÍ...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
+  drawCenteredText(ctx, 'CON LO YA DECIDIDO...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
 
-  drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
-
-  let my = 280;
+  let my = 240;
+  if (matchRows.length > 0) {
+    drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
+    my = 280;
+  }
   matchRows.forEach(m => {
     ctx.font = "13px 'Space Mono'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
     ctx.fillText(m.label.toUpperCase(), 100, my);
@@ -1751,8 +1798,8 @@ async function drawSimShareCard(canvas) {
   outcomes.forEach(([label, value]) => {
     ctx.font = "22px 'Inter'"; ctx.fillStyle = CL.chalkDim; ctx.textAlign = 'left';
     ctx.fillText(label, 100, oy);
-    ctx.font = "bold 22px 'Inter'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'right';
-    ctx.fillText(value, W - 100, oy);
+    ctx.font = "bold 22px 'Inter'"; ctx.fillStyle = value ? CL.chalk : CL.chalkDim; ctx.textAlign = 'right';
+    ctx.fillText(value || '— sin decidir', W - 100, oy);
     oy += outcomeRowH;
   });
 
@@ -1869,6 +1916,9 @@ function renderPredAwards() {
 function renderPredAffinity() {
   if (!PD || !PD.affinity) return;
   const names = PRED_PLAYERS;
+  const nPicks = PD.affinity[names[0]][names[1]].total;
+  document.getElementById('predAffinityDesc').textContent =
+    `Cuántos de los ${nPicks} picks que quedan por decidir (cuartofinalistas, semifinalistas, finalistas, 3º-4º puesto, campeón, subcampeón, 3º puesto, Bota y Balón de Oro) coinciden entre cada dos jugadores. Los picks ya certificados por un partido real (acertados o no) ya no cuentan. Más color = más se parecen sus apuestas restantes.`;
   let maxPct = 0;
   names.forEach(a => names.forEach(b => { if (a !== b) maxPct = Math.max(maxPct, PD.affinity[a][b].pct); }));
 
@@ -1907,6 +1957,14 @@ let simState = null;
 // hybrid_prob() de update_predictions.py, para poder calcular el favorito
 // real en cuartos/semis/final/3º-4º puesto (antes se asumía "el primer
 // equipo" por defecto, que no tenía por qué ser el favorito de verdad).
+//
+// OJO: se calculan una sola vez al cargar la página, a partir de PD en ese
+// momento. PD pasa de const a let porque scripts/filter_engine.js lo
+// reasigna al activar el filtro global de resultados -- eso es seguro
+// porque el Elo y las cuotas de mercado son hechos del mundo real, no
+// dependen del escenario que se esté mirando, y computeFilteredPD() los
+// reenvía siempre sin tocar. Si algún día el filtro necesitara Elo/cuotas
+// distintas por escenario, esto habría que recalcularlo en cada cambio.
 const SIM_ELO = PD ? Object.fromEntries(PD.elo.map(e => [e.team, e.elo])) : {};
 const SIM_KNOWN_MATCHUPS = PD ? Object.fromEntries(
   PD.known_matchups.flatMap(m => [[`${m.a}|${m.b}`, m.probA], [`${m.b}|${m.a}`, 1 - m.probA]])
@@ -1918,52 +1976,99 @@ function simHybridProb(a, b) {
   return simEloProb(a, b);
 }
 
+// Ya no hay controles propios del simulador -- el único mando es "Filtra
+// por resultado" arriba de la página. Este estado se deriva siempre de
+// feLocks (si hay algo fijado ahí) y, para cualquier partido que se haya
+// dejado sin marcar, del favorito real (Kalshi/Elo). feLocks vive en
+// scripts/filter_engine.js (se carga después de este archivo); si por lo
+// que sea no está definido, se trata como "nada fijado".
+// Un partido que se deja "sin marcar" en el filtro se queda sin marcar de
+// verdad aquí (null): no se le asigna el favorito, así que no suma ni
+// resta puntos hasta que se decida de verdad o se fije a mano. Por eso la
+// clasificación de esta sección es "puntos ya seguros", no una proyección.
 function simDefaultState() {
   if (!PD || !PD.topology) return null;
   const topo = PD.topology;
-  const st = { octavos: {}, qf: {}, sf: {}, final: 0, tp: 0, golden: PD.golden.candidates[0].name, ball: PD.ball.candidates[0].name };
-  topo.octavos.forEach((o, i) => { if (!o.resolved) st.octavos[i] = o.favA ? 0 : 1; });
+  const locks = (typeof feLocks !== 'undefined' && feLocks) ? feLocks : { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
+  const st = {
+    octavos: {}, qf: {}, sf: {}, final: null, tp: null,
+    golden: locks.golden || null,
+    ball: locks.ball || null,
+  };
+  topo.octavos.forEach((o, i) => {
+    if (o.resolved) return;
+    st.octavos[i] = locks.octavos[i] !== undefined ? locks.octavos[i] : null;
+  });
 
-  // Se calcula en cascada (igual que simComputeWinners): el favorito de
-  // cuartos depende de quién gane los octavos por defecto, el de semis de
-  // quién gane cuartos por defecto, etc.
-  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (st.octavos[i] === 0 ? o.a : o.b));
+  // Cascada: si un partido se queda sin marcar (null), todo lo que dependa
+  // de él (las rondas siguientes) también se queda sin marcar, aunque esa
+  // ronda en sí tenga un lock propio -- ya no tendría equipos que resolver.
+  const O_winner = topo.octavos.map((o, i) => {
+    if (o.resolved) return o.winner;
+    return st.octavos[i] === 0 ? o.a : (st.octavos[i] === 1 ? o.b : null);
+  });
   const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+    if (topo.qf_resolved[k]) return topo.qf_winner[k];
     const teamA = O_winner[ia], teamB = O_winner[ib];
-    const pA = simHybridProb(teamA, teamB);
-    st.qf[k] = pA >= 0.5 ? 0 : 1;
-    return pA >= 0.5 ? teamA : teamB;
+    const pick = (teamA && teamB && locks.qf[k] !== undefined) ? locks.qf[k] : null;
+    st.qf[k] = pick;
+    if (pick === 0) return teamA;
+    if (pick === 1) return teamB;
+    return null;
   });
   const S_winner = [], S_loser = [];
   topo.sf_pairs.forEach(([ia, ib], k) => {
     const teamA = Q_winner[ia], teamB = Q_winner[ib];
-    const pA = simHybridProb(teamA, teamB);
-    st.sf[k] = pA >= 0.5 ? 0 : 1;
-    if (pA >= 0.5) { S_winner.push(teamA); S_loser.push(teamB); }
-    else { S_winner.push(teamB); S_loser.push(teamA); }
+    if (topo.sf_resolved[k]) {
+      const w = topo.sf_winner[k];
+      S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
+      return;
+    }
+    const pick = (teamA && teamB && locks.sf[k] !== undefined) ? locks.sf[k] : null;
+    st.sf[k] = pick;
+    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
+    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
+    else { S_winner.push(null); S_loser.push(null); }
   });
   const [fa, fb] = topo.f_pair;
-  st.final = simHybridProb(S_winner[fa], S_winner[fb]) >= 0.5 ? 0 : 1;
+  st.final = (S_winner[fa] && S_winner[fb] && locks.final !== null && locks.final !== undefined) ? locks.final : null;
   const [ta, tb] = topo.tp_pair;
-  st.tp = simHybridProb(S_loser[ta], S_loser[tb]) >= 0.5 ? 0 : 1;
+  st.tp = (S_loser[ta] && S_loser[tb] && locks.tp !== null && locks.tp !== undefined) ? locks.tp : null;
   return st;
 }
 
 function simComputeWinners() {
   const topo = PD.topology;
-  const O_winner = topo.octavos.map((o, i) => o.resolved ? o.winner : (simState.octavos[i] === 0 ? o.a : o.b));
-  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => (simState.qf[k] === 0 ? O_winner[ia] : O_winner[ib]));
+  const O_winner = topo.octavos.map((o, i) => {
+    if (o.resolved) return o.winner;
+    const pick = simState.octavos[i];
+    return pick === 0 ? o.a : (pick === 1 ? o.b : null);
+  });
+  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+    if (topo.qf_resolved[k]) return topo.qf_winner[k];
+    const pick = simState.qf[k];
+    if (pick === 0) return O_winner[ia];
+    if (pick === 1) return O_winner[ib];
+    return null;
+  });
   const S_winner = [], S_loser = [];
   topo.sf_pairs.forEach(([ia, ib], k) => {
     const teamA = Q_winner[ia], teamB = Q_winner[ib];
-    if (simState.sf[k] === 0) { S_winner.push(teamA); S_loser.push(teamB); }
-    else { S_winner.push(teamB); S_loser.push(teamA); }
+    if (topo.sf_resolved[k]) {
+      const w = topo.sf_winner[k];
+      S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
+      return;
+    }
+    const pick = simState.sf[k];
+    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
+    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
+    else { S_winner.push(null); S_loser.push(null); }
   });
   const [fa, fb] = topo.f_pair;
-  const champion = simState.final === 0 ? S_winner[fa] : S_winner[fb];
-  const runner = simState.final === 0 ? S_winner[fb] : S_winner[fa];
+  const champion = simState.final === 0 ? S_winner[fa] : (simState.final === 1 ? S_winner[fb] : null);
+  const runner = simState.final === 0 ? S_winner[fb] : (simState.final === 1 ? S_winner[fa] : null);
   const [ta, tb] = topo.tp_pair;
-  const winner34 = simState.tp === 0 ? S_loser[ta] : S_loser[tb];
+  const winner34 = simState.tp === 0 ? S_loser[ta] : (simState.tp === 1 ? S_loser[tb] : null);
   return { O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34 };
 }
 
@@ -2029,46 +2134,6 @@ function simComputeStandings() {
   return { scores, payment, rank, w };
 }
 
-function simChoiceRow(matchKey, idx, label, teamA, teamB, currentPick) {
-  return `<div class="pred-sim-row">
-    <div class="pred-sim-row-label">${label}</div>
-    <div class="pred-sim-choices">
-      <button class="pred-sim-choice ${currentPick === 0 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="0">${teamA}</button>
-      <button class="pred-sim-choice ${currentPick === 1 ? 'active' : ''}" data-match="${matchKey}" data-idx="${idx}" data-pick="1">${teamB}</button>
-    </div>
-  </div>`;
-}
-
-function renderSimControls() {
-  const topo = PD.topology;
-  const w = simComputeWinners();
-  let html = '';
-  html += `<div class="pred-sim-group-title">Octavos</div>`;
-  topo.octavos.forEach((o, i) => {
-    if (o.resolved) return;
-    html += simChoiceRow('octavos', i, 'Octavos', o.a, o.b, simState.octavos[i]);
-  });
-  html += `<div class="pred-sim-group-title">Cuartos</div>`;
-  topo.qf_pairs.forEach(([ia, ib], k) => {
-    html += simChoiceRow('qf', k, `Cuartos ${k + 1}`, w.O_winner[ia], w.O_winner[ib], simState.qf[k]);
-  });
-  html += `<div class="pred-sim-group-title">Semis</div>`;
-  topo.sf_pairs.forEach(([ia, ib], k) => {
-    html += simChoiceRow('sf', k, `Semifinal ${k + 1}`, w.Q_winner[ia], w.Q_winner[ib], simState.sf[k]);
-  });
-  html += `<div class="pred-sim-group-title">Final y 3º-4º puesto</div>`;
-  const [fa, fb] = topo.f_pair;
-  html += simChoiceRow('final', 0, 'Final', w.S_winner[fa], w.S_winner[fb], simState.final);
-  const [ta, tb] = topo.tp_pair;
-  html += simChoiceRow('tp', 0, '3º-4º puesto', w.S_loser[ta], w.S_loser[tb], simState.tp);
-  html += `<div class="pred-sim-group-title">🥾 Bota de Oro</div><div class="pred-sim-pill-row">`;
-  html += PD.golden.candidates.map(c => `<button class="pred-sim-pill ${simState.golden === c.name ? 'active' : ''}" data-match="golden" data-name="${c.name}">${c.name}</button>`).join('');
-  html += `</div><div class="pred-sim-group-title">⚽ Balón de Oro</div><div class="pred-sim-pill-row">`;
-  html += PD.ball.candidates.map(c => `<button class="pred-sim-pill ${simState.ball === c.name ? 'active' : ''}" data-match="ball" data-name="${c.name}">${c.name}</button>`).join('');
-  html += `</div>`;
-  document.getElementById('predSimControls').innerHTML = html;
-}
-
 function renderSimResults() {
   const { scores, payment } = simComputeStandings();
   const rows = PRED_PLAYERS.slice().sort((a, b) => scores[b] - scores[a]).map((p, i) => `
@@ -2081,32 +2146,15 @@ function renderSimResults() {
   document.getElementById('predSimResults').innerHTML = rows;
 }
 
+// Ya no hay controles propios: simState se deriva siempre de nuevo (real +
+// feLocks + favorito), así que se recalcula en cada render en vez de
+// guardarse entre renders -- refleja "Filtra por resultado" en cuanto
+// cambia, sin necesitar su propio botón de reinicio.
 function renderSimAll() {
   if (!PD || !PD.topology) return;
-  if (!simState) simState = simDefaultState();
-  renderSimControls();
+  simState = simDefaultState();
   renderSimResults();
 }
-
-document.getElementById('predSimControls').addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-match]');
-  if (!btn) return;
-  const match = btn.dataset.match;
-  if (match === 'golden') { simState.golden = btn.dataset.name; }
-  else if (match === 'ball') { simState.ball = btn.dataset.name; }
-  else if (match === 'final' || match === 'tp') {
-    simState[match] = Number(btn.dataset.pick);
-  } else {
-    const idx = Number(btn.dataset.idx);
-    const pick = Number(btn.dataset.pick);
-    simState[match][idx] = pick;
-  }
-  renderSimAll();
-});
-document.getElementById('predSimReset').addEventListener('click', () => {
-  simState = simDefaultState();
-  renderSimAll();
-});
 
 function renderPredDeadList() {
   if (!PD) return;
@@ -2163,6 +2211,7 @@ function renderPredAll() {
   renderPredAffinity();
   renderPredDeadList();
   renderPredMethodology();
+  renderSimAll();
 }
 
 // ============ INIT ============
@@ -2181,4 +2230,3 @@ renderKoPlayerSelector();
 renderKoPlayerBracket();
 renderPredCaminoSelector();
 renderPredAll();
-renderSimAll();

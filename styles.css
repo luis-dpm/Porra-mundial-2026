@@ -1452,6 +1452,115 @@ main {
 .pred-mode-btn.active { background: var(--gold); color: var(--ink); }
 .pred-mode-note { color: var(--chalk-dim); font-size: 12.5px; margin-bottom: 28px; max-width: 640px; }
 
+/* PRUEBA: filtro global de resultados */
+.pred-filter-section { margin-bottom: 12px; }
+.pred-filter-status {
+  color: var(--chalk-dim);
+  font-size: 12.5px;
+  margin: 0 0 14px;
+}
+.pred-filter-status b { color: var(--chalk); }
+.pred-filter-status button {
+  margin-left: 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--rust);
+  color: var(--cream);
+  border: none;
+  padding: 5px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+}
+.pred-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 8px;
+}
+.pred-filter-group-title {
+  grid-column: 1 / -1;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  margin: 10px 0 2px;
+}
+.pred-filter-group-title:first-child { margin-top: 0; }
+.pred-filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+.pred-filter-row-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.02em; }
+.pred-filter-row-pending-text { font-size: 12px; color: var(--chalk-dim); font-style: italic; }
+.pred-filter-choices { display: flex; gap: 4px; }
+.pred-filter-choice {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--chalk-dim);
+  background: var(--cream);
+  border: 1px solid var(--panel-line);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.12s;
+}
+.pred-filter-choice:hover { border-color: var(--gold); color: var(--chalk); }
+.pred-filter-choice.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+.pred-filter-choice.pred-filter-unmark { flex: 0 0 auto; font-size: 11px; }
+.pred-filter-choice.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
+
+.pred-filter-award-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-line);
+}
+.pred-filter-award-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pred-filter-pill {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--chalk-dim);
+  background: var(--cream);
+  border: 1px solid var(--panel-line);
+  border-radius: 99px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.pred-filter-pill:hover { border-color: var(--gold); color: var(--chalk); }
+.pred-filter-pill.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+.pred-filter-pill.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
+
+.pred-filter-stale-note {
+  color: var(--rust);
+  font-size: 12px;
+  font-weight: 600;
+  margin: -8px 0 14px;
+}
+
+@media (max-width: 640px) {
+  .pred-filter-bar { grid-template-columns: 1fr; }
+}
+
 /* proyeccion / clasificacion */
 .pred-score-row {
   display: grid;
@@ -1558,6 +1667,8 @@ main {
   border-radius: 99px;
 }
 .pred-match-resolved { color: var(--gold-bright); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+.pred-match-card.hypothetical { border-color: rgba(192,57,43,0.35); background: rgba(192,57,43,0.05); }
+.pred-match-card.hypothetical .pred-match-resolved { color: var(--rust); }
 .pred-odds-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--chalk-dim); }
 .pred-odds-track { flex: 1 1 140px; max-width: 280px; height: 6px; background: rgba(59, 46, 31, 0.08); border-radius: 3px; overflow: hidden; }
 .pred-odds-fill { height: 100%; background: var(--gold); }
@@ -1583,6 +1694,7 @@ main {
   padding: 10px 14px;
 }
 .pred-bracket-card.resolved { border-color: rgba(212,162,60,0.4); background: rgba(212,162,60,0.06); }
+.pred-bracket-card.resolved.hypothetical { border-color: rgba(192,57,43,0.35); background: rgba(192,57,43,0.05); }
 .pred-bracket-team { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 0; font-size: 13px; }
 .pred-bracket-team.fav { font-weight: 700; color: var(--chalk); }
 .pred-bracket-team.dim { color: var(--chalk-dim); }
@@ -1774,50 +1886,10 @@ main {
   .pred-camino-event { grid-template-columns: 1fr; }
 }
 
-/* PRUEBA: simulador interactivo */
-.pred-sim-wrap { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; align-items: start; }
-.pred-sim-controls {
-  background: var(--panel);
-  border: 1px solid var(--panel-line);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px;
-  max-height: 560px;
-  overflow-y: auto;
-}
-.pred-sim-group-title { font-family: var(--font-display); font-size: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.05em; margin: 14px 0 6px; }
-.pred-sim-group-title:first-child { margin-top: 0; }
-.pred-sim-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; }
-.pred-sim-row-label { font-size: 12px; color: var(--chalk-dim); flex: 0 0 100px; }
-.pred-sim-choices { display: flex; gap: 6px; flex: 1; }
-.pred-sim-choice {
-  flex: 1;
-  font-family: var(--font-body);
-  font-size: 12.5px;
-  background: var(--cream-mid);
-  border: 1px solid var(--panel-line);
-  color: var(--chalk-dim);
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.pred-sim-choice:hover { color: var(--chalk); }
-.pred-sim-choice.active { background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 600; }
-.pred-sim-pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.pred-sim-pill {
-  font-family: var(--font-body);
-  font-size: 12px;
-  background: var(--cream-mid);
-  border: 1px solid var(--panel-line);
-  color: var(--chalk-dim);
-  padding: 6px 12px;
-  border-radius: 99px;
-  cursor: pointer;
-}
-.pred-sim-pill:hover { color: var(--chalk); }
-.pred-sim-pill.active { background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 600; }
-
-.pred-sim-results { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 12px; }
+/* Clasificación de un único escenario (favoritos + lo fijado en "Filtra
+   por resultado") */
+.pred-sim-wrap { display: flex; }
+.pred-sim-results { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 .pred-sim-result-row {
   display: grid;
   grid-template-columns: 28px 1fr auto auto;
@@ -1837,18 +1909,6 @@ main {
 
 .pred-sim-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
-.pred-sim-reset {
-  font-family: var(--font-display);
-  font-size: 13px;
-  background: var(--panel);
-  border: 1px solid var(--panel-line);
-  color: var(--chalk-dim);
-  padding: 9px 16px;
-  border-radius: 99px;
-  cursor: pointer;
-}
-.pred-sim-reset:hover { color: var(--chalk); border-color: var(--gold); }
-
 .pred-sim-share {
   font-family: var(--font-display);
   font-size: 13px;
@@ -1861,12 +1921,6 @@ main {
   cursor: pointer;
 }
 .pred-sim-share:hover { background: var(--gold-bright); border-color: var(--gold-bright); }
-
-@media (max-width: 800px) {
-  .pred-sim-wrap { grid-template-columns: 1fr; }
-  .pred-sim-controls { max-height: none; }
-  .pred-sim-results { position: static; }
-}
 
 /* PRUEBA: quién va con quién */
 .pred-affinity-wrap { overflow-x: auto; }
