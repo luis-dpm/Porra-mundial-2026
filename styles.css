@@ -692,11 +692,13 @@ main {
 .pred-guess.guess-exact { color: var(--gold-bright); font-weight: 700; }
 .pred-badges { display: flex; gap: 5px; flex-wrap: wrap; }
 .badge {
+  font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
-  border-radius: 99px;
+  border-radius: var(--radius-sm);
   letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 .badge.b-sign { background: rgba(111,168,220,0.18); color: var(--player-2); }
 .badge.badge-sign-1 { background: rgba(111,168,220,0.2); color: #2C5F94; }

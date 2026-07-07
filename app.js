@@ -4,7 +4,7 @@ const PLAYERS = D.players;
 
 // Paleta fija por posición en la lista de jugadores (no por nombre), para que
 // siga funcionando aunque alguien cambie su nombre en el Excel.
-const COLOR_PALETTE = ['#BE7F1E', '#3676B0', '#C0392B', '#7455C4', '#2E9A63', '#BD4C8E', '#D2711E', '#2E8F8F', '#8A6A3A'];
+const COLOR_PALETTE = ['#D9541F', '#3676B0', '#C0392B', '#7455C4', '#2E9A63', '#BD4C8E', '#B8860B', '#2E8F8F', '#8A6A3A'];
 const DASH_PALETTE = [[], [6,3], [2,2], [6,3,2,3], [2,2,6,2], [4,4], [1,1], [3,1,1,1], [5,2,1,2]];
 
 const PLAYER_COLORS = {};
@@ -228,8 +228,8 @@ function renderPositionChart() {
   let gridLines = '';
   for (let pos = 1; pos <= n; pos++) {
     const y = yFor(pos);
-    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(59,46,31,0.1)" stroke-width="1"/>`;
-    gridLines += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#7C6B4E" font-family="Space Mono, monospace">${pos}</text>`;
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(36,26,18,0.1)" stroke-width="1"/>`;
+    gridLines += `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#7C6650" font-family="Space Mono, monospace">${pos}</text>`;
   }
 
   // Etiquetas de fecha en el eje X (todas si caben pocas, si no cada 2)
@@ -238,7 +238,7 @@ function renderPositionChart() {
   dates.forEach((d, i) => {
     if (i % step !== 0 && i !== dates.length - 1) return;
     const x = xFor(i);
-    xLabels += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="#7C6B4E" font-family="Inter, sans-serif">${fmtDate(d)}</text>`;
+    xLabels += `<text x="${x}" y="${H - padB + 18}" text-anchor="middle" font-size="10" fill="#7C6650" font-family="Inter, sans-serif">${fmtDate(d)}</text>`;
   });
 
   // Una polilínea + puntos por jugador
@@ -267,7 +267,7 @@ function renderPositionChart() {
       ${gridLines}
       ${xLabels}
       ${seriesSvg}
-      <text x="${padL - 28}" y="${padT}" font-size="10" fill="#7C6B4E" font-family="Inter, sans-serif" transform="rotate(-90 ${padL-28} ${padT})" text-anchor="end"></text>
+      <text x="${padL - 28}" y="${padT}" font-size="10" fill="#7C6650" font-family="Inter, sans-serif" transform="rotate(-90 ${padL-28} ${padT})" text-anchor="end"></text>
     </svg>
   `;
 }
@@ -275,9 +275,9 @@ function renderPositionChart() {
 function renderCharts() {
   const labels = D.dates.map(fmtDate);
 
-  Chart.defaults.color = '#7C6B4E';
+  Chart.defaults.color = '#7C6650';
   Chart.defaults.font.family = "'Inter', sans-serif";
-  Chart.defaults.borderColor = 'rgba(59,46,31,0.1)';
+  Chart.defaults.borderColor = 'rgba(36,26,18,0.1)';
 
   const c1 = new Chart(document.getElementById('dailyChart'), {
     type: 'bar',
@@ -286,7 +286,7 @@ function renderCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Puntos del día', color: '#7C6B4E' }, ticks: { stepSize: 2 } },
+        y: { beginAtZero: true, title: { display: true, text: 'Puntos del día', color: '#7C6650' }, ticks: { stepSize: 2 } },
         x: { grid: { display: false } }
       }
     }
@@ -305,7 +305,7 @@ function renderCharts() {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Puntos totales acumulados', color: '#7C6B4E' } },
+        y: { beginAtZero: true, title: { display: true, text: 'Puntos totales acumulados', color: '#7C6650' } },
         x: { grid: { display: false } }
       }
     }
@@ -1684,8 +1684,8 @@ function renderPredCaminoContent(player) {
 
 // ---------- Tarjeta compartible de la clasificación del simulador ----------
 const SHARE_COLORS = {
-  cream: '#FBF3E3', creamMid: '#F7EEDA', chalk: '#3B2E1F', chalkDim: '#7C6B4E',
-  gold: '#BE7F1E', goldBright: '#DE9C2E', rust: '#C0392B', ink: '#2E2417', panelLine: 'rgba(59,46,31,0.14)',
+  cream: '#EFE1C4', creamMid: '#E9D8B8', chalk: '#241A12', chalkDim: '#7C6650',
+  gold: '#D9541F', goldBright: '#F2823D', rust: '#C0392B', ink: '#1D140F', panelLine: 'rgba(36,26,18,0.14)',
 };
 
 function drawCenteredText(ctx, text, x, y, font, color, letterSpacing) {
@@ -1759,11 +1759,11 @@ async function drawSimShareCard(canvas) {
   ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(90, 122); ctx.lineTo(W - 90, 122); ctx.stroke();
 
-  drawCenteredText(ctx, 'CON LO YA DECIDIDO...', W / 2, 190, "bold 42px 'Oswald'", CL.chalk);
+  drawCenteredText(ctx, 'CON LO YA DECIDIDO...', W / 2, 190, "42px 'Anton'", CL.chalk);
 
   let my = 240;
   if (matchRows.length > 0) {
-    drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "bold 20px 'Oswald'", CL.goldBright, 1.5);
+    drawCenteredText(ctx, '· RESULTADOS ELEGIDOS ·', W / 2, 235, "20px 'Anton'", CL.goldBright, 1.5);
     my = 280;
   }
   matchRows.forEach(m => {
@@ -1805,7 +1805,7 @@ async function drawSimShareCard(canvas) {
 
   ctx.strokeStyle = CL.panelLine; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(90, oy + 10); ctx.lineTo(W - 90, oy + 10); ctx.stroke();
-  drawCenteredText(ctx, '· ASÍ QUEDA LA PORRA ·', W / 2, oy + 55, "bold 22px 'Oswald'", CL.goldBright, 1.5);
+  drawCenteredText(ctx, '· ASÍ QUEDA LA PORRA ·', W / 2, oy + 55, "22px 'Anton'", CL.goldBright, 1.5);
 
   let ry = oy + 100;
   const rowH = leaderRowH;
@@ -1819,7 +1819,7 @@ async function drawSimShareCard(canvas) {
     ctx.strokeStyle = CL.gold; ctx.lineWidth = 2; ctx.stroke();
     drawCenteredText(ctx, String(rank), 140, cy + 9, "bold 26px 'Space Mono'", rank === 1 ? CL.ink : CL.chalk);
 
-    ctx.font = "bold 30px 'Oswald'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'left';
+    ctx.font = "30px 'Anton'"; ctx.fillStyle = CL.chalk; ctx.textAlign = 'left';
     ctx.fillText(p, 190, cy + 10);
 
     ctx.font = "bold 34px 'Space Mono'"; ctx.fillStyle = CL.goldBright; ctx.textAlign = 'right';
