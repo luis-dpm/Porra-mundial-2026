@@ -56,10 +56,10 @@ KNOWN_MATCHUPS = {
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al lunes 6 jul.
 # 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
-# 2-4, semis, final, 3º-4º puesto).
+# 2-4, semis, final, 3º-4º puesto). Actualizado 7 jul. 2026.
 ELO = {
-    "España": 2159, "Argentina": 2151, "Francia": 2143, "Inglaterra": 2046,
-    "Brasil": 1993, "Portugal": 2013, "Colombia": 2009, "México": 1943,
+    "España": 2177, "Argentina": 2151, "Francia": 2143, "Inglaterra": 2076,
+    "Brasil": 1993, "Portugal": 1995, "Colombia": 2009, "México": 1913,
     "Suiza": 1943, "Noruega": 1972, "Marruecos": 1921, "Bélgica": 1910,
     "Paraguay": 1814, "Estados Unidos": 1798, "Canadá": 1729, "Egipto": 1747,
 }
