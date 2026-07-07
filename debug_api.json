@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-07T02:01:11.456590Z",
+  "generated_at": "2026-07-07T02:31:02.733649Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -712,6 +712,12 @@
       "away_api": "Spain",
       "score": "0-1",
       "utcDate": "2026-07-06T19:00:00Z"
+    },
+    {
+      "home_api": "United States",
+      "away_api": "Belgium",
+      "score": "1-4",
+      "utcDate": "2026-07-07T00:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1276,7 +1282,7 @@
     {
       "home_api": "United States",
       "away_api": "Belgium",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-07T00:00:00Z"
     },
     {
