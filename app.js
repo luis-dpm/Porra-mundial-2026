@@ -1306,8 +1306,8 @@ let PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
 let predMode = 'uniform';
 let predCaminoPlayer = PRED_PLAYERS[0] || null;
-let predRound = 'Octavos';
-const PRED_ROUNDS = ['Octavos', 'Cuartos', 'Semis', 'Final', '3º-4º puesto'];
+let predRound = 'Cuartos';
+const PRED_ROUNDS = ['Cuartos', 'Semis', 'Final', '3º-4º puesto'];
 
 document.querySelectorAll('.pred-mode-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1330,7 +1330,7 @@ function renderPredModeNote() {
   if (predMode === 'uniform') {
     el.innerHTML = 'Cada uno de los partidos que quedan se trata como una moneda al aire (50%/50%). La Bota y el Balón de Oro usan su cuota real de Polymarket en los dos modos: no tendría sentido fingir que todos los candidatos tienen la misma probabilidad.';
   } else {
-    el.innerHTML = 'Modelo híbrido: los octavos que quedan y Cuartos 1 (Marruecos-Francia, ya es un cruce real) usan la cuota real "to advance" de <b>Kalshi</b>. El resto de cuartos, semis, final y el 3º-4º puesto usan el <b>rating Elo</b> de cada selección como ancla estable. La Bota y el Balón de Oro usan Polymarket.';
+    el.innerHTML = 'Modelo híbrido: los cuatro cruces de cuartos, que ya son reales (Francia-Marruecos, España-Bélgica, Noruega-Inglaterra, Argentina-Suiza), usan la cuota real "to advance" de <b>Kalshi</b>. Semis, final y el 3º-4º puesto usan el <b>rating Elo</b> de cada selección como ancla estable, porque esos cruces todavía no existen como mercado. La Bota y el Balón de Oro usan Polymarket.';
   }
 }
 
@@ -1434,18 +1434,6 @@ function renderPredRoundSelector() {
   });
 }
 
-function predResolvedCardHTML(o) {
-  const statusText = o.locked ? '🔒 Fijado (hipotético)' : `Jugado · ${o.score}`;
-  return `
-    <div class="pred-match-card${o.locked ? ' hypothetical' : ''}">
-      <div class="pred-match-head">
-        <div class="pred-match-teams">${o.a} <span style="color:var(--chalk-dim)">vs</span> ${o.b}</div>
-        <div class="pred-match-resolved">${statusText}</div>
-      </div>
-      <div class="pred-odds-line">Pasa a cuartos: <b style="color:var(--chalk)">${o.winner}</b></div>
-    </div>`;
-}
-
 function predResolvedNodeCardHTML(label, team, isReal) {
   return `
     <div class="pred-match-card${isReal ? '' : ' hypothetical'}">
@@ -1493,9 +1481,6 @@ function renderPredRoundContent() {
   if (!PD) return;
   const src = predMode === 'uniform' ? PD.matches_uniform : PD.matches_weighted;
   let html = '';
-  if (predRound === 'Octavos') {
-    html += PD.bracket.octavos.filter(o => o.resolved).map(predResolvedCardHTML).join('');
-  }
   // Un cuartos/semis/final/3º-4º puesto ya decidido (de verdad o fijado a
   // mano con el filtro) no tiene "partido que mueva la porra" -- si no se
   // muestra aquí, desaparece sin más de la pestaña de su ronda.
@@ -1557,22 +1542,6 @@ function renderPredHeatmap() {
   document.getElementById('predHeatmapWrap').innerHTML = svg;
 }
 
-function predBracketLeafHTML(o) {
-  if (o.resolved) {
-    // Mismo alto de 2 filas que la tarjeta con cuota, para que la columna de
-    // octavos no quede más alta/baja que el resto y descuadre el árbol.
-    const tag = o.locked ? '🔒 ' : '★ ';
-    return `<div class="pred-bracket-card resolved${o.locked ? ' hypothetical' : ''}">
-      <div class="pred-bracket-team ${o.a === o.winner ? 'fav' : 'dim'}"><span>${o.a === o.winner ? tag : ''}${o.a}</span><span class="pred-bracket-pct">${o.a === o.winner ? o.score : ''}</span></div>
-      <div class="pred-bracket-team ${o.b === o.winner ? 'fav' : 'dim'}"><span>${o.b === o.winner ? tag : ''}${o.b}</span><span class="pred-bracket-pct">${o.b === o.winner ? o.score : ''}</span></div>
-    </div>`;
-  }
-  const aFav = o.aProbW >= o.bProbW;
-  return `<div class="pred-bracket-card">
-    <div class="pred-bracket-team ${aFav ? 'fav' : 'dim'}"><span>${o.a}</span><span class="pred-bracket-pct">${o.aProbW}%</span></div>
-    <div class="pred-bracket-team ${!aFav ? 'fav' : 'dim'}"><span>${o.b}</span><span class="pred-bracket-pct">${o.bProbW}%</span></div>
-  </div>`;
-}
 function predBracketNodeHTML(node) {
   const top = node.top;
   const maxPct = Math.max(...top.map(t => t.pct));
@@ -1598,7 +1567,6 @@ function renderPredBracket() {
   if (!PD) return;
   const bk = PD.bracket;
   let html = '';
-  html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Octavos</div><div class="pred-bracket-grid">${bk.octavos.map(predBracketLeafHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Cuartos</div><div class="pred-bracket-grid">${bk.qf.map(predBracketNodeHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">Semis</div><div class="pred-bracket-grid">${bk.sf.map(predBracketNodeHTML).join('')}</div></div>`;
   html += `<div class="pred-bracket-round"><div class="pred-bracket-round-title">🏆 Campeón</div><div class="pred-bracket-grid">${predBracketNodeHTML(bk.campeon)}</div></div>`;
@@ -1611,7 +1579,21 @@ function renderPredBracket() {
 }
 
 // ---------- Distribución de posición final ----------
-const PRED_RANK_COLORS = ['var(--gold-bright)', 'var(--gold)', '#B08A3E', '#8A7048', 'var(--chalk-dim)', '#5C4E3A', 'var(--rust)'];
+// Rampa "brasa que se apaga": del ascua más viva (1º) al carbón frío (7º),
+// en vez de la vieja mezcla de dorados y marrones apagados que se
+// confundían entre sí. Cada color trae ya su texto de contraste (claro u
+// oscuro según toque) porque a partir del 3er puesto el fondo es lo
+// bastante oscuro para que el texto claro dejara de leerse bien encima
+// de los dos primeros.
+const PRED_RANK_COLORS = [
+  { bg: '#F2823D', fg: '#1D140F' },
+  { bg: '#D9541F', fg: '#1D140F' },
+  { bg: '#B8501F', fg: '#FBF4E6' },
+  { bg: '#96552B', fg: '#FBF4E6' },
+  { bg: '#745039', fg: '#FBF4E6' },
+  { bg: '#4A3527', fg: '#FBF4E6' },
+  { bg: '#241A12', fg: '#FBF4E6' },
+];
 function renderPredRankDist() {
   if (!PD) return;
   const players = PD.players.slice().sort((a, b) => b[predMode].win_pct - a[predMode].win_pct);
@@ -1620,14 +1602,15 @@ function renderPredRankDist() {
     const segs = dist.map((pct, i) => {
       if (pct <= 0) return '';
       const label = pct >= 7 ? `${pct.toFixed(0)}%` : '';
-      return `<div class="pred-rankdist-seg" style="width:${pct}%;background:${PRED_RANK_COLORS[i]}" title="${p.name} · ${i + 1}º puesto: ${pct.toFixed(1)}%">${label}</div>`;
+      const { bg, fg } = PRED_RANK_COLORS[i];
+      return `<div class="pred-rankdist-seg" style="width:${pct}%;background:${bg};color:${fg}" title="${p.name} · ${i + 1}º puesto: ${pct.toFixed(1)}%">${label}</div>`;
     }).join('');
     return `<div class="pred-rankdist-row">
       <div class="pred-rankdist-name">${p.name}</div>
       <div class="pred-rankdist-bar">${segs}</div>
     </div>`;
   }).join('');
-  const legend = PRED_RANK_COLORS.map((c, i) => `<span><span class="pred-rankdist-swatch" style="background:${c}"></span>${i + 1}º</span>`).join('');
+  const legend = PRED_RANK_COLORS.map((c, i) => `<span><span class="pred-rankdist-swatch" style="background:${c.bg}"></span>${i + 1}º</span>`).join('');
   document.getElementById('predRankDistWrap').innerHTML = rows + `<div class="pred-rankdist-legend">${legend}</div>`;
 }
 
@@ -2171,9 +2154,9 @@ function renderPredDeadList() {
 function renderPredMethodology() {
   if (!PD) return;
   document.getElementById('predMethodology').innerHTML = `
-    <div class="pred-note"><b>Qué se simula:</b> desde los octavos que aún no se han jugado hasta la final y el 3º-4º puesto, con dos resultados posibles por partido (2<sup>${PD.n_remaining_matches}</sup> = ${PD.n_combinations.toLocaleString('es-ES')} combinaciones). Los puntos por ronda (12/24/48/24 según equipo clasificado, más 96/48/16 por Campeón/Subcampeón/3º puesto) son los mismos que usa la pestaña Eliminatoria; la Bota y el Balón de Oro (24 pts cada uno) se añaden con su probabilidad real de mercado.</div>
+    <div class="pred-note"><b>Qué se simula:</b> desde los cuartos que quedan hasta la final y el 3º-4º puesto, con dos resultados posibles por partido (2<sup>${PD.n_remaining_matches}</sup> = ${PD.n_combinations.toLocaleString('es-ES')} combinaciones). Los puntos por ronda (12/24/48/24 según equipo clasificado, más 96/48/16 por Campeón/Subcampeón/3º puesto) son los mismos que usa la pestaña Eliminatoria; la Bota y el Balón de Oro (24 pts cada uno) se añaden con su probabilidad real de mercado.</div>
     <div class="pred-note"><b>Equiprobable:</b> cada partido que queda es una moneda al aire (50%/50%). Sirve para ver el rango de resultados "si todo fuera puro azar", sin opinar sobre quién es mejor equipo.</div>
-    <div class="pred-note"><b>Kalshi + Elo:</b> los octavos que quedan y Cuartos 1 (Marruecos-Francia, ya es un cruce real) usan la cuota "to advance" de <a href="https://kalshi.com/category/sports/soccer/fifa-world-cup/world-cup/games" target="_blank" rel="noopener">Kalshi</a>. El resto de cuartos, semis, final y el 3º-4º puesto usan el rating <a href="https://www.eloratings.net/2026_World_Cup" target="_blank" rel="noopener">World Football Elo</a> de cada selección (P(A gana a B) = 1/(1+10^(−(Elo_A−Elo_B)/400))) como ancla estable, porque el cruce concreto todavía no existe como mercado.</div>
+    <div class="pred-note"><b>Kalshi + Elo:</b> los cuatro cruces de cuartos, que ya son reales, usan la cuota "to advance" de <a href="https://kalshi.com/category/sports/soccer/fifa-world-cup/world-cup/games" target="_blank" rel="noopener">Kalshi</a>. Semis, final y el 3º-4º puesto usan el rating <a href="https://www.eloratings.net/2026_World_Cup" target="_blank" rel="noopener">World Football Elo</a> de cada selección (P(A gana a B) = 1/(1+10^(−(Elo_A−Elo_B)/400))) como ancla estable, porque esos cruces todavía no existen como mercado.</div>
     <div class="pred-note"><b>Bota y Balón de Oro:</b> probabilidades reales de los mercados "Golden Boot Winner" / "Golden Ball Winner" de <a href="https://polymarket.com/sports/world-cup" target="_blank" rel="noopener">Polymarket</a>, iguales en los dos modos.</div>
     <div class="pred-note"><b>La cena:</b> 1º no paga, 4º paga lo suyo (1 chuletón), 7º paga el doble (2 = lo suyo y lo de otro), con pasos de 1/3 entre medias. Empates a puntos reparten el chuletón de esas posiciones a partes iguales.</div>
   `;

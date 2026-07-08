@@ -621,13 +621,8 @@ function renderPredFilterBar() {
   const kw = feKnownWinners(feLocks);
   let html = '';
 
-  let octavosRows = '';
-  topo.octavos.forEach((o, i) => {
-    if (o.resolved) return;
-    octavosRows += feFilterRowHTML('octavos', i, 'Octavos', o.a, o.b, feLocks.octavos[i]);
-  });
-  html += feGroupHTML('Octavos', octavosRows);
-
+  // Los octavos ya se jugaron todos de verdad -- no queda ninguno que
+  // fijar aquí, así que este filtro empieza directamente en cuartos.
   let qfRows = '';
   topo.qf_pairs.forEach((pair, k) => {
     if (topo.qf_resolved[k]) return;
