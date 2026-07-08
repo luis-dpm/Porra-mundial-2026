@@ -1304,7 +1304,7 @@ let PD = typeof PREDICTIONS_DATA !== 'undefined' ? PREDICTIONS_DATA : null;
 // nota sobre SIM_ELO más abajo), así que calcularlo una sola vez aquí es
 // seguro; scripts/filter_engine.js reutiliza esta misma lista.
 const PRED_PLAYERS = PD ? PD.players.map(p => p.name) : [];
-let predMode = 'uniform';
+let predMode = 'weighted';
 let predCaminoPlayer = PRED_PLAYERS[0] || null;
 let predRound = 'Cuartos';
 const PRED_ROUNDS = ['Cuartos', 'Semis', 'Final', '3º-4º puesto'];
