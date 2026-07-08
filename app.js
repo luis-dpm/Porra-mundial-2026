@@ -37,7 +37,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('page-' + btn.dataset.tab).classList.add('active');
-    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    btn.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (btn.dataset.tab === 'graficos') {

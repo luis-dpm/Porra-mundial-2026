@@ -474,7 +474,7 @@ main {
 }
 
 @media (max-width: 640px) {
-  .section-divider span { font-size: 12.5px; padding: 7px 12px 6px 20px; white-space: normal; }
+  .section-divider span { font-size: 12.5px; padding: 7px 12px 6px; white-space: normal; }
 }
 
 /* ============ DAY SELECTOR ============ */
@@ -1543,7 +1543,6 @@ main {
   padding: 8px 10px;
   border-radius: 99px;
   cursor: pointer;
-  transition: all 0.15s;
 }
 .pred-mode-btn:hover { color: var(--chalk); }
 .pred-mode-btn.active { background: var(--gold); color: var(--ink); }
