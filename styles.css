@@ -1871,11 +1871,28 @@ main {
 .pred-dead-row.head { background: none; border: none; color: var(--chalk-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; padding-bottom: 0; }
 .pred-dead-tag { font-family: var(--font-mono); background: rgba(196,69,54,0.1); color: #B23A2A; padding: 1px 8px; border-radius: 99px; display: inline-block; }
 
+/* En móvil, las filas de "Clasificación proyectada" y "La cena" antes
+   bajaban el número/porcentaje a su propia línea a todo ancho -- cada
+   fila ocupaba casi una pantalla entera para 7 jugadores. Se quedan en
+   una sola fila compacta, todo más pequeño pero sin perder ningún dato. */
 @media (max-width: 640px) {
-  .pred-score-row { grid-template-columns: 30px 1fr; }
-  .pred-score-side { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; margin-top: 4px; }
-  .pred-chop-row { grid-template-columns: 24px 1fr; }
-  .pred-chop-value { grid-column: 1 / -1; text-align: left; margin-top: 4px; }
+  .pred-score-row { grid-template-columns: 20px 1fr auto; gap: 8px; padding: 9px 12px; }
+  .pred-score-rank { font-size: 11px; }
+  #predScoreboard .pred-score-row.rank-1 .pred-score-rank { width: 22px; height: 22px; font-size: 11px; }
+  .pred-score-mid { gap: 3px; }
+  .pred-score-name { font-size: 13px; }
+  .pred-score-current { font-size: 10px; }
+  .pred-range-label { font-size: 9.5px; }
+  .pred-score-side { min-width: 0; gap: 0; }
+  .pred-win-pct { font-size: 16px; }
+  .pred-win-label { font-size: 7.5px; }
+
+  .pred-chop-row { grid-template-columns: 18px 1fr auto; gap: 8px; padding: 9px 12px; }
+  .pred-chop-icon { font-size: 14px; }
+  .pred-chop-name { font-size: 13px; }
+  .pred-chop-value { font-size: 15px; }
+  .pred-chop-value span { font-size: 8px; }
+
   .pred-dead-row { grid-template-columns: 1fr; }
 }
 
