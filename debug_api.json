@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-08T06:01:20.793932Z",
+  "generated_at": "2026-07-08T06:31:08.877975Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -125,7 +125,8 @@
     "penalty_winners": [
       "Alemania-Paraguay: gana Paraguay",
       "Australia-Egipto: gana Egipto",
-      "Países Bajos-Marruecos: gana Marruecos"
+      "Países Bajos-Marruecos: gana Marruecos",
+      "Suiza-Colombia: gana Suiza"
     ],
     "dieciseisavos_fuente_cruce": {
       "73": "directo",
@@ -1328,8 +1329,8 @@
       "utcDate": "2026-07-11T21:00:00Z"
     },
     {
-      "home_api": null,
-      "away_api": null,
+      "home_api": "Argentina",
+      "away_api": "Switzerland",
       "status": "TIMED",
       "utcDate": "2026-07-12T01:00:00Z"
     },
