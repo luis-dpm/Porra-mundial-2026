@@ -107,9 +107,10 @@ body {
   margin: 0 auto;
   padding: 14px 18px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 4px 16px;
 }
 .brand {
   display: flex;
@@ -139,15 +140,18 @@ body {
   letter-spacing: 0.1em;
 }
 
-/* Pestañas de navegación: tira horizontal con scroll propio, siempre
-   visible bajo la marca -- mismo lenguaje que los selectores de jornada/
-   ronda del resto del sitio, en vez de un menú hamburguesa que escondía
-   a qué página estabas a un toque de distancia. */
+/* Pestañas de navegación: tira horizontal con scroll propio -- mismo
+   lenguaje que los selectores de jornada/ronda del resto del sitio, en
+   vez de un menú hamburguesa que escondía a qué página estabas a un
+   toque de distancia. En móvil/tablet cae a su propia fila entera bajo
+   la marca (no caben las 7 al lado del logo); en escritorio se queda en
+   la misma fila que la marca, pegada al lado derecho. */
 .tabs {
   display: flex;
+  flex: 1 1 100%;
   gap: 6px;
   overflow-x: auto;
-  padding: 0 18px 14px;
+  padding: 0 0 4px;
   scrollbar-width: thin;
 }
 .tab-btn {
@@ -177,47 +181,16 @@ body {
   outline-offset: 2px;
 }
 
-/* En escritorio la fila horizontal bajo la marca competía con el logo por
-   protagonismo -- la barra entera pasa a ser una columna fija a la
-   izquierda (marca arriba, pestañas debajo, todo en vertical), como el
-   filtro fijo de Predicciones. Por debajo de 900px no hay sitio para una
-   columna permanente y se queda la barra horizontal de arriba. */
+/* En escritorio la marca se queda exactamente donde estaba (a la
+   izquierda, sola en su sitio) y las pestañas se van al lado derecho de
+   esa misma fila -- el hueco que antes ocupaba el hamburguesa. La barra
+   se ensancha un poco más que la columna de contenido (980px) para que
+   quepan las 7 sin apretarlas contra el logo; si aun así no caben todas,
+   la tira tiene su propio scroll horizontal en vez de romper la fila. */
 @media (min-width: 901px) {
-  .topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 230px;
-    display: flex;
-    flex-direction: column;
-    border-bottom: none;
-    border-right: 4px solid var(--gold);
-    box-shadow: 3px 0 16px rgba(20, 15, 8, 0.35);
-    overflow-y: auto;
-    scrollbar-width: thin;
-  }
-  .topbar::after { display: none; }
-  .topbar-inner {
-    max-width: none;
-    margin: 0;
-    padding: 26px 20px 18px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
-  .brand { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .tabs {
-    flex: 1;
-    flex-direction: column;
-    overflow-x: visible;
-    overflow-y: auto;
-    padding: 10px 14px 20px;
-    gap: 4px;
-  }
-  .tab-btn { width: 100%; text-align: left; }
-
-  body main { margin: 0 0 0 230px; max-width: 900px; }
+  .topbar-inner { max-width: 1300px; flex-wrap: nowrap; }
+  .brand { flex-shrink: 0; }
+  .tabs { flex: 0 1 auto; min-width: 0; padding: 0; }
 }
 
 /* ============ HONOR BOARD ============ */
