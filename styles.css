@@ -1576,6 +1576,30 @@ main {
 .pred-mode-btn.active { background: var(--gold); color: var(--ink); }
 .pred-mode-note { color: var(--chalk-dim); font-size: 12.5px; margin-bottom: 28px; max-width: 640px; }
 
+/* Filtro fijo en pantalla en escritorio: columna izquierda pegada bajo el
+   topbar, con su propio scroll si no cabe entero, para poder cambiar
+   resultados sin perder de vista cómo se mueve el resto de la página. Por
+   debajo de 900px no hay sitio para dos columnas -- vuelve al flujo
+   normal, a todo el ancho y sin pegar. */
+.pred-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 20px;
+}
+@media (min-width: 901px) {
+  .pred-layout { grid-template-columns: 280px 1fr; gap: 24px; }
+  .pred-filter-section {
+    position: sticky;
+    top: 88px;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .pred-layout .pred-filter-bar { grid-template-columns: 1fr; }
+}
+.pred-main { min-width: 0; }
+
 /* PRUEBA: filtro global de resultados */
 .pred-filter-section { margin-bottom: 12px; }
 .pred-filter-status {
@@ -1623,10 +1647,11 @@ main {
   gap: 4px;
   padding: 6px 0;
   border-bottom: 1.5px solid var(--panel-line);
+  min-width: 0;
 }
 .pred-filter-row-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.02em; }
 .pred-filter-row-pending-text { font-size: 12px; color: var(--chalk-dim); font-style: italic; }
-.pred-filter-choices { display: flex; gap: 4px; }
+.pred-filter-choices { display: flex; gap: 4px; min-width: 0; }
 .pred-filter-choice {
   flex: 1;
   min-width: 0;
@@ -1656,6 +1681,7 @@ main {
   gap: 6px;
   padding: 6px 0;
   border-bottom: 1.5px solid var(--panel-line);
+  min-width: 0;
 }
 .pred-filter-award-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .pred-filter-pill {

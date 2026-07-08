@@ -170,14 +170,18 @@
         <p class="page-sub" id="predIntro">—</p>
       </div>
 
-      <!-- PRUEBA: filtro global de resultados -->
-      <div class="pred-filter-section">
+      <div class="pred-layout">
+      <!-- PRUEBA: filtro global de resultados. Fijo en pantalla en escritorio
+           (columna izquierda, con scroll propio) para poder tocarlo sin
+           perder de vista lo que cambia debajo. -->
+      <aside class="pred-filter-section">
         <div class="section-divider"><span>🎛️ Filtra por resultado</span></div>
         <p class="chart-desc">Fija el resultado de cualquier partido que quede (o déjalo "sin marcar") y toda la página de abajo se recalcula para ese escenario. Los partidos sin marcar siguen pesando por su probabilidad real.</p>
         <p class="pred-filter-status" id="predFilterStatus"></p>
         <div class="pred-filter-bar" id="predFilterBar"></div>
-      </div>
+      </aside>
 
+      <div class="pred-main">
       <!-- Clasificación con solo los puntos ya seguros: resultados reales +
            lo que se haya fijado arriba en "Filtra por resultado". Un
            partido que se deje sin marcar no suma ni resta -- no se asume
@@ -264,6 +268,8 @@
 
       <div class="section-divider"><span>Metodología</span></div>
       <div id="predMethodology"></div>
+      </div>
+      </div>
     </div>
   </section>
 
