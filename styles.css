@@ -439,7 +439,11 @@ main {
 
 /* ============ SECTION DIVIDER ============ */
 /* Cada sección lleva su propia etiqueta de pizarra de carnicería: fondo
-   de hierro, texto quemado en Anton, clavada con un punto de ember. */
+   de hierro, texto quemado en Anton. Antes llevaba un puntito ember de
+   adorno a la izquierda, pero varias secciones ya empiezan con su propio
+   emoji (🥩, 🎯, 🔥...) y el punto al lado quedaba como un segundo
+   círculo rojo pegado al primero -- se quita y se deja el padding
+   simétrico. */
 .section-divider {
   display: flex;
   align-items: center;
@@ -455,22 +459,10 @@ main {
   text-transform: uppercase;
   color: var(--cream);
   background: var(--ink);
-  padding: 8px 16px 7px 22px;
+  padding: 8px 16px 7px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
   box-shadow: var(--shadow-card);
-}
-.section-divider span::before {
-  content: '';
-  position: absolute;
-  left: 9px;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 0 2px rgba(217, 84, 31, 0.25);
 }
 .section-divider::after {
   content: '';
@@ -1530,7 +1522,7 @@ main {
 .pred-intro b { color: var(--chalk); }
 
 .pred-mode-toggle {
-  display: inline-flex;
+  display: flex;
   gap: 4px;
   background: var(--panel);
   border: 1.5px solid var(--panel-line);
@@ -1539,13 +1531,16 @@ main {
   margin-bottom: 10px;
 }
 .pred-mode-btn {
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 500;
+  line-height: 1.25;
   color: var(--chalk-dim);
   background: none;
   border: none;
-  padding: 8px 16px;
+  padding: 8px 10px;
   border-radius: 99px;
   cursor: pointer;
   transition: all 0.15s;

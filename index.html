@@ -169,6 +169,13 @@
            (columna izquierda, con scroll propio) para poder tocarlo sin
            perder de vista lo que cambia debajo. -->
       <aside class="pred-filter-section">
+        <div class="section-divider"><span>⚖️ Modo de cálculo</span></div>
+        <div class="pred-mode-toggle" id="predModeToggle">
+          <button class="pred-mode-btn" data-mode="uniform">Equiprobable (50/50)</button>
+          <button class="pred-mode-btn active" data-mode="weighted">Kalshi + Elo</button>
+        </div>
+        <p class="pred-mode-note" id="predModeNote"></p>
+
         <div class="section-divider"><span>🎛️ Filtra por resultado</span></div>
         <p class="chart-desc">Fija el resultado de cualquier partido que quede (o déjalo "sin marcar") y toda la página de abajo se recalcula para ese escenario. Los partidos sin marcar siguen pesando por su probabilidad real.</p>
         <p class="pred-filter-status" id="predFilterStatus"></p>
@@ -189,12 +196,6 @@
       <div class="pred-sim-btn-row">
         <button class="pred-sim-share" id="predSimShareBtn">📤 Compartir esta clasificación</button>
       </div>
-
-      <div class="pred-mode-toggle" id="predModeToggle">
-        <button class="pred-mode-btn" data-mode="uniform">Equiprobable (50/50)</button>
-        <button class="pred-mode-btn active" data-mode="weighted">Kalshi + Elo</button>
-      </div>
-      <p class="pred-mode-note" id="predModeNote"></p>
 
       <!-- 1. Resumen -->
       <div class="section-divider"><span>🥇 Probabilidad de acabar 1º</span></div>
