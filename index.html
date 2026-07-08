@@ -178,6 +178,20 @@
         <div class="pred-filter-bar" id="predFilterBar"></div>
       </div>
 
+      <!-- Clasificación con solo los puntos ya seguros: resultados reales +
+           lo que se haya fijado arriba en "Filtra por resultado". Un
+           partido que se deje sin marcar no suma ni resta -- no se asume
+           ningún favorito. Compartible como imagen. Va primero porque no
+           depende del modo probabilístico de abajo, es lo ya certificado. -->
+      <div class="section-divider"><span>🎯 Clasificación con lo ya decidido</span></div>
+      <p class="chart-desc">Puntos y chuletones contando solo resultados reales y lo que hayas fijado en "Filtra por resultado" arriba. Lo que sigas dejando sin marcar no suma ni resta todavía.</p>
+      <div class="pred-sim-wrap">
+        <div class="pred-sim-results" id="predSimResults"></div>
+      </div>
+      <div class="pred-sim-btn-row">
+        <button class="pred-sim-share" id="predSimShareBtn">📤 Compartir esta clasificación</button>
+      </div>
+
       <div class="pred-mode-toggle" id="predModeToggle">
         <button class="pred-mode-btn" data-mode="uniform">Equiprobable (50/50)</button>
         <button class="pred-mode-btn active" data-mode="weighted">Kalshi + Elo</button>
@@ -185,7 +199,7 @@
       <p class="pred-mode-note" id="predModeNote"></p>
 
       <!-- 1. Resumen -->
-      <div class="section-divider"><span>Clasificación proyectada</span></div>
+      <div class="section-divider"><span>🥇 Probabilidad de acabar 1º</span></div>
       <p class="chart-desc" id="predScoreboardDesc"></p>
       <div id="predScoreboard"></div>
 
@@ -233,19 +247,6 @@
       <div id="predAwardsSection">
         <div class="section-divider"><span>🥾 Bota de Oro · ⚽ Balón de Oro</span></div>
         <div class="groups-grid" id="predAwardsGrid"></div>
-      </div>
-
-      <!-- Clasificación con solo los puntos ya seguros: resultados reales +
-           lo que se haya fijado arriba en "Filtra por resultado". Un
-           partido que se deje sin marcar no suma ni resta -- no se asume
-           ningún favorito. Compartible como imagen. -->
-      <div class="section-divider"><span>🎯 Clasificación con lo ya decidido</span></div>
-      <p class="chart-desc">Puntos y chuletones contando solo resultados reales y lo que hayas fijado en "Filtra por resultado" arriba. Lo que sigas dejando sin marcar no suma ni resta todavía.</p>
-      <div class="pred-sim-wrap">
-        <div class="pred-sim-results" id="predSimResults"></div>
-      </div>
-      <div class="pred-sim-btn-row">
-        <button class="pred-sim-share" id="predSimShareBtn">📤 Compartir esta clasificación</button>
       </div>
 
       <!-- PRUEBA: quién va con quién -->

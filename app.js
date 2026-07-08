@@ -1337,8 +1337,8 @@ function renderPredModeNote() {
 function renderPredScoreboard() {
   if (!PD) return;
   document.getElementById('predScoreboardDesc').textContent = predMode === 'uniform'
-    ? 'Rango total: el mínimo y el máximo absoluto que puede alcanzar cada jugador entre las 16.384 combinaciones (el extremo más bajo con todo en contra, el más alto acertando todo, incluidas Bota y Balón de Oro).'
-    : 'Rango probable (percentil 10–90): el 80% de los escenarios, ponderados por su probabilidad real (Kalshi + Elo), caen dentro de este tramo. Se quedan fuera el 10% de casos más bajo y el 10% más alto.';
+    ? 'Jugadores ordenados por probabilidad de acabar 1º. Rango total: el mínimo y el máximo absoluto que puede alcanzar cada jugador entre las 16.384 combinaciones (el extremo más bajo con todo en contra, el más alto acertando todo, incluidas Bota y Balón de Oro).'
+    : 'Jugadores ordenados por probabilidad de acabar 1º. Rango probable (percentil 10–90): el 80% de los escenarios, ponderados por su probabilidad real (Kalshi + Elo), caen dentro de este tramo. Se quedan fuera el 10% de casos más bajo y el 10% más alto.';
   const players = PD.players.slice().sort((a, b) => b[predMode].win_pct - a[predMode].win_pct);
   const maxHi = Math.max(...PD.players.map(p => p.total_max));
   const minLo = Math.min(...PD.players.map(p => p.total_min));
