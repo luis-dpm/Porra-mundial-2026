@@ -31,33 +31,13 @@ function fmtDateLong(iso) {
 let chartsRendered = false;
 let chartInstances = [];
 
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-const mainTabs = document.getElementById('mainTabs');
-const navScrim = document.getElementById('navScrim');
-
-function closeNav() {
-  mainTabs.classList.remove('open');
-  navScrim.classList.remove('open');
-  hamburgerBtn.setAttribute('aria-expanded', 'false');
-}
-function openNav() {
-  mainTabs.classList.add('open');
-  navScrim.classList.add('open');
-  hamburgerBtn.setAttribute('aria-expanded', 'true');
-}
-hamburgerBtn.addEventListener('click', () => {
-  if (mainTabs.classList.contains('open')) closeNav();
-  else openNav();
-});
-navScrim.addEventListener('click', closeNav);
-
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('page-' + btn.dataset.tab).classList.add('active');
-    closeNav();
+    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     if (btn.dataset.tab === 'graficos') {
