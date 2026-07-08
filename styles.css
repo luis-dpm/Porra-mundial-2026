@@ -154,27 +154,44 @@ body {
   padding: 0 0 4px;
   scrollbar-width: thin;
 }
+/* Etiquetas de brasero: forma de chapa (esquina más recta que las
+   píldoras sueltas del resto del sitio, para que la navegación principal
+   se lea como estructura y no como un filtro más), con un filo interior
+   claro arriba -- como metal repujado -- y la activa iluminada en
+   degradado ember con el mismo halo cálido que ya marca a un líder en el
+   resto del sitio. */
 .tab-btn {
+  position: relative;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
-  color: rgba(251, 243, 227, 0.72);
-  background: rgba(251, 243, 227, 0.07);
+  color: rgba(251, 243, 227, 0.68);
+  background: linear-gradient(180deg, rgba(251, 243, 227, 0.1), rgba(251, 243, 227, 0.02));
   border: 1px solid rgba(251, 243, 227, 0.14);
-  padding: 8px 14px;
-  border-radius: 99px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease),
+    border-color 0.2s var(--ease), box-shadow 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
-.tab-btn:hover { color: var(--cream); background: rgba(251, 243, 227, 0.14); }
+.tab-btn:hover {
+  color: var(--cream);
+  background: linear-gradient(180deg, rgba(251, 243, 227, 0.16), rgba(251, 243, 227, 0.04));
+  border-color: rgba(217, 84, 31, 0.5);
+  transform: translateY(-1px);
+}
 .tab-btn.active {
-  background: var(--gold);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
   color: var(--ink);
-  border-color: var(--gold);
+  border-color: var(--gold-bright);
   font-weight: 700;
+  box-shadow: var(--shadow-lead), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
 }
 .tab-btn:focus-visible {
   outline: 2px solid var(--gold-bright);
@@ -2108,7 +2125,7 @@ main {
     transform 0.16s var(--ease);
 }
 
-.tab-btn.active, .jornada-pill.active, .player-pill.active, .pred-mode-btn.active,
+.jornada-pill.active, .player-pill.active, .pred-mode-btn.active,
 .pred-filter-choice.active:not(.pred-filter-unmark),
 .pred-filter-pill.active:not(.pred-filter-unmark), .pred-round-pill.active,
 .pred-player-pill.active {
