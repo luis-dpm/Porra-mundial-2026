@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-09T22:01:10.477830Z",
+  "generated_at": "2026-07-09T22:31:06.514760Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -731,6 +731,12 @@
       "away_api": "Colombia",
       "score": "4-3",
       "utcDate": "2026-07-07T20:00:00Z"
+    },
+    {
+      "home_api": "France",
+      "away_api": "Morocco",
+      "score": "2-0",
+      "utcDate": "2026-07-09T20:00:00Z"
     }
   ],
   "TODOS_los_partidos_segun_api": [
@@ -1313,7 +1319,7 @@
     {
       "home_api": "France",
       "away_api": "Morocco",
-      "status": "IN_PLAY",
+      "status": "FINISHED",
       "utcDate": "2026-07-09T20:00:00Z"
     },
     {
