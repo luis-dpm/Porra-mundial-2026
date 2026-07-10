@@ -47,19 +47,19 @@ OCTAVOS_ODDS = {}
 # hybrid_prob() ya normaliza). Ver scripts/check_market_data.py para saber qué
 # cruce hay que añadir aquí en cada momento.
 KNOWN_MATCHUPS = {
-    frozenset({"Francia", "Marruecos"}): {"Francia": 0.78, "Marruecos": 0.22},  # Cuartos 1, partido 97, consultada 8 jul. 2026
-    frozenset({"España", "Bélgica"}): {"España": 0.73, "Bélgica": 0.27},  # Cuartos 2, partido 98, consultada 8 jul. 2026
-    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.37, "Inglaterra": 0.63},  # Cuartos 3, partido 99, consultada 8 jul. 2026
-    frozenset({"Argentina", "Suiza"}): {"Argentina": 0.73, "Suiza": 0.27},  # Cuartos 4, partido 100, consultada 8 jul. 2026
+    frozenset({"Francia", "Marruecos"}): {"Francia": 0.78, "Marruecos": 0.22},  # Cuartos 1, partido 97, consultada 8 jul. 2026 (ya resuelto: gana Francia)
+    frozenset({"España", "Bélgica"}): {"España": 0.73, "Bélgica": 0.27},  # Cuartos 2, partido 98, consultada 10 jul. 2026
+    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.36, "Inglaterra": 0.64},  # Cuartos 3, partido 99, consultada 10 jul. 2026
+    frozenset({"Argentina", "Suiza"}): {"Argentina": 0.72, "Suiza": 0.28},  # Cuartos 4, partido 100, consultada 10 jul. 2026
 }
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al lunes 6 jul.
 # 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
-# 2-4, semis, final, 3º-4º puesto). Actualizado 8 jul. 2026.
+# 2-4, semis, final, 3º-4º puesto). Actualizado 10 jul. 2026.
 ELO = {
-    "España": 2177, "Argentina": 2156, "Francia": 2143, "Inglaterra": 2076,
+    "España": 2177, "Argentina": 2156, "Francia": 2163, "Inglaterra": 2076,
     "Brasil": 1993, "Portugal": 1995, "Colombia": 2003, "México": 1913,
-    "Suiza": 1949, "Noruega": 1972, "Marruecos": 1921, "Bélgica": 1961,
+    "Suiza": 1949, "Noruega": 1972, "Marruecos": 1901, "Bélgica": 1961,
     "Paraguay": 1814, "Estados Unidos": 1747, "Canadá": 1729, "Egipto": 1742,
 }
 
@@ -75,26 +75,26 @@ def hybrid_prob(a, b):
         return odds[a] / (odds[a] + odds[b])
     return elo_prob(a, b)
 
-# Bota de Oro (consultada 8 jul. 2026). El mercado da cifras que suman
-# 101.41% (overround); se normalizan aquí proporcionalmente a 100% exacto.
+# Bota de Oro (consultada 10 jul. 2026). El mercado da cifras que suman
+# 100.4% (overround); se normalizan aquí proporcionalmente a 100% exacto.
 # Ojo: la clave debe ser "Julián Álvarez" completo, que es como aparece el
 # pick en la hoja (JUAN lo tiene picado; Kane lo tienen ADRIÁN y SU
 # FLORENTINEZA).
 GOLDEN_CANDIDATES = [
-    ("Mbappé", 0.4339), ("Messi", 0.3747), ("Haaland", 0.1183),
-    ("Kane", 0.069), ("Oyarzabal", 0.0039), ("Julián Álvarez", 0.0001),
-    ("Otros", 0.0),
+    ("Mbappé", 0.4382), ("Messi", 0.3685), ("Haaland", 0.1096),
+    ("Kane", 0.0697), ("Dembélé", 0.01), ("Oyarzabal", 0.0039),
+    ("Julián Álvarez", 0.0001), ("Otros", 0.0),
 ]
-# Balón de Oro (consultada 8 jul. 2026). El mercado suma 105.5%; normalizado
-# proporcionalmente a 100% exacto. Ojo: la clave debe ser "Lamine Yamal"
-# completo (no solo "Yamal") y "Declan Rice" completo, que es como aparecen
-# esos picks en la hoja (Yamal lo tienen picado 5 de 7 jugadores; Declan
-# Rice, SU FLORENTINEZA; Pedri, IVÁN DELGADO).
+# Balón de Oro (consultada 10 jul. 2026). El mercado suma 102.47%;
+# normalizado proporcionalmente a 100% exacto. Ojo: la clave debe ser
+# "Lamine Yamal" completo (no solo "Yamal") y "Declan Rice" completo, que es
+# como aparecen esos picks en la hoja (Yamal lo tienen picado 5 de 7
+# jugadores; Declan Rice, SU FLORENTINEZA; Pedri, IVÁN DELGADO).
 GOLDEN_BALL_CANDIDATES = [
-    ("Mbappé", 0.3507), ("Messi", 0.3318), ("Haaland", 0.0948),
-    ("Kane", 0.0853), ("Bellingham", 0.0569), ("Olise", 0.0284),
-    ("Dembélé", 0.019), ("Lamine Yamal", 0.019), ("Rodri", 0.0095),
-    ("Pedri", 0.0038), ("Declan Rice", 0.0009), ("Otros", 0.0),
+    ("Mbappé", 0.4393), ("Messi", 0.3025), ("Haaland", 0.0781),
+    ("Kane", 0.0781), ("Bellingham", 0.039), ("Lamine Yamal", 0.0293),
+    ("Dembélé", 0.0098), ("Olise", 0.0098), ("Rodri", 0.0098),
+    ("Pedri", 0.0037), ("Declan Rice", 0.0009), ("Otros", 0.0),
 ]
 
 # ------------------------------------------------------------- data.js I/O --
