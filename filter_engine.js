@@ -51,6 +51,13 @@ function feRound6(x) { return Math.round(x * 1e6) / 1e6; }
 // Puntos por acertar Bota/Balón de Oro (igual que en scripts/update_predictions.py).
 const FE_AWARD_BONUS = 24;
 
+// Rondas cuyo bit se sigue enumerando aunque estén ya decididas por un lock
+// (ver feMakeSimulator) -- usado para saber cuándo un 100%/0% en la tabla
+// de impacto viene de un partido de verdad ya certero (nunca en estas
+// rondas: cuartos/octavos ya salen del todo de la enumeración al fijarse) y
+// cuándo hay que ocultar la fila porque ya no queda incertidumbre real.
+const FE_STAGES_LOCKABLE = new Set(['Semis', 'Final', '3º-4º puesto']);
+
 // ---------------------------------------------------------- cascada de equipos conocidos --
 // Para cada ronda, qué equipos concretos juegan (null si su ronda anterior
 // todavía no está decidida ni por resultado real ni por un lock) y quién ha
@@ -495,7 +502,17 @@ function computeFilteredPD(locks) {
         stage, a, b, probA: feRound1(100 * A.impactMassA[m] / tot), probB: feRound1(100 * A.impactMassB[m] / tot),
         impact: feRound3(impact), players: playersDict,
       };
-    });
+    })
+      // Una semifinal/final/3º-4º puesto puede quedar ya decidida al 100%/0%
+      // sin haberse fijado ella misma -- basta con que un lock POSTERIOR
+      // (p. ej. el campeón) la implique (ver feLocksSatisfied). Su bit se
+      // sigue enumerando porque hace falta para filtrar bien esa condición,
+      // pero ya no aporta ninguna incertidumbre real que "mueva la porra",
+      // así que se saca de la tabla igual que un partido ya jugado de
+      // verdad. Cuartos/octavos no necesitan este filtro: cuando se fijan,
+      // su bit se retira directamente de la enumeración (feMakeSimulator),
+      // así que nunca llegan aquí en primer lugar.
+      .filter(row => !(FE_STAGES_LOCKABLE.has(row.stage) && (row.probA === 0 || row.probB === 0)));
   });
 
   const origByName = {}; ORIGINAL_PD.players.forEach(p => { origByName[p.name] = p; });
@@ -549,6 +566,11 @@ function computeFilteredPD(locks) {
 
   return {
     generated_from_last_updated: ORIGINAL_PD.generated_from_last_updated,
+    // matchLabels.length === sim.nBits: un partido ya decidido por el
+    // filtro se saca de matchesOut más abajo (ver el .filter() al construir
+    // matchesOut), pero su bit se sigue enumerando -- así que
+    // 2^n_remaining_matches sigue cuadrando con n_combinations tal cual se
+    // anuncia en la página, aunque la tabla de impacto muestre menos filas.
     n_remaining_matches: matchLabels.length,
     n_combinations: nCombos,
     players: playersOut,
