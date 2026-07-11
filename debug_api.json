@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-11T06:01:12.729597Z",
+  "generated_at": "2026-07-11T06:32:36.235670Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1348,7 +1348,7 @@
     },
     {
       "home_api": "France",
-      "away_api": null,
+      "away_api": "Spain",
       "status": "TIMED",
       "utcDate": "2026-07-14T19:00:00Z"
     },
