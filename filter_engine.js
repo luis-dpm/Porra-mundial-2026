@@ -24,10 +24,16 @@
 
 const ORIGINAL_PD = PD;
 
-// locks: qué partidos ha fijado el usuario. Cada ronda es un objeto
-// {indice: 0|1} (0 = gana el equipo "a", 1 = gana "b"); si el índice no
-// está presente, el partido sigue sin marcar. final/tp son un único 0/1/null.
-// golden/ball son el nombre del candidato fijado (o null si sigue sin marcar).
+// locks: qué partidos ha fijado el usuario.
+// - octavos/qf: {indice: 0|1} (0 = gana el equipo "a", 1 = gana "b"); sus
+//   dos rivales siempre son conocidos, así que basta con el lado. Si el
+//   índice no está presente, el partido sigue sin marcar.
+// - sf: {indice: "Nombre del equipo"} -- el rival puede seguir sin
+//   decidirse (ver feSfEntrantPool), así que el lock guarda directamente
+//   el nombre del equipo que se fija como ganador, no un lado.
+// - final/tp: igual que sf pero sin índice (un único cruce cada uno): el
+//   nombre del equipo fijado, o null si sigue sin marcar.
+// - golden/ball: el nombre del candidato fijado, o null si sigue sin marcar.
 let feLocks = { octavos: {}, qf: {}, sf: {}, final: null, tp: null, golden: null, ball: null };
 
 function feAnyLockActive() {
@@ -49,6 +55,14 @@ const FE_AWARD_BONUS = 24;
 // Para cada ronda, qué equipos concretos juegan (null si su ronda anterior
 // todavía no está decidida ni por resultado real ni por un lock) y quién ha
 // ganado (null si esa ronda en sí sigue sin marcar).
+//
+// A partir de semis, un lock ya no es "gana el lado A o el lado B de un
+// cruce conocido" (locks.sf/final/tp eran 0|1) sino directamente el NOMBRE
+// del equipo que se fija como ganador de esa ronda, aunque su rival
+// concreto todavía dependa de un cruce sin jugar -- así se puede plantear
+// "¿y si España gana la final?" sin tener que fijar antes quién sale de la
+// otra semifinal. La condición se aplica luego como filtro sobre las ramas
+// del cuadro en computeFilteredPD() (ver feLocksSatisfied), no aquí.
 function feKnownWinners(locks) {
   const topo = ORIGINAL_PD.topology;
   const O = topo.octavos.map((o, i) => {
@@ -62,62 +76,74 @@ function feKnownWinners(locks) {
     return null;
   });
   const Qteams = topo.qf_pairs.map(([ia, ib]) => [O[ia], O[ib]]);
-  const S = topo.sf_pairs.map(([ia, ib], k) => {
+  const S = topo.sf_pairs.map((_, k) => {
     if (topo.sf_resolved[k]) return topo.sf_winner[k];
-    if (locks.sf[k] !== undefined && Q[ia] && Q[ib]) return locks.sf[k] === 0 ? Q[ia] : Q[ib];
+    if (locks.sf[k]) return locks.sf[k];
     return null;
   });
   const Steams = topo.sf_pairs.map(([ia, ib]) => [Q[ia], Q[ib]]);
+  // El perdedor de una semi solo es deducible si se conocen sus DOS
+  // equipos (si el rival todavía es "Ganador(Cuartos X)", fijar quién gana
+  // no basta para saber quién pierde).
   const SLoser = topo.sf_pairs.map((_, k) => {
     if (!S[k]) return null;
     const [ta, tb] = Steams[k];
+    if (!ta || !tb) return null;
     return S[k] === ta ? tb : ta;
   });
-  const [fa, fb] = topo.f_pair;
-  const finalTeams = [S[fa], S[fb]];
-  const [ta, tb] = topo.tp_pair;
-  const tpTeams = [SLoser[ta], SLoser[tb]];
-  return { O, Oteams: topo.octavos.map(o => [o.a, o.b]), Q, Qteams, S, Steams, SLoser, finalTeams, tpTeams };
+  return { O, Q, Qteams, S, Steams, SLoser };
 }
 
-// -------------------------------------------------------------- DP de distribuciones --
-// Igual que el "bracket con probabilidades" del script Python: propaga la
-// distribución de quién llega a cada ronda sin necesidad de enumerar 2^n
-// combinaciones. Un lock (o un resultado real) simplemente colapsa la
-// distribución de ese partido a {equipo: 1.0}.
-function feNextRoundDist(pairs, dists) {
-  return pairs.map(([ia, ib]) => {
-    const distA = dists[ia], distB = dists[ib];
-    const result = {};
-    for (const teamA in distA) {
-      let winProb = 0;
-      for (const teamB in distB) winProb += distB[teamB] * simHybridProb(teamA, teamB);
-      result[teamA] = distA[teamA] * winProb;
-    }
-    for (const teamB in distB) {
-      let winProb = 0;
-      for (const teamA in distA) winProb += distA[teamA] * simHybridProb(teamB, teamA);
-      result[teamB] = distB[teamB] * winProb;
-    }
-    return result;
-  });
+// Candidatos posibles a cada ronda a partir de cuartos: el equipo ya
+// conocido (real o fijado) si lo hay, o los equipos de los dos cruces de
+// los que puede salir. Recursivo hacia atrás en el cuadro -- por eso el
+// candidato a la final puede ser cualquiera de los 8 cuartofinalistas
+// vivos, aunque ninguna semifinal se haya jugado todavía.
+function feQfWinnerPool(kw, k) { return kw.Q[k] ? [kw.Q[k]] : kw.Qteams[k]; }
+function feSfEntrantPool(kw, k) {
+  const [ia, ib] = ORIGINAL_PD.topology.sf_pairs[k];
+  return [...feQfWinnerPool(kw, ia), ...feQfWinnerPool(kw, ib)];
+}
+function feSfWinnerPool(kw, k) { return kw.S[k] ? [kw.S[k]] : feSfEntrantPool(kw, k); }
+// El perdedor nunca puede ser el equipo ya fijado (real o por lock) como
+// ganador de esa misma semifinal -- se descarta de la lista aunque el
+// cruce siga admitiendo más de dos nombres posibles.
+function feSfLoserPool(kw, k) {
+  const entrants = feSfEntrantPool(kw, k);
+  return kw.S[k] ? entrants.filter(t => t !== kw.S[k]) : entrants;
+}
+function feFinalEntrantPool(kw) {
+  const [fa, fb] = ORIGINAL_PD.topology.f_pair;
+  return [...feSfWinnerPool(kw, fa), ...feSfWinnerPool(kw, fb)];
+}
+function feTpEntrantPool(kw) {
+  const [ta, tb] = ORIGINAL_PD.topology.tp_pair;
+  return [...feSfLoserPool(kw, ta), ...feSfLoserPool(kw, tb)];
 }
 
-function feLoserDist(distA, distB) {
-  const result = {};
-  for (const teamA in distA) {
-    let loseProb = 0;
-    for (const teamB in distB) loseProb += distB[teamB] * simHybridProb(teamB, teamA);
-    result[teamA] = distA[teamA] * loseProb;
-  }
-  for (const teamB in distB) {
-    let loseProb = 0;
-    for (const teamA in distA) loseProb += distA[teamA] * simHybridProb(teamA, teamB);
-    result[teamB] = distB[teamB] * loseProb;
-  }
-  return result;
+// Condición que debe cumplir una rama concreta del cuadro (ya simulada por
+// completo por feMakeSimulator().simulate) para no contradecir los locks de
+// semis/final/3º-4º puesto -- estos ya no reducen el número de bits a
+// enumerar (ver feMakeSimulator), así que se filtran aquí a posteriori.
+function feLocksSatisfied(w, locks) {
+  for (const k in locks.sf) { if (w.S_winner[k] !== locks.sf[k]) return false; }
+  if (locks.final && w.champion !== locks.final) return false;
+  if (locks.tp && w.winner34 !== locks.tp) return false;
+  return true;
 }
 
+// -------------------------------------------------------------- distribuciones del cuadro --
+// A diferencia de octavos/cuartos (donde un lock colapsa un cruce conocido
+// a {equipo: 1.0} y se puede propagar hacia delante con una DP cerrada),
+// desde que semis/final/3º-4º puesto se pueden fijar por nombre de equipo
+// sin conocer al rival, la distribución condicionada ya no se puede
+// calcular sin más que propagar probabilidades ronda a ronda: hay que
+// condicionar TODO el cuadro a que ese equipo efectivamente llegue y gane.
+// Como el número de partidos libres que quedan es pequeño, se calcula
+// enumerando exactamente las mismas ramas que computeFilteredPD() y
+// quedándose solo con las que no contradicen los locks (feLocksSatisfied):
+// ver la acumulación de qfAgg/sfAgg/lAgg/champAgg/tpAgg dentro de esa
+// función, que sustituye a la antigua DP cerrada de este bloque.
 function feMergeDists(dists) {
   const out = {};
   dists.forEach(d => { for (const t in d) out[t] = (out[t] || 0) + d[t]; });
@@ -126,60 +152,6 @@ function feMergeDists(dists) {
 
 function feTopN(dist) {
   return Object.entries(dist).sort((a, b) => b[1] - a[1]).map(([team, p]) => ({ team, pct: feRound1(p * 100) }));
-}
-
-function feSingleWinner(dist) {
-  const keys = Object.keys(dist);
-  return keys.length === 1 ? keys[0] : null;
-}
-
-function feBuildDists(locks) {
-  const topo = ORIGINAL_PD.topology;
-  const O_dist = topo.octavos.map((o, i) => {
-    if (o.resolved) return { [o.winner]: 1.0 };
-    if (locks.octavos[i] !== undefined) return { [locks.octavos[i] === 0 ? o.a : o.b]: 1.0 };
-    return { [o.a]: o.probA, [o.b]: 1 - o.probA };
-  });
-  const Q_dist = feNextRoundDist(topo.qf_pairs, O_dist);
-  topo.qf_pairs.forEach(([ia, ib], k) => {
-    if (topo.qf_resolved[k]) { Q_dist[k] = { [topo.qf_winner[k]]: 1.0 }; return; }
-    if (locks.qf[k] !== undefined) {
-      const teamA = feSingleWinner(O_dist[ia]), teamB = feSingleWinner(O_dist[ib]);
-      if (teamA && teamB) Q_dist[k] = { [locks.qf[k] === 0 ? teamA : teamB]: 1.0 };
-    }
-  });
-  const S_dist = feNextRoundDist(topo.sf_pairs, Q_dist);
-  const L_dist = topo.sf_pairs.map(([ia, ib]) => feLoserDist(Q_dist[ia], Q_dist[ib]));
-  topo.sf_pairs.forEach(([ia, ib], k) => {
-    if (topo.sf_resolved[k]) {
-      const winner = topo.sf_winner[k];
-      const teamA = feSingleWinner(Q_dist[ia]), teamB = feSingleWinner(Q_dist[ib]);
-      const loser = winner === teamA ? teamB : teamA;
-      S_dist[k] = { [winner]: 1.0 }; L_dist[k] = { [loser]: 1.0 };
-      return;
-    }
-    if (locks.sf[k] !== undefined) {
-      const teamA = feSingleWinner(Q_dist[ia]), teamB = feSingleWinner(Q_dist[ib]);
-      if (teamA && teamB) {
-        const winner = locks.sf[k] === 0 ? teamA : teamB;
-        const loser = winner === teamA ? teamB : teamA;
-        S_dist[k] = { [winner]: 1.0 }; L_dist[k] = { [loser]: 1.0 };
-      }
-    }
-  });
-  let F_dist = feNextRoundDist([topo.f_pair], S_dist)[0];
-  if (locks.final !== null && locks.final !== undefined) {
-    const [ia, ib] = topo.f_pair;
-    const teamA = feSingleWinner(S_dist[ia]), teamB = feSingleWinner(S_dist[ib]);
-    if (teamA && teamB) F_dist = { [locks.final === 0 ? teamA : teamB]: 1.0 };
-  }
-  let T34_dist = feNextRoundDist([topo.tp_pair], L_dist)[0];
-  if (locks.tp !== null && locks.tp !== undefined) {
-    const [ia, ib] = topo.tp_pair;
-    const teamA = feSingleWinner(L_dist[ia]), teamB = feSingleWinner(L_dist[ib]);
-    if (teamA && teamB) T34_dist = { [locks.tp === 0 ? teamA : teamB]: 1.0 };
-  }
-  return { O_dist, Q_dist, S_dist, L_dist, F_dist, T34_dist };
 }
 
 function feBuildBracket(locks, dists) {
@@ -219,10 +191,18 @@ function feMakeSimulator(locks) {
   topo.octavos.forEach((o, i) => { if (!o.resolved && locks.octavos[i] === undefined) freeOctavos.push(i); });
   const freeQf = [];
   topo.qf_pairs.forEach((_, k) => { if (!topo.qf_resolved[k] && locks.qf[k] === undefined) freeQf.push(k); });
+  // A partir de aquí un lock ya NO retira el bit de la enumeración: fijar
+  // "gana España la semifinal 1" no dice, por sí solo, si España llega
+  // desde cuartos 1 o cuartos 2, así que ese partido se sigue sorteando
+  // igual que si estuviera sin marcar y luego se descartan (en
+  // computeFilteredPD, vía feLocksSatisfied) las ramas que no llevan a ese
+  // equipo a ganarlo. Octavos/cuartos no tienen este problema porque sus
+  // dos equipos siempre son conocidos, así que ahí un lock sigue forzando
+  // el resultado y reduciendo la enumeración como antes.
   const freeSf = [];
-  topo.sf_pairs.forEach((_, k) => { if (!topo.sf_resolved[k] && locks.sf[k] === undefined) freeSf.push(k); });
-  const freeFinal = locks.final === null || locks.final === undefined;
-  const freeTp = locks.tp === null || locks.tp === undefined;
+  topo.sf_pairs.forEach((_, k) => { if (!topo.sf_resolved[k]) freeSf.push(k); });
+  const freeFinal = true;
+  const freeTp = true;
   const nBits = freeOctavos.length + freeQf.length + freeSf.length + (freeFinal ? 1 : 0) + (freeTp ? 1 : 0);
 
   function simulate(bits) {
@@ -251,9 +231,6 @@ function feMakeSimulator(locks) {
     topo.sf_pairs.forEach(([ia, ib], k) => {
       const teamA = Q_winner[ia], teamB = Q_winner[ib];
       if (topo.sf_resolved[k]) { S_winner[k] = topo.sf_winner[k]; S_loser[k] = S_winner[k] === teamA ? teamB : teamA; return; }
-      if (locks.sf[k] !== undefined) {
-        S_winner[k] = locks.sf[k] === 0 ? teamA : teamB; S_loser[k] = S_winner[k] === teamA ? teamB : teamA; return;
-      }
       const pA = simHybridProb(teamA, teamB);
       if (bits[idx] === 0) { S_winner[k] = teamA; S_loser[k] = teamB; probW *= pA; }
       else { S_winner[k] = teamB; S_loser[k] = teamA; probW *= (1 - pA); }
@@ -262,9 +239,7 @@ function feMakeSimulator(locks) {
 
     const [fa, fb] = topo.f_pair, fTeamA = S_winner[fa], fTeamB = S_winner[fb];
     let champion, runner;
-    if (locks.final !== null && locks.final !== undefined) {
-      champion = locks.final === 0 ? fTeamA : fTeamB; runner = champion === fTeamA ? fTeamB : fTeamA;
-    } else {
+    {
       const pA = simHybridProb(fTeamA, fTeamB);
       if (bits[idx] === 0) { champion = fTeamA; runner = fTeamB; probW *= pA; }
       else { champion = fTeamB; runner = fTeamA; probW *= (1 - pA); }
@@ -273,9 +248,7 @@ function feMakeSimulator(locks) {
 
     const [ta, tb] = topo.tp_pair, tTeamA = S_loser[ta], tTeamB = S_loser[tb];
     let winner34;
-    if (locks.tp !== null && locks.tp !== undefined) {
-      winner34 = locks.tp === 0 ? tTeamA : tTeamB;
-    } else {
+    {
       const pA = simHybridProb(tTeamA, tTeamB);
       if (bits[idx] === 0) { winner34 = tTeamA; probW *= pA; } else { winner34 = tTeamB; probW *= (1 - pA); }
       idx++;
@@ -397,9 +370,34 @@ function computeFilteredPD(locks) {
   const bracketMin = {}, bracketMax = {}; players.forEach(p => { bracketMin[p] = null; bracketMax[p] = null; });
   const caminoBest = {}; players.forEach(p => caminoBest[p] = { w: -1, bits: null, gname: null, bname: null, score: null, tiedWith: [], secondName: null, secondScore: null });
 
+  // Distribución condicionada del cuadro (sustituye a la antigua DP cerrada):
+  // se acumula aquí mismo, una vez por rama (no por combinación de
+  // Bota/Balón de Oro, que no influye en quién gana cada partido), sumando
+  // solo las ramas que sobreviven al filtro de locks de semis/final/tp.
+  const topo = ORIGINAL_PD.topology;
+  const qfAgg = topo.qf_pairs.map(() => ({}));
+  const sfAgg = topo.sf_pairs.map(() => ({}));
+  const lAgg = topo.sf_pairs.map(() => ({}));
+  const champAgg = {}, tpAgg = {};
+  let bracketTotalW = 0;
+
   for (let mask = 0; mask < nCombos; mask++) {
     const bits = []; for (let b = 0; b < sim.nBits; b++) bits.push((mask >> b) & 1);
     const w = sim.simulate(bits);
+    // Descarta ramas que contradicen un lock de "este equipo gana esta
+    // ronda" fijado sin conocer todavía a su rival -- es lo que convierte
+    // el resto del cálculo en una probabilidad condicionada a ese evento.
+    if (!feLocksSatisfied(w, locks)) continue;
+
+    bracketTotalW += w.probW;
+    topo.qf_pairs.forEach((_, k) => { qfAgg[k][w.Q_winner[k]] = (qfAgg[k][w.Q_winner[k]] || 0) + w.probW; });
+    topo.sf_pairs.forEach((_, k) => {
+      sfAgg[k][w.S_winner[k]] = (sfAgg[k][w.S_winner[k]] || 0) + w.probW;
+      lAgg[k][w.S_loser[k]] = (lAgg[k][w.S_loser[k]] || 0) + w.probW;
+    });
+    champAgg[w.champion] = (champAgg[w.champion] || 0) + w.probW;
+    tpAgg[w.winner34] = (tpAgg[w.winner34] || 0) + w.probW;
+
     const bracketScores = {}; players.forEach(p => bracketScores[p] = simScorePlayer(picks[p], w));
     players.forEach(p => {
       bracketMin[p] = bracketMin[p] === null ? bracketScores[p] : Math.min(bracketMin[p], bracketScores[p]);
@@ -459,6 +457,11 @@ function computeFilteredPD(locks) {
       });
     });
   }
+
+  // Combinación de locks contradictoria (p. ej. fijar a un equipo como
+  // ganador Y como perdedor de la misma semifinal): ninguna rama del cuadro
+  // la cumple, así que no hay nada que normalizar.
+  if (acc.weighted.totalProb <= 0 || bracketTotalW <= 0) return null;
 
   const summary = {}, chuletonExp = {}, chuletonDist = {}, rankDistPct = {}, matchesOut = {};
   modes.forEach(mode => {
@@ -526,7 +529,11 @@ function computeFilteredPD(locks) {
     caminoOut[p] = feDescribeScenario(w, cb.gname, cb.bname, cb.score, cb.tiedWith, cb.secondName, cb.secondScore, cb.w, acc.weighted.totalProb, locks);
   });
 
-  const dists = feBuildDists(locks);
+  const feNormDist = (d) => { const out = {}; for (const t in d) out[t] = d[t] / bracketTotalW; return out; };
+  const dists = {
+    Q_dist: qfAgg.map(feNormDist), S_dist: sfAgg.map(feNormDist), L_dist: lAgg.map(feNormDist),
+    F_dist: feNormDist(champAgg), T34_dist: feNormDist(tpAgg),
+  };
   const bracket = feBuildBracket(locks, dists);
 
   // Si Bota/Balón de Oro está fijado, la sección de Premios debe reflejarlo
@@ -560,7 +567,12 @@ function computeFilteredPD(locks) {
 // Si un partido ya bloqueado deja de tener sus dos equipos conocidos (p. ej.
 // se desmarca el octavos del que dependía), el bloqueo de la ronda
 // siguiente deja de tener sentido -- se retira solo, en vez de arrastrar un
-// equipo fantasma por el resto del cálculo.
+// equipo fantasma por el resto del cálculo. Desde semis, "sentido" ya no
+// significa "los dos rivales son conocidos" sino "el equipo fijado sigue
+// siendo un candidato posible" (ver feSfEntrantPool/feFinalEntrantPool/
+// feTpEntrantPool) -- si otro lock deja fuera de juego al equipo antes
+// fijado (p. ej. se marca que pierde su cuartos), el lock de la ronda
+// siguiente se retira solo en vez de arrastrar un imposible.
 // Reutiliza feKnownWinners() en vez de recorrer la cascada octavos->qf->sf
 // por su cuenta (antes lo hacía dos veces, una en cada función). Se
 // recalcula tras cada poda porque quitar un lock de una ronda puede dejar
@@ -570,10 +582,10 @@ function feSanitizeLocks() {
   let kw = feKnownWinners(feLocks);
   Object.keys(feLocks.qf).forEach(k => { if (!kw.Q[+k]) delete feLocks.qf[+k]; });
   kw = feKnownWinners(feLocks);
-  Object.keys(feLocks.sf).forEach(k => { if (!kw.S[+k]) delete feLocks.sf[+k]; });
+  Object.keys(feLocks.sf).forEach(k => { if (!feSfEntrantPool(kw, +k).includes(feLocks.sf[k])) delete feLocks.sf[+k]; });
   kw = feKnownWinners(feLocks);
-  if (feLocks.final !== null && !(kw.finalTeams[0] && kw.finalTeams[1])) feLocks.final = null;
-  if (feLocks.tp !== null && !(kw.tpTeams[0] && kw.tpTeams[1])) feLocks.tp = null;
+  if (feLocks.final && !feFinalEntrantPool(kw).includes(feLocks.final)) feLocks.final = null;
+  if (feLocks.tp && !feTpEntrantPool(kw).includes(feLocks.tp)) feLocks.tp = null;
 }
 
 function feAwardRowHTML(kind, label, candidates, currentLock) {
@@ -607,6 +619,32 @@ function feFilterRowHTML(kind, idx, label, teamA, teamB, currentLock) {
   </div>`;
 }
 
+// Desde semis, en vez de "elige el lado A o B de un cruce ya conocido" se
+// puede fijar el ganador por nombre aunque su rival concreto siga sin
+// decidirse (p. ej. "gana España la final" sin fijar antes su cruce de
+// semis) -- pero se sigue mostrando CON FORMA DE PARTIDO, dos lados
+// enfrentados, en vez de una lista plana con todos los candidatos
+// mezclados: cada lado es el pool de quien puede llegar por ESE cruce
+// (poolA/poolB, típicamente 1 equipo si su ronda anterior ya está fijada,
+// o 2 si sigue abierta) y fijar un cuartos rellena aquí su lado con un solo
+// nombre ya seleccionable, en cascada, sin tener que tocar nada más.
+function feMatchPickRowHTML(kind, idx, label, poolA, poolB, currentLock) {
+  const unmarked = currentLock === null || currentLock === undefined;
+  const idxAttr = idx === null ? '' : ` data-fidx="${idx}"`;
+  const sideHTML = pool => [...new Set(pool)].map(team =>
+    `<button class="pred-filter-choice ${currentLock === team ? 'active' : ''}" data-fkind="${kind}"${idxAttr} data-fname="${team}">${team}</button>`
+  ).join('');
+  return `<div class="pred-filter-row">
+    <div class="pred-filter-row-label">${label}</div>
+    <div class="pred-filter-match">
+      <div class="pred-filter-match-side">${sideHTML(poolA)}</div>
+      <div class="pred-filter-match-vs">vs</div>
+      <div class="pred-filter-match-side">${sideHTML(poolB)}</div>
+    </div>
+    <button class="pred-filter-choice pred-filter-unmark ${unmarked ? 'active' : ''}" data-fkind="${kind}"${idxAttr} data-fname="">❓ sin marcar</button>
+  </div>`;
+}
+
 // Los partidos ya resueltos de verdad no se pueden fijar a mano (no hay
 // nada que decidir), así que no aportan nada aquí -- se omiten del todo en
 // vez de dejar una fila informativa "ya jugado" ocupando sitio. Cada grupo
@@ -632,15 +670,15 @@ function renderPredFilterBar() {
   html += feGroupHTML('Cuartos', qfRows);
 
   let sfRows = '';
-  topo.sf_pairs.forEach((pair, k) => {
+  topo.sf_pairs.forEach(([ia, ib], k) => {
     if (topo.sf_resolved[k]) return;
-    const [teamA, teamB] = kw.Steams[k];
-    sfRows += feFilterRowHTML('sf', k, `Semifinal ${k + 1}`, teamA, teamB, feLocks.sf[k]);
+    sfRows += feMatchPickRowHTML('sf', k, `Semifinal ${k + 1}`, feQfWinnerPool(kw, ia), feQfWinnerPool(kw, ib), feLocks.sf[k]);
   });
   html += feGroupHTML('Semis', sfRows);
 
-  const finalTpRows = feFilterRowHTML('final', 0, 'Final', kw.finalTeams[0], kw.finalTeams[1], feLocks.final)
-    + feFilterRowHTML('tp', 0, '3º-4º puesto', kw.tpTeams[0], kw.tpTeams[1], feLocks.tp);
+  const [fa, fb] = topo.f_pair, [ta, tb] = topo.tp_pair;
+  const finalTpRows = feMatchPickRowHTML('final', null, 'Final', feSfWinnerPool(kw, fa), feSfWinnerPool(kw, fb), feLocks.final)
+    + feMatchPickRowHTML('tp', null, '3º-4º puesto', feSfLoserPool(kw, ta), feSfLoserPool(kw, tb), feLocks.tp);
   html += feGroupHTML('Final y 3º-4º puesto', finalTpRows);
 
   html += `<div class="pred-filter-group-title">Premios</div>`;
@@ -666,7 +704,26 @@ function feUpdateStaleNotes() {
 
 function feApplyFilter() {
   feSanitizeLocks();
-  PD = feAnyLockActive() ? computeFilteredPD(feLocks) : ORIGINAL_PD;
+  if (!feAnyLockActive()) {
+    PD = ORIGINAL_PD;
+    renderPredFilterBar();
+    renderPredAll();
+    feUpdateStaleNotes();
+    return;
+  }
+  const computed = computeFilteredPD(feLocks);
+  // Combinación contradictoria entre locks de rondas distintas (p. ej. un
+  // equipo fijado como ganador de una semifinal y también como perdedor de
+  // 3º-4º puesto) -- ninguna rama del cuadro la cumple. Se avisa en vez de
+  // pintar la página con NaN.
+  if (computed === null) {
+    renderPredFilterBar();
+    const statusEl = document.getElementById('predFilterStatus');
+    statusEl.innerHTML = `⚠️ Esa combinación de resultados fijados es imposible entre sí (p. ej. un equipo no puede ganar y perder la misma ronda). Quita alguna marca para seguir. <button id="predFilterClear">✕ Quitar filtro</button>`;
+    document.getElementById('predFilterClear').addEventListener('click', feClearFilter);
+    return;
+  }
+  PD = computed;
   renderPredFilterBar();
   renderPredAll();
   feUpdateStaleNotes();
@@ -684,11 +741,12 @@ document.getElementById('predFilterBar').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-fkind]');
   if (!btn) return;
   const kind = btn.dataset.fkind;
-  if (kind === 'golden' || kind === 'ball') {
+  if (kind === 'golden' || kind === 'ball' || kind === 'final' || kind === 'tp') {
     feLocks[kind] = btn.dataset.fname || null;
-  } else if (kind === 'final' || kind === 'tp') {
-    const pick = btn.dataset.fpick;
-    feLocks[kind] = pick === 'unmark' ? null : Number(pick);
+  } else if (kind === 'sf') {
+    const idx = Number(btn.dataset.fidx);
+    const name = btn.dataset.fname;
+    if (!name) delete feLocks.sf[idx]; else feLocks.sf[idx] = name;
   } else {
     const pick = btn.dataset.fpick;
     const idx = Number(btn.dataset.fidx);

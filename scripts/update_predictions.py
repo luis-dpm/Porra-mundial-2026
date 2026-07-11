@@ -48,18 +48,19 @@ OCTAVOS_ODDS = {}
 # cruce hay que añadir aquí en cada momento.
 KNOWN_MATCHUPS = {
     frozenset({"Francia", "Marruecos"}): {"Francia": 0.78, "Marruecos": 0.22},  # Cuartos 1, partido 97, consultada 8 jul. 2026 (ya resuelto: gana Francia)
-    frozenset({"España", "Bélgica"}): {"España": 0.73, "Bélgica": 0.27},  # Cuartos 2, partido 98, consultada 10 jul. 2026
-    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.36, "Inglaterra": 0.64},  # Cuartos 3, partido 99, consultada 10 jul. 2026
-    frozenset({"Argentina", "Suiza"}): {"Argentina": 0.72, "Suiza": 0.28},  # Cuartos 4, partido 100, consultada 10 jul. 2026
+    frozenset({"España", "Bélgica"}): {"España": 0.73, "Bélgica": 0.27},  # Cuartos 2, partido 98, consultada 10 jul. 2026 (ya resuelto: gana España)
+    frozenset({"Noruega", "Inglaterra"}): {"Noruega": 0.37, "Inglaterra": 0.63},  # Cuartos 3, partido 99, consultada 11 jul. 2026
+    frozenset({"Argentina", "Suiza"}): {"Argentina": 0.74, "Suiza": 0.26},  # Cuartos 4, partido 100, consultada 11 jul. 2026
+    frozenset({"Francia", "España"}): {"Francia": 0.58, "España": 0.42},  # Semifinal 1, partido 101, consultada 11 jul. 2026
 }
 
 # World Football Elo (eloratings.net/2026_World_Cup), ratings al lunes 6 jul.
 # 2026. Ancla estable para cruces que todavía no existen como mercado (cuartos
-# 2-4, semis, final, 3º-4º puesto). Actualizado 10 jul. 2026.
+# 3-4, 3º-4º puesto). Actualizado 11 jul. 2026.
 ELO = {
-    "España": 2177, "Argentina": 2156, "Francia": 2163, "Inglaterra": 2076,
+    "España": 2190, "Argentina": 2156, "Francia": 2163, "Inglaterra": 2076,
     "Brasil": 1993, "Portugal": 1995, "Colombia": 2003, "México": 1913,
-    "Suiza": 1949, "Noruega": 1972, "Marruecos": 1901, "Bélgica": 1961,
+    "Suiza": 1949, "Noruega": 1972, "Marruecos": 1901, "Bélgica": 1948,
     "Paraguay": 1814, "Estados Unidos": 1747, "Canadá": 1729, "Egipto": 1742,
 }
 
@@ -75,25 +76,25 @@ def hybrid_prob(a, b):
         return odds[a] / (odds[a] + odds[b])
     return elo_prob(a, b)
 
-# Bota de Oro (consultada 10 jul. 2026). El mercado da cifras que suman
-# 100.4% (overround); se normalizan aquí proporcionalmente a 100% exacto.
+# Bota de Oro (consultada 11 jul. 2026). El mercado da cifras que suman
+# 99.4% (underround); se normalizan aquí proporcionalmente a 100% exacto.
 # Ojo: la clave debe ser "Julián Álvarez" completo, que es como aparece el
 # pick en la hoja (JUAN lo tiene picado; Kane lo tienen ADRIÁN y SU
-# FLORENTINEZA).
+# FLORENTINEZA). Dembélé ha salido del mercado desde el último refresco.
 GOLDEN_CANDIDATES = [
-    ("Mbappé", 0.4382), ("Messi", 0.3685), ("Haaland", 0.1096),
-    ("Kane", 0.0697), ("Dembélé", 0.01), ("Oyarzabal", 0.0039),
-    ("Julián Álvarez", 0.0001), ("Otros", 0.0),
+    ("Mbappé", 0.4427), ("Messi", 0.3722), ("Haaland", 0.1107),
+    ("Kane", 0.0704), ("Oyarzabal", 0.0039), ("Julián Álvarez", 0.0001),
+    ("Otros", 0.0),
 ]
-# Balón de Oro (consultada 10 jul. 2026). El mercado suma 102.47%;
+# Balón de Oro (consultada 11 jul. 2026). El mercado suma 100.46%;
 # normalizado proporcionalmente a 100% exacto. Ojo: la clave debe ser
 # "Lamine Yamal" completo (no solo "Yamal") y "Declan Rice" completo, que es
 # como aparecen esos picks en la hoja (Yamal lo tienen picado 5 de 7
 # jugadores; Declan Rice, SU FLORENTINEZA; Pedri, IVÁN DELGADO).
 GOLDEN_BALL_CANDIDATES = [
-    ("Mbappé", 0.4393), ("Messi", 0.3025), ("Haaland", 0.0781),
-    ("Kane", 0.0781), ("Bellingham", 0.039), ("Lamine Yamal", 0.0293),
-    ("Dembélé", 0.0098), ("Olise", 0.0098), ("Rodri", 0.0098),
+    ("Mbappé", 0.4181), ("Messi", 0.3086), ("Haaland", 0.0896),
+    ("Kane", 0.0697), ("Bellingham", 0.0398), ("Lamine Yamal", 0.0299),
+    ("Olise", 0.0199), ("Dembélé", 0.01), ("Rodri", 0.01),
     ("Pedri", 0.0037), ("Declan Rice", 0.0009), ("Otros", 0.0),
 ]
 
@@ -270,19 +271,34 @@ def build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_match
     return dead
 
 # --------------------------------------------------------------- simulate --
-def make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair):
+# qf_resolved/qf_winner_real y sf_resolved/sf_winner_real permiten que un
+# cuartos o una semifinal que YA se ha jugado de verdad se fije a su
+# ganador real en vez de volver a sortearse por probabilidad -- igual que ya
+# se hacía para octavos (resolved_idx/unresolved_idx). Sin esto, un cruce ya
+# resuelto (p. ej. Francia-Marruecos en cuanto se jugó) seguía apareciendo
+# como un 78%/22% al azar en parte de las ramas simuladas, colando entre las
+# probabilidades resultados imposibles (Marruecos ganando pese a estar ya
+# eliminado en la realidad) y sesgando la media/rango de puntos de todos los
+# jugadores. Final/3º-4º puesto no necesitan este tratamiento todavía porque
+# la topología actual no los marca nunca como resueltos (ver comentario en
+# build_topology).
+def make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair,
+                    qf_resolved, qf_winner_real, sf_resolved, sf_winner_real):
     resolved_idx = [i for i, o in enumerate(octavos) if o["resolved"]]
     unresolved_idx = [i for i, o in enumerate(octavos) if not o["resolved"]]
     n_unresolved = len(unresolved_idx)
-    n_bits = n_unresolved + len(qf_pairs) + len(sf_pairs) + 1 + 1
+    qf_unresolved_idx = [k for k in range(len(qf_pairs)) if not qf_resolved[k]]
+    sf_unresolved_idx = [k for k in range(len(sf_pairs)) if not sf_resolved[k]]
+    n_qf, n_sf = len(qf_unresolved_idx), len(sf_unresolved_idx)
+    n_bits = n_unresolved + n_qf + n_sf + 1 + 1
 
     def simulate(bits, mode):
         nu = n_unresolved
         o_bits = bits[0:nu]
-        q_bits = bits[nu:nu + 4]
-        s_bits = bits[nu + 4:nu + 6]
-        f_bit = bits[nu + 6]
-        t_bit = bits[nu + 7]
+        q_bits = bits[nu:nu + n_qf]
+        s_bits = bits[nu + n_qf:nu + n_qf + n_sf]
+        f_bit = bits[nu + n_qf + n_sf]
+        t_bit = bits[nu + n_qf + n_sf + 1]
 
         O_winner = [None] * len(octavos)
         prob = 1.0
@@ -296,23 +312,34 @@ def make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair):
             else:
                 O_winner[i] = o["b"]; prob *= (1 - pA)
 
-        Q_winner = []
-        for k, (ia, ib) in enumerate(qf_pairs):
+        Q_winner = [None] * len(qf_pairs)
+        for k in range(len(qf_pairs)):
+            if qf_resolved[k]:
+                Q_winner[k] = qf_winner_real[k]
+        for j, k in enumerate(qf_unresolved_idx):
+            ia, ib = qf_pairs[k]
             teamA, teamB = O_winner[ia], O_winner[ib]
             pA = hybrid_prob(teamA, teamB) if mode == "weighted" else 0.5
-            if q_bits[k] == 0:
-                Q_winner.append(teamA); prob *= pA
+            if q_bits[j] == 0:
+                Q_winner[k] = teamA; prob *= pA
             else:
-                Q_winner.append(teamB); prob *= (1 - pA)
+                Q_winner[k] = teamB; prob *= (1 - pA)
 
-        S_winner, S_loser = [], []
-        for k, (ia, ib) in enumerate(sf_pairs):
+        S_winner, S_loser = [None] * len(sf_pairs), [None] * len(sf_pairs)
+        for k in range(len(sf_pairs)):
+            if sf_resolved[k]:
+                ia, ib = sf_pairs[k]
+                teamA, teamB = Q_winner[ia], Q_winner[ib]
+                S_winner[k] = sf_winner_real[k]
+                S_loser[k] = teamB if S_winner[k] == teamA else teamA
+        for j, k in enumerate(sf_unresolved_idx):
+            ia, ib = sf_pairs[k]
             teamA, teamB = Q_winner[ia], Q_winner[ib]
             pA = hybrid_prob(teamA, teamB) if mode == "weighted" else 0.5
-            if s_bits[k] == 0:
-                S_winner.append(teamA); S_loser.append(teamB); prob *= pA
+            if s_bits[j] == 0:
+                S_winner[k] = teamA; S_loser[k] = teamB; prob *= pA
             else:
-                S_winner.append(teamB); S_loser.append(teamA); prob *= (1 - pA)
+                S_winner[k] = teamB; S_loser[k] = teamA; prob *= (1 - pA)
 
         ia, ib = f_pair
         teamA, teamB = S_winner[ia], S_winner[ib]
@@ -406,23 +433,60 @@ def main():
     picks = build_player_picks(porra, runner_up, third_place_winner, octavos, qf_pairs)
     dead = build_dead_list(porra, runner_up, third_place_winner, octavos, cuartos_matches, semis_matches, picks)
 
+    # Cuartos/semis ya jugados de verdad: se calculan aquí (antes del
+    # simulador) para poder fijarlos a su ganador real en vez de volver a
+    # sortearlos -- ver el porqué en el comentario de make_simulator. Se
+    # reutilizan más abajo al construir "topology" en vez de recalcularlos.
+    winners_by_match = porra["ko_stage"]["winners_by_match"]
+    qf_resolved = [bool(m["actual"]) for m in cuartos_matches]
+    qf_winner_real = [winners_by_match.get(str(m["num"])) if m["actual"] else None for m in cuartos_matches]
+    sf_resolved = [bool(m["actual"]) for m in semis_matches]
+    sf_winner_real = [winners_by_match.get(str(m["num"])) if m["actual"] else None for m in semis_matches]
+
+    # Un partido ya resuelto de verdad no aporta incertidumbre que "mueva la
+    # porra" -- se omite de match_labels igual que ya se hacía con octavos,
+    # y en el mismo orden en que make_simulator asigna los bits (si no,
+    # bits[m] apuntaría al partido equivocado en la tabla de impacto).
     match_labels = []
     for o in octavos:
         if not o["resolved"]:
             match_labels.append(("Octavos", o["a"], o["b"]))
-    stage_names = {0: "Cuartos", 1: "Cuartos", 2: "Cuartos", 3: "Cuartos"}
-    for k in range(4):
+    for k in range(len(qf_pairs)):
+        if qf_resolved[k]:
+            continue
         ia, ib = qf_pairs[k]
         a = octavos[ia]["winner"] if octavos[ia]["resolved"] else f"Ganador({octavos[ia]['a']}/{octavos[ia]['b']})"
         b = octavos[ib]["winner"] if octavos[ib]["resolved"] else f"Ganador({octavos[ib]['a']}/{octavos[ib]['b']})"
         match_labels.append(("Cuartos", a, b))
-    for k in range(2):
+    def qf_side_label(k):
+        return qf_winner_real[k] if qf_resolved[k] else f"Ganador(Cuartos {k+1})"
+    for k in range(len(sf_pairs)):
+        if sf_resolved[k]:
+            continue
         ia, ib = sf_pairs[k]
-        match_labels.append(("Semis", f"Ganador(Cuartos {ia+1})", f"Ganador(Cuartos {ib+1})"))
-    match_labels.append(("Final", f"Ganador(Semis {f_pair[0]+1})", f"Ganador(Semis {f_pair[1]+1})"))
-    match_labels.append(("3º-4º puesto", f"Perdedor(Semis {tp_pair[0]+1})", f"Perdedor(Semis {tp_pair[1]+1})"))
+        match_labels.append(("Semis", qf_side_label(ia), qf_side_label(ib)))
 
-    simulate, n_bits, unresolved_idx = make_simulator(octavos, qf_pairs, sf_pairs, f_pair, tp_pair)
+    def sf_winner_label(k):
+        return sf_winner_real[k] if sf_resolved[k] else f"Ganador(Semis {k+1})"
+    def sf_loser_label(k):
+        # El perdedor de una semi ya jugada solo se puede nombrar si se
+        # conocen sus DOS equipos -- si uno de los cuartos que la
+        # alimentaban seguía sin jugarse, no basta con saber quién ganó.
+        if not sf_resolved[k]:
+            return f"Perdedor(Semis {k+1})"
+        ia, ib = sf_pairs[k]
+        if qf_resolved[ia] and qf_resolved[ib]:
+            teamA, teamB = qf_winner_real[ia], qf_winner_real[ib]
+            return teamB if sf_winner_real[k] == teamA else teamA
+        return f"Perdedor(Semis {k+1})"
+    fa, fb = f_pair
+    match_labels.append(("Final", sf_winner_label(fa), sf_winner_label(fb)))
+    ta, tb = tp_pair
+    match_labels.append(("3º-4º puesto", sf_loser_label(ta), sf_loser_label(tb)))
+
+    simulate, n_bits, unresolved_idx = make_simulator(
+        octavos, qf_pairs, sf_pairs, f_pair, tp_pair,
+        qf_resolved, qf_winner_real, sf_resolved, sf_winner_real)
     all_bits = list(itertools.product([0, 1], repeat=n_bits))
     print(f"bracket branches: {len(all_bits)} ({n_bits} bits)", file=sys.stderr)
 
@@ -643,11 +707,25 @@ def main():
             result[teamB] = pB_reach * lose_prob
         return result
 
+    # Igual que en make_simulator: un cruce ya jugado de verdad se colapsa a
+    # {ganador: 1.0} en vez de seguir tratándose como un 78%/22% de mercado
+    # -- si no, el Cuadro con probabilidades seguía enseñando probabilidad
+    # de campeón a equipos ya eliminados en la realidad.
     O_dist = [({o["winner"]: 1.0} if o["resolved"] else {o["a"]: o["probA"], o["b"]: o["probB"]}) for o in octavos]
     Q_dist = next_round_dist(qf_pairs, O_dist, hybrid_prob)
+    for k in range(len(qf_pairs)):
+        if qf_resolved[k]:
+            Q_dist[k] = {qf_winner_real[k]: 1.0}
     S_dist = next_round_dist(sf_pairs, Q_dist, hybrid_prob)
-    F_dist = next_round_dist([f_pair], S_dist, hybrid_prob)[0]
     L_dist = [loser_dist(Q_dist[sf_pairs[i][0]], Q_dist[sf_pairs[i][1]], hybrid_prob) for i in range(2)]
+    for k in range(len(sf_pairs)):
+        if sf_resolved[k]:
+            ia, ib = sf_pairs[k]
+            teamA, teamB = next(iter(Q_dist[ia])), next(iter(Q_dist[ib]))
+            winner = sf_winner_real[k]
+            S_dist[k] = {winner: 1.0}
+            L_dist[k] = {(teamB if winner == teamA else teamA): 1.0}
+    F_dist = next_round_dist([f_pair], S_dist, hybrid_prob)[0]
     tp_a, tp_b = tp_pair
     T34_dist = next_round_dist([(tp_a, tp_b)], L_dist, hybrid_prob)[0]
 
@@ -754,12 +832,10 @@ def main():
         "sf_pairs": [list(pair) for pair in sf_pairs],
         "f_pair": list(f_pair),
         "tp_pair": list(tp_pair),
-        "qf_resolved": [bool(m["actual"]) for m in cuartos_matches],
-        "sf_resolved": [bool(m["actual"]) for m in semis_matches],
-        "qf_winner": [porra["ko_stage"]["winners_by_match"].get(str(m["num"])) if m["actual"] else None
-                      for m in cuartos_matches],
-        "sf_winner": [porra["ko_stage"]["winners_by_match"].get(str(m["num"])) if m["actual"] else None
-                      for m in semis_matches],
+        "qf_resolved": qf_resolved,
+        "sf_resolved": sf_resolved,
+        "qf_winner": qf_winner_real,
+        "sf_winner": sf_winner_real,
     }
 
     # Para que el simulador pueda calcular el favorito real (no solo en

@@ -1686,15 +1686,15 @@ function simMatchRows(w) {
   });
   topo.sf_pairs.forEach(([ia, ib], k) => {
     if (topo.sf_resolved[k]) return;
-    const teamA = w.Q_winner[ia], teamB = w.Q_winner[ib];
     const pick = simState.sf[k];
-    if (pick !== 0 && pick !== 1) return;
-    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: pick === 0 ? teamA : teamB });
+    if (!pick) return;
+    const teamA = w.Q_winner[ia] || '¿?', teamB = w.Q_winner[ib] || '¿?';
+    rows.push({ label: `Semifinal ${k + 1}`, teamA, teamB, winner: pick });
   });
   const [fa, fb] = topo.f_pair;
-  if (w.champion) rows.push({ label: 'Final', teamA: w.S_winner[fa], teamB: w.S_winner[fb], winner: w.champion });
+  if (w.champion) rows.push({ label: 'Final', teamA: w.S_winner[fa] || '¿?', teamB: w.S_winner[fb] || '¿?', winner: w.champion });
   const [ta, tb] = topo.tp_pair;
-  if (w.winner34) rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta], teamB: w.S_loser[tb], winner: w.winner34 });
+  if (w.winner34) rows.push({ label: '3º-4º puesto', teamA: w.S_loser[ta] || '¿?', teamB: w.S_loser[tb] || '¿?', winner: w.winner34 });
   return rows;
 }
 
@@ -1970,33 +1970,50 @@ function simDefaultState() {
     if (o.resolved) return o.winner;
     return st.octavos[i] === 0 ? o.a : (st.octavos[i] === 1 ? o.b : null);
   });
-  const Q_winner = topo.qf_pairs.map(([ia, ib], k) => {
+  const Qteams = topo.qf_pairs.map(([ia, ib]) => [O_winner[ia], O_winner[ib]]);
+  const Q_winner = topo.qf_pairs.map((_, k) => {
     if (topo.qf_resolved[k]) return topo.qf_winner[k];
-    const teamA = O_winner[ia], teamB = O_winner[ib];
-    const pick = (teamA && teamB && locks.qf[k] !== undefined) ? locks.qf[k] : null;
-    st.qf[k] = pick;
-    if (pick === 0) return teamA;
-    if (pick === 1) return teamB;
-    return null;
+    const [teamA, teamB] = Qteams[k];
+    return (teamA && teamB && locks.qf[k] !== undefined) ? (locks.qf[k] === 0 ? teamA : teamB) : null;
   });
-  const S_winner = [], S_loser = [];
+  // Desde semis, un lock ya no es un lado 0/1 de un cruce conocido sino el
+  // NOMBRE del equipo fijado como ganador (ver filter_engine.js), así que
+  // cuenta como "ya decidido" aquí tal cual, aunque su rival concreto (o el
+  // camino hasta esta ronda) siga sin resolverse -- es justo lo que permite
+  // fijar "gana España la final" sin fijar antes su cruce de semis.
+  const S_winner = topo.sf_pairs.map((_, k) => (topo.sf_resolved[k] ? topo.sf_winner[k] : (locks.sf[k] || null)));
+
+  // Un campeón ya fijado (o, cuando el cruce solo admite dos nombres, el
+  // ganador de 3º-4º puesto) implica que ganó -- o perdió -- también la
+  // semifinal y el cuartos que lo llevaron hasta ahí, aunque esas rondas no
+  // se hayan marcado explícitamente. Sin esto, fijar "España campeón" solo
+  // sumaba el pick de campeón (+96) y dejaba en blanco el de finalista
+  // (+48) y semifinalista (+24) pese a estar ya implícitos por fuerza.
   topo.sf_pairs.forEach(([ia, ib], k) => {
-    const teamA = Q_winner[ia], teamB = Q_winner[ib];
-    if (topo.sf_resolved[k]) {
-      const w = topo.sf_winner[k];
-      S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
-      return;
+    if (S_winner[k]) return;
+    const poolA = Q_winner[ia] ? [Q_winner[ia]] : Qteams[ia];
+    const poolB = Q_winner[ib] ? [Q_winner[ib]] : Qteams[ib];
+    if (locks.final && (poolA.includes(locks.final) || poolB.includes(locks.final))) { S_winner[k] = locks.final; return; }
+    if (locks.tp) {
+      const pool = [...poolA, ...poolB];
+      if (pool.length === 2 && pool.includes(locks.tp)) S_winner[k] = pool.find(t => t !== locks.tp);
     }
-    const pick = (teamA && teamB && locks.sf[k] !== undefined) ? locks.sf[k] : null;
-    st.sf[k] = pick;
-    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
-    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
-    else { S_winner.push(null); S_loser.push(null); }
   });
-  const [fa, fb] = topo.f_pair;
-  st.final = (S_winner[fa] && S_winner[fb] && locks.final !== null && locks.final !== undefined) ? locks.final : null;
-  const [ta, tb] = topo.tp_pair;
-  st.tp = (S_loser[ta] && S_loser[tb] && locks.tp !== null && locks.tp !== undefined) ? locks.tp : null;
+  topo.sf_pairs.forEach(([ia, ib], k) => {
+    if (!S_winner[k]) return;
+    if (!Q_winner[ia] && Qteams[ia].includes(S_winner[k])) Q_winner[ia] = S_winner[k];
+    if (!Q_winner[ib] && Qteams[ib].includes(S_winner[k])) Q_winner[ib] = S_winner[k];
+  });
+
+  topo.qf_pairs.forEach((_, k) => {
+    if (topo.qf_resolved[k]) return;
+    const [teamA, teamB] = Qteams[k];
+    st.qf[k] = Q_winner[k] === teamA ? 0 : (Q_winner[k] === teamB ? 1 : null);
+  });
+  topo.sf_pairs.forEach((_, k) => { if (!topo.sf_resolved[k]) st.sf[k] = S_winner[k] || null; });
+
+  st.final = locks.final || null;
+  st.tp = locks.tp || null;
   return st;
 }
 
@@ -2022,16 +2039,15 @@ function simComputeWinners() {
       S_winner.push(w); S_loser.push(w === teamA ? teamB : teamA);
       return;
     }
-    const pick = simState.sf[k];
-    if (pick === 0) { S_winner.push(teamA); S_loser.push(teamB); }
-    else if (pick === 1) { S_winner.push(teamB); S_loser.push(teamA); }
-    else { S_winner.push(null); S_loser.push(null); }
+    const winner = simState.sf[k] || null;
+    S_winner.push(winner);
+    S_loser.push((winner && teamA && teamB) ? (winner === teamA ? teamB : teamA) : null);
   });
   const [fa, fb] = topo.f_pair;
-  const champion = simState.final === 0 ? S_winner[fa] : (simState.final === 1 ? S_winner[fb] : null);
-  const runner = simState.final === 0 ? S_winner[fb] : (simState.final === 1 ? S_winner[fa] : null);
+  const champion = simState.final || null;
+  const runner = (champion && S_winner[fa] && S_winner[fb]) ? (champion === S_winner[fa] ? S_winner[fb] : S_winner[fa]) : null;
   const [ta, tb] = topo.tp_pair;
-  const winner34 = simState.tp === 0 ? S_loser[ta] : (simState.tp === 1 ? S_loser[tb] : null);
+  const winner34 = simState.tp || null;
   return { O_winner, Q_winner, S_winner, S_loser, champion, runner, winner34 };
 }
 

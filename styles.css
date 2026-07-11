@@ -1646,6 +1646,21 @@ main {
 .pred-filter-choice.pred-filter-unmark { flex: 0 0 auto; font-size: 11px; }
 .pred-filter-choice.pred-filter-unmark.active { background: var(--panel-line); color: var(--chalk); }
 
+/* Semis/Final/3º-4º puesto: dos lados enfrentados (cada uno con 1 botón si
+   su ronda anterior ya está fijada, o 2 apilados si sigue abierta) en vez
+   de una lista plana -- "sin marcar" queda como fila propia debajo, a todo
+   lo ancho, porque ya no encaja bien apretada entre los dos lados. */
+.pred-filter-match { display: flex; align-items: center; gap: 6px; }
+.pred-filter-match-side { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pred-filter-match-vs {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--chalk-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .pred-filter-award-row {
   grid-column: 1 / -1;
   display: flex;
