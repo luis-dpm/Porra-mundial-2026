@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-12T06:02:23.317509Z",
+  "generated_at": "2026-07-12T06:32:49.665359Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -703,6 +703,12 @@
       "utcDate": "2026-07-05T20:00:00Z"
     },
     {
+      "home_api": "Mexico",
+      "away_api": "England",
+      "score": "2-3",
+      "utcDate": "2026-07-06T01:00:00Z"
+    },
+    {
       "home_api": "Portugal",
       "away_api": "Spain",
       "score": "0-1",
@@ -1301,7 +1307,7 @@
     {
       "home_api": "Mexico",
       "away_api": "England",
-      "status": "2026-07-06 01:00:00Z",
+      "status": "FINISHED",
       "utcDate": "2026-07-06T01:00:00Z"
     },
     {
@@ -1359,8 +1365,8 @@
       "utcDate": "2026-07-14T19:00:00Z"
     },
     {
-      "home_api": null,
-      "away_api": null,
+      "home_api": "England",
+      "away_api": "Argentina",
       "status": "TIMED",
       "utcDate": "2026-07-15T19:00:00Z"
     },
