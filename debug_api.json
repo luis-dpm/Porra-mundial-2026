@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-15T17:31:08.204468Z",
+  "generated_at": "2026-07-15T18:00:03.024102Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -8,1391 +8,41 @@
     "conflictos_excel_vs_api": 0
   },
   "fase_ko_diagnostico": {
-    "team_ko_opponent": [
-      [
-        "Alemania",
-        "Paraguay"
-      ],
-      [
-        "Argelia",
-        "Suiza"
-      ],
-      [
-        "Australia",
-        "Egipto"
-      ],
-      [
-        "Austria",
-        "España"
-      ],
-      [
-        "Bosnia y Herzegovina",
-        "Estados Unidos"
-      ],
-      [
-        "Brasil",
-        "Japón"
-      ],
-      [
-        "Bélgica",
-        "Senegal"
-      ],
-      [
-        "Canadá",
-        "Sudáfrica"
-      ],
-      [
-        "Costa de Marfil",
-        "Noruega"
-      ],
-      [
-        "Croacia",
-        "Portugal"
-      ],
-      [
-        "Ecuador",
-        "México"
-      ],
-      [
-        "Egipto",
-        "Australia"
-      ],
-      [
-        "España",
-        "Austria"
-      ],
-      [
-        "Estados Unidos",
-        "Bosnia y Herzegovina"
-      ],
-      [
-        "Francia",
-        "Suecia"
-      ],
-      [
-        "Inglaterra",
-        "RD Congo"
-      ],
-      [
-        "Japón",
-        "Brasil"
-      ],
-      [
-        "Marruecos",
-        "Países Bajos"
-      ],
-      [
-        "México",
-        "Ecuador"
-      ],
-      [
-        "Noruega",
-        "Costa de Marfil"
-      ],
-      [
-        "Paraguay",
-        "Alemania"
-      ],
-      [
-        "Países Bajos",
-        "Marruecos"
-      ],
-      [
-        "Portugal",
-        "Croacia"
-      ],
-      [
-        "RD Congo",
-        "Inglaterra"
-      ],
-      [
-        "Senegal",
-        "Bélgica"
-      ],
-      [
-        "Sudáfrica",
-        "Canadá"
-      ],
-      [
-        "Suecia",
-        "Francia"
-      ],
-      [
-        "Suiza",
-        "Argelia"
-      ]
-    ],
-    "penalty_winners": [
-      "Alemania-Paraguay: gana Paraguay",
-      "Australia-Egipto: gana Egipto",
-      "Países Bajos-Marruecos: gana Marruecos",
-      "Suiza-Colombia: gana Suiza"
-    ],
+    "team_ko_opponent": [],
+    "penalty_winners": [],
     "dieciseisavos_fuente_cruce": {
       "73": "directo",
-      "74": "api",
+      "74": "respaldo",
       "75": "directo",
       "76": "directo",
-      "77": "api",
+      "77": "respaldo",
       "78": "directo",
-      "79": "api",
-      "80": "api",
-      "81": "api",
-      "82": "api",
+      "79": "respaldo",
+      "80": "respaldo",
+      "81": "respaldo",
+      "82": "respaldo",
       "83": "directo",
       "84": "directo",
-      "85": "api",
+      "85": "sin_resolver",
       "86": "directo",
       "87": "respaldo",
       "88": "directo"
     }
   },
   "clasificacion_de_grupos": {
-    "usando_oficial_api": true,
-    "grupos_recibidos_de_api": 12,
+    "usando_oficial_api": false,
+    "grupos_recibidos_de_api": 0,
     "ranking_terceros_calculado": true,
-    "nota": "Clasificación oficial de la API (con fair-play/enfrentamiento directo)."
+    "nota": "FALLBACK: clasificación calculada localmente (solo pts/gd/gf). El endpoint /standings de la API no respondió o falló — revisa el log completo del paso 'Actualizar data.js' en Actions para ver el motivo exacto."
   },
   "conflictos": [],
   "rellenados_por_api": [],
-  "partidos_finalizados_segun_api": [
-    {
-      "home_api": "Mexico",
-      "away_api": "South Africa",
-      "score": "2-0",
-      "utcDate": "2026-06-11T19:00:00Z"
-    },
-    {
-      "home_api": "South Korea",
-      "away_api": "Czechia",
-      "score": "2-1",
-      "utcDate": "2026-06-12T02:00:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Bosnia-Herzegovina",
-      "score": "1-1",
-      "utcDate": "2026-06-12T19:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Paraguay",
-      "score": "4-1",
-      "utcDate": "2026-06-13T01:00:00Z"
-    },
-    {
-      "home_api": "Qatar",
-      "away_api": "Switzerland",
-      "score": "1-1",
-      "utcDate": "2026-06-13T19:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Morocco",
-      "score": "1-1",
-      "utcDate": "2026-06-13T22:00:00Z"
-    },
-    {
-      "home_api": "Haiti",
-      "away_api": "Scotland",
-      "score": "0-1",
-      "utcDate": "2026-06-14T01:00:00Z"
-    },
-    {
-      "home_api": "Australia",
-      "away_api": "Turkey",
-      "score": "2-0",
-      "utcDate": "2026-06-14T04:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Curaçao",
-      "score": "7-1",
-      "utcDate": "2026-06-14T17:00:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Japan",
-      "score": "2-2",
-      "utcDate": "2026-06-14T20:00:00Z"
-    },
-    {
-      "home_api": "Ivory Coast",
-      "away_api": "Ecuador",
-      "score": "1-0",
-      "utcDate": "2026-06-14T23:00:00Z"
-    },
-    {
-      "home_api": "Sweden",
-      "away_api": "Tunisia",
-      "score": "5-1",
-      "utcDate": "2026-06-15T02:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Cape Verde Islands",
-      "score": "0-0",
-      "utcDate": "2026-06-15T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Egypt",
-      "score": "1-1",
-      "utcDate": "2026-06-15T19:00:00Z"
-    },
-    {
-      "home_api": "Saudi Arabia",
-      "away_api": "Uruguay",
-      "score": "1-1",
-      "utcDate": "2026-06-15T22:00:00Z"
-    },
-    {
-      "home_api": "Iran",
-      "away_api": "New Zealand",
-      "score": "2-2",
-      "utcDate": "2026-06-16T01:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Senegal",
-      "score": "3-1",
-      "utcDate": "2026-06-16T19:00:00Z"
-    },
-    {
-      "home_api": "Iraq",
-      "away_api": "Norway",
-      "score": "1-4",
-      "utcDate": "2026-06-16T22:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Algeria",
-      "score": "3-0",
-      "utcDate": "2026-06-17T01:00:00Z"
-    },
-    {
-      "home_api": "Austria",
-      "away_api": "Jordan",
-      "score": "3-1",
-      "utcDate": "2026-06-17T04:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Congo DR",
-      "score": "1-1",
-      "utcDate": "2026-06-17T17:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Croatia",
-      "score": "4-2",
-      "utcDate": "2026-06-17T20:00:00Z"
-    },
-    {
-      "home_api": "Ghana",
-      "away_api": "Panama",
-      "score": "1-0",
-      "utcDate": "2026-06-17T23:00:00Z"
-    },
-    {
-      "home_api": "Uzbekistan",
-      "away_api": "Colombia",
-      "score": "1-3",
-      "utcDate": "2026-06-18T02:00:00Z"
-    },
-    {
-      "home_api": "Czechia",
-      "away_api": "South Africa",
-      "score": "1-1",
-      "utcDate": "2026-06-18T16:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Bosnia-Herzegovina",
-      "score": "4-1",
-      "utcDate": "2026-06-18T19:00:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Qatar",
-      "score": "6-0",
-      "utcDate": "2026-06-18T22:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "South Korea",
-      "score": "1-0",
-      "utcDate": "2026-06-19T01:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Australia",
-      "score": "2-0",
-      "utcDate": "2026-06-19T19:00:00Z"
-    },
-    {
-      "home_api": "Scotland",
-      "away_api": "Morocco",
-      "score": "0-1",
-      "utcDate": "2026-06-19T22:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Haiti",
-      "score": "3-0",
-      "utcDate": "2026-06-20T00:30:00Z"
-    },
-    {
-      "home_api": "Turkey",
-      "away_api": "Paraguay",
-      "score": "0-1",
-      "utcDate": "2026-06-20T03:00:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Sweden",
-      "score": "5-1",
-      "utcDate": "2026-06-20T17:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Ivory Coast",
-      "score": "2-1",
-      "utcDate": "2026-06-20T20:00:00Z"
-    },
-    {
-      "home_api": "Ecuador",
-      "away_api": "Curaçao",
-      "score": "0-0",
-      "utcDate": "2026-06-21T00:00:00Z"
-    },
-    {
-      "home_api": "Tunisia",
-      "away_api": "Japan",
-      "score": "0-4",
-      "utcDate": "2026-06-21T04:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Saudi Arabia",
-      "score": "4-0",
-      "utcDate": "2026-06-21T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Iran",
-      "score": "0-0",
-      "utcDate": "2026-06-21T19:00:00Z"
-    },
-    {
-      "home_api": "Uruguay",
-      "away_api": "Cape Verde Islands",
-      "score": "2-2",
-      "utcDate": "2026-06-21T22:00:00Z"
-    },
-    {
-      "home_api": "New Zealand",
-      "away_api": "Egypt",
-      "score": "1-3",
-      "utcDate": "2026-06-22T01:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Austria",
-      "score": "2-0",
-      "utcDate": "2026-06-22T17:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Iraq",
-      "score": "3-0",
-      "utcDate": "2026-06-22T21:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "Senegal",
-      "score": "3-2",
-      "utcDate": "2026-06-23T00:00:00Z"
-    },
-    {
-      "home_api": "Jordan",
-      "away_api": "Algeria",
-      "score": "1-2",
-      "utcDate": "2026-06-23T03:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Uzbekistan",
-      "score": "5-0",
-      "utcDate": "2026-06-23T17:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Ghana",
-      "score": "0-0",
-      "utcDate": "2026-06-23T20:00:00Z"
-    },
-    {
-      "home_api": "Panama",
-      "away_api": "Croatia",
-      "score": "0-1",
-      "utcDate": "2026-06-23T23:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Congo DR",
-      "score": "1-0",
-      "utcDate": "2026-06-24T02:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Canada",
-      "score": "2-1",
-      "utcDate": "2026-06-24T19:00:00Z"
-    },
-    {
-      "home_api": "Bosnia-Herzegovina",
-      "away_api": "Qatar",
-      "score": "3-1",
-      "utcDate": "2026-06-24T19:00:00Z"
-    },
-    {
-      "home_api": "Morocco",
-      "away_api": "Haiti",
-      "score": "4-2",
-      "utcDate": "2026-06-24T22:00:00Z"
-    },
-    {
-      "home_api": "Scotland",
-      "away_api": "Brazil",
-      "score": "0-3",
-      "utcDate": "2026-06-24T22:00:00Z"
-    },
-    {
-      "home_api": "Czechia",
-      "away_api": "Mexico",
-      "score": "0-3",
-      "utcDate": "2026-06-25T01:00:00Z"
-    },
-    {
-      "home_api": "South Africa",
-      "away_api": "South Korea",
-      "score": "1-0",
-      "utcDate": "2026-06-25T01:00:00Z"
-    },
-    {
-      "home_api": "Ecuador",
-      "away_api": "Germany",
-      "score": "2-1",
-      "utcDate": "2026-06-25T20:00:00Z"
-    },
-    {
-      "home_api": "Curaçao",
-      "away_api": "Ivory Coast",
-      "score": "0-2",
-      "utcDate": "2026-06-25T20:00:00Z"
-    },
-    {
-      "home_api": "Tunisia",
-      "away_api": "Netherlands",
-      "score": "1-3",
-      "utcDate": "2026-06-25T23:00:00Z"
-    },
-    {
-      "home_api": "Japan",
-      "away_api": "Sweden",
-      "score": "1-1",
-      "utcDate": "2026-06-25T23:00:00Z"
-    },
-    {
-      "home_api": "Turkey",
-      "away_api": "United States",
-      "score": "3-2",
-      "utcDate": "2026-06-26T02:00:00Z"
-    },
-    {
-      "home_api": "Paraguay",
-      "away_api": "Australia",
-      "score": "0-0",
-      "utcDate": "2026-06-26T02:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "France",
-      "score": "1-4",
-      "utcDate": "2026-06-26T19:00:00Z"
-    },
-    {
-      "home_api": "Senegal",
-      "away_api": "Iraq",
-      "score": "5-0",
-      "utcDate": "2026-06-26T19:00:00Z"
-    },
-    {
-      "home_api": "Uruguay",
-      "away_api": "Spain",
-      "score": "0-1",
-      "utcDate": "2026-06-27T00:00:00Z"
-    },
-    {
-      "home_api": "Cape Verde Islands",
-      "away_api": "Saudi Arabia",
-      "score": "0-0",
-      "utcDate": "2026-06-27T00:00:00Z"
-    },
-    {
-      "home_api": "New Zealand",
-      "away_api": "Belgium",
-      "score": "1-5",
-      "utcDate": "2026-06-27T03:00:00Z"
-    },
-    {
-      "home_api": "Egypt",
-      "away_api": "Iran",
-      "score": "1-1",
-      "utcDate": "2026-06-27T03:00:00Z"
-    },
-    {
-      "home_api": "Panama",
-      "away_api": "England",
-      "score": "0-2",
-      "utcDate": "2026-06-27T21:00:00Z"
-    },
-    {
-      "home_api": "Croatia",
-      "away_api": "Ghana",
-      "score": "2-1",
-      "utcDate": "2026-06-27T21:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Portugal",
-      "score": "0-0",
-      "utcDate": "2026-06-27T23:30:00Z"
-    },
-    {
-      "home_api": "Congo DR",
-      "away_api": "Uzbekistan",
-      "score": "3-1",
-      "utcDate": "2026-06-27T23:30:00Z"
-    },
-    {
-      "home_api": "Jordan",
-      "away_api": "Argentina",
-      "score": "1-3",
-      "utcDate": "2026-06-28T02:00:00Z"
-    },
-    {
-      "home_api": "Algeria",
-      "away_api": "Austria",
-      "score": "3-3",
-      "utcDate": "2026-06-28T02:00:00Z"
-    },
-    {
-      "home_api": "South Africa",
-      "away_api": "Canada",
-      "score": "0-1",
-      "utcDate": "2026-06-28T19:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Japan",
-      "score": "2-1",
-      "utcDate": "2026-06-29T17:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Paraguay",
-      "score": "4-5",
-      "utcDate": "2026-06-29T20:30:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Morocco",
-      "score": "3-4",
-      "utcDate": "2026-06-30T01:00:00Z"
-    },
-    {
-      "home_api": "Ivory Coast",
-      "away_api": "Norway",
-      "score": "1-2",
-      "utcDate": "2026-06-30T17:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Sweden",
-      "score": "3-0",
-      "utcDate": "2026-06-30T21:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "Ecuador",
-      "score": "2-0",
-      "utcDate": "2026-07-01T02:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Congo DR",
-      "score": "2-1",
-      "utcDate": "2026-07-01T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Senegal",
-      "score": "3-2",
-      "utcDate": "2026-07-01T20:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Bosnia-Herzegovina",
-      "score": "2-0",
-      "utcDate": "2026-07-02T00:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Austria",
-      "score": "3-0",
-      "utcDate": "2026-07-02T19:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Croatia",
-      "score": "2-1",
-      "utcDate": "2026-07-02T23:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Algeria",
-      "score": "2-0",
-      "utcDate": "2026-07-03T03:00:00Z"
-    },
-    {
-      "home_api": "Australia",
-      "away_api": "Egypt",
-      "score": "3-5",
-      "utcDate": "2026-07-03T18:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Cape Verde Islands",
-      "score": "3-2",
-      "utcDate": "2026-07-03T22:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Ghana",
-      "score": "1-0",
-      "utcDate": "2026-07-04T01:30:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Morocco",
-      "score": "0-3",
-      "utcDate": "2026-07-04T17:00:00Z"
-    },
-    {
-      "home_api": "Paraguay",
-      "away_api": "France",
-      "score": "0-1",
-      "utcDate": "2026-07-04T21:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Norway",
-      "score": "1-2",
-      "utcDate": "2026-07-05T20:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "England",
-      "score": "2-3",
-      "utcDate": "2026-07-06T01:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Spain",
-      "score": "0-1",
-      "utcDate": "2026-07-06T19:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Belgium",
-      "score": "1-4",
-      "utcDate": "2026-07-07T00:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Egypt",
-      "score": "3-2",
-      "utcDate": "2026-07-07T16:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Colombia",
-      "score": "4-3",
-      "utcDate": "2026-07-07T20:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Morocco",
-      "score": "2-0",
-      "utcDate": "2026-07-09T20:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Belgium",
-      "score": "2-1",
-      "utcDate": "2026-07-10T19:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "England",
-      "score": "1-2",
-      "utcDate": "2026-07-11T21:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Switzerland",
-      "score": "3-1",
-      "utcDate": "2026-07-12T01:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Spain",
-      "score": "0-2",
-      "utcDate": "2026-07-14T19:00:00Z"
-    }
-  ],
-  "TODOS_los_partidos_segun_api": [
-    {
-      "home_api": "Mexico",
-      "away_api": "South Africa",
-      "status": "FINISHED",
-      "utcDate": "2026-06-11T19:00:00Z"
-    },
-    {
-      "home_api": "South Korea",
-      "away_api": "Czechia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-12T02:00:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Bosnia-Herzegovina",
-      "status": "FINISHED",
-      "utcDate": "2026-06-12T19:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Paraguay",
-      "status": "FINISHED",
-      "utcDate": "2026-06-13T01:00:00Z"
-    },
-    {
-      "home_api": "Qatar",
-      "away_api": "Switzerland",
-      "status": "FINISHED",
-      "utcDate": "2026-06-13T19:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Morocco",
-      "status": "FINISHED",
-      "utcDate": "2026-06-13T22:00:00Z"
-    },
-    {
-      "home_api": "Haiti",
-      "away_api": "Scotland",
-      "status": "FINISHED",
-      "utcDate": "2026-06-14T01:00:00Z"
-    },
-    {
-      "home_api": "Australia",
-      "away_api": "Turkey",
-      "status": "FINISHED",
-      "utcDate": "2026-06-14T04:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Curaçao",
-      "status": "FINISHED",
-      "utcDate": "2026-06-14T17:00:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Japan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-14T20:00:00Z"
-    },
-    {
-      "home_api": "Ivory Coast",
-      "away_api": "Ecuador",
-      "status": "FINISHED",
-      "utcDate": "2026-06-14T23:00:00Z"
-    },
-    {
-      "home_api": "Sweden",
-      "away_api": "Tunisia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-15T02:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Cape Verde Islands",
-      "status": "FINISHED",
-      "utcDate": "2026-06-15T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Egypt",
-      "status": "FINISHED",
-      "utcDate": "2026-06-15T19:00:00Z"
-    },
-    {
-      "home_api": "Saudi Arabia",
-      "away_api": "Uruguay",
-      "status": "FINISHED",
-      "utcDate": "2026-06-15T22:00:00Z"
-    },
-    {
-      "home_api": "Iran",
-      "away_api": "New Zealand",
-      "status": "FINISHED",
-      "utcDate": "2026-06-16T01:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Senegal",
-      "status": "FINISHED",
-      "utcDate": "2026-06-16T19:00:00Z"
-    },
-    {
-      "home_api": "Iraq",
-      "away_api": "Norway",
-      "status": "FINISHED",
-      "utcDate": "2026-06-16T22:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Algeria",
-      "status": "FINISHED",
-      "utcDate": "2026-06-17T01:00:00Z"
-    },
-    {
-      "home_api": "Austria",
-      "away_api": "Jordan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-17T04:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Congo DR",
-      "status": "FINISHED",
-      "utcDate": "2026-06-17T17:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Croatia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-17T20:00:00Z"
-    },
-    {
-      "home_api": "Ghana",
-      "away_api": "Panama",
-      "status": "FINISHED",
-      "utcDate": "2026-06-17T23:00:00Z"
-    },
-    {
-      "home_api": "Uzbekistan",
-      "away_api": "Colombia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-18T02:00:00Z"
-    },
-    {
-      "home_api": "Czechia",
-      "away_api": "South Africa",
-      "status": "FINISHED",
-      "utcDate": "2026-06-18T16:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Bosnia-Herzegovina",
-      "status": "FINISHED",
-      "utcDate": "2026-06-18T19:00:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Qatar",
-      "status": "FINISHED",
-      "utcDate": "2026-06-18T22:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "South Korea",
-      "status": "FINISHED",
-      "utcDate": "2026-06-19T01:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Australia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-19T19:00:00Z"
-    },
-    {
-      "home_api": "Scotland",
-      "away_api": "Morocco",
-      "status": "FINISHED",
-      "utcDate": "2026-06-19T22:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Haiti",
-      "status": "FINISHED",
-      "utcDate": "2026-06-20T00:30:00Z"
-    },
-    {
-      "home_api": "Turkey",
-      "away_api": "Paraguay",
-      "status": "FINISHED",
-      "utcDate": "2026-06-20T03:00:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Sweden",
-      "status": "FINISHED",
-      "utcDate": "2026-06-20T17:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Ivory Coast",
-      "status": "FINISHED",
-      "utcDate": "2026-06-20T20:00:00Z"
-    },
-    {
-      "home_api": "Ecuador",
-      "away_api": "Curaçao",
-      "status": "FINISHED",
-      "utcDate": "2026-06-21T00:00:00Z"
-    },
-    {
-      "home_api": "Tunisia",
-      "away_api": "Japan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-21T04:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Saudi Arabia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-21T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Iran",
-      "status": "FINISHED",
-      "utcDate": "2026-06-21T19:00:00Z"
-    },
-    {
-      "home_api": "Uruguay",
-      "away_api": "Cape Verde Islands",
-      "status": "FINISHED",
-      "utcDate": "2026-06-21T22:00:00Z"
-    },
-    {
-      "home_api": "New Zealand",
-      "away_api": "Egypt",
-      "status": "FINISHED",
-      "utcDate": "2026-06-22T01:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Austria",
-      "status": "FINISHED",
-      "utcDate": "2026-06-22T17:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Iraq",
-      "status": "FINISHED",
-      "utcDate": "2026-06-22T21:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "Senegal",
-      "status": "FINISHED",
-      "utcDate": "2026-06-23T00:00:00Z"
-    },
-    {
-      "home_api": "Jordan",
-      "away_api": "Algeria",
-      "status": "FINISHED",
-      "utcDate": "2026-06-23T03:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Uzbekistan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-23T17:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Ghana",
-      "status": "FINISHED",
-      "utcDate": "2026-06-23T20:00:00Z"
-    },
-    {
-      "home_api": "Panama",
-      "away_api": "Croatia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-23T23:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Congo DR",
-      "status": "FINISHED",
-      "utcDate": "2026-06-24T02:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Canada",
-      "status": "FINISHED",
-      "utcDate": "2026-06-24T19:00:00Z"
-    },
-    {
-      "home_api": "Bosnia-Herzegovina",
-      "away_api": "Qatar",
-      "status": "FINISHED",
-      "utcDate": "2026-06-24T19:00:00Z"
-    },
-    {
-      "home_api": "Morocco",
-      "away_api": "Haiti",
-      "status": "FINISHED",
-      "utcDate": "2026-06-24T22:00:00Z"
-    },
-    {
-      "home_api": "Scotland",
-      "away_api": "Brazil",
-      "status": "FINISHED",
-      "utcDate": "2026-06-24T22:00:00Z"
-    },
-    {
-      "home_api": "Czechia",
-      "away_api": "Mexico",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T01:00:00Z"
-    },
-    {
-      "home_api": "South Africa",
-      "away_api": "South Korea",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T01:00:00Z"
-    },
-    {
-      "home_api": "Ecuador",
-      "away_api": "Germany",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T20:00:00Z"
-    },
-    {
-      "home_api": "Curaçao",
-      "away_api": "Ivory Coast",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T20:00:00Z"
-    },
-    {
-      "home_api": "Tunisia",
-      "away_api": "Netherlands",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T23:00:00Z"
-    },
-    {
-      "home_api": "Japan",
-      "away_api": "Sweden",
-      "status": "FINISHED",
-      "utcDate": "2026-06-25T23:00:00Z"
-    },
-    {
-      "home_api": "Turkey",
-      "away_api": "United States",
-      "status": "FINISHED",
-      "utcDate": "2026-06-26T02:00:00Z"
-    },
-    {
-      "home_api": "Paraguay",
-      "away_api": "Australia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-26T02:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "France",
-      "status": "FINISHED",
-      "utcDate": "2026-06-26T19:00:00Z"
-    },
-    {
-      "home_api": "Senegal",
-      "away_api": "Iraq",
-      "status": "FINISHED",
-      "utcDate": "2026-06-26T19:00:00Z"
-    },
-    {
-      "home_api": "Uruguay",
-      "away_api": "Spain",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T00:00:00Z"
-    },
-    {
-      "home_api": "Cape Verde Islands",
-      "away_api": "Saudi Arabia",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T00:00:00Z"
-    },
-    {
-      "home_api": "New Zealand",
-      "away_api": "Belgium",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T03:00:00Z"
-    },
-    {
-      "home_api": "Egypt",
-      "away_api": "Iran",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T03:00:00Z"
-    },
-    {
-      "home_api": "Panama",
-      "away_api": "England",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T21:00:00Z"
-    },
-    {
-      "home_api": "Croatia",
-      "away_api": "Ghana",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T21:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Portugal",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T23:30:00Z"
-    },
-    {
-      "home_api": "Congo DR",
-      "away_api": "Uzbekistan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-27T23:30:00Z"
-    },
-    {
-      "home_api": "Jordan",
-      "away_api": "Argentina",
-      "status": "FINISHED",
-      "utcDate": "2026-06-28T02:00:00Z"
-    },
-    {
-      "home_api": "Algeria",
-      "away_api": "Austria",
-      "status": "FINISHED",
-      "utcDate": "2026-06-28T02:00:00Z"
-    },
-    {
-      "home_api": "South Africa",
-      "away_api": "Canada",
-      "status": "FINISHED",
-      "utcDate": "2026-06-28T19:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Japan",
-      "status": "FINISHED",
-      "utcDate": "2026-06-29T17:00:00Z"
-    },
-    {
-      "home_api": "Germany",
-      "away_api": "Paraguay",
-      "status": "FINISHED",
-      "utcDate": "2026-06-29T20:30:00Z"
-    },
-    {
-      "home_api": "Netherlands",
-      "away_api": "Morocco",
-      "status": "FINISHED",
-      "utcDate": "2026-06-30T01:00:00Z"
-    },
-    {
-      "home_api": "Ivory Coast",
-      "away_api": "Norway",
-      "status": "FINISHED",
-      "utcDate": "2026-06-30T17:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Sweden",
-      "status": "FINISHED",
-      "utcDate": "2026-06-30T21:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "Ecuador",
-      "status": "FINISHED",
-      "utcDate": "2026-07-01T02:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Congo DR",
-      "status": "FINISHED",
-      "utcDate": "2026-07-01T16:00:00Z"
-    },
-    {
-      "home_api": "Belgium",
-      "away_api": "Senegal",
-      "status": "FINISHED",
-      "utcDate": "2026-07-01T20:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Bosnia-Herzegovina",
-      "status": "FINISHED",
-      "utcDate": "2026-07-02T00:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Austria",
-      "status": "FINISHED",
-      "utcDate": "2026-07-02T19:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Croatia",
-      "status": "FINISHED",
-      "utcDate": "2026-07-02T23:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Algeria",
-      "status": "FINISHED",
-      "utcDate": "2026-07-03T03:00:00Z"
-    },
-    {
-      "home_api": "Australia",
-      "away_api": "Egypt",
-      "status": "FINISHED",
-      "utcDate": "2026-07-03T18:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Cape Verde Islands",
-      "status": "FINISHED",
-      "utcDate": "2026-07-03T22:00:00Z"
-    },
-    {
-      "home_api": "Colombia",
-      "away_api": "Ghana",
-      "status": "FINISHED",
-      "utcDate": "2026-07-04T01:30:00Z"
-    },
-    {
-      "home_api": "Canada",
-      "away_api": "Morocco",
-      "status": "FINISHED",
-      "utcDate": "2026-07-04T17:00:00Z"
-    },
-    {
-      "home_api": "Paraguay",
-      "away_api": "France",
-      "status": "FINISHED",
-      "utcDate": "2026-07-04T21:00:00Z"
-    },
-    {
-      "home_api": "Brazil",
-      "away_api": "Norway",
-      "status": "FINISHED",
-      "utcDate": "2026-07-05T20:00:00Z"
-    },
-    {
-      "home_api": "Mexico",
-      "away_api": "England",
-      "status": "FINISHED",
-      "utcDate": "2026-07-06T01:00:00Z"
-    },
-    {
-      "home_api": "Portugal",
-      "away_api": "Spain",
-      "status": "FINISHED",
-      "utcDate": "2026-07-06T19:00:00Z"
-    },
-    {
-      "home_api": "United States",
-      "away_api": "Belgium",
-      "status": "FINISHED",
-      "utcDate": "2026-07-07T00:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Egypt",
-      "status": "FINISHED",
-      "utcDate": "2026-07-07T16:00:00Z"
-    },
-    {
-      "home_api": "Switzerland",
-      "away_api": "Colombia",
-      "status": "FINISHED",
-      "utcDate": "2026-07-07T20:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Morocco",
-      "status": "FINISHED",
-      "utcDate": "2026-07-09T20:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": "Belgium",
-      "status": "FINISHED",
-      "utcDate": "2026-07-10T19:00:00Z"
-    },
-    {
-      "home_api": "Norway",
-      "away_api": "England",
-      "status": "FINISHED",
-      "utcDate": "2026-07-11T21:00:00Z"
-    },
-    {
-      "home_api": "Argentina",
-      "away_api": "Switzerland",
-      "status": "FINISHED",
-      "utcDate": "2026-07-12T01:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": "Spain",
-      "status": "FINISHED",
-      "utcDate": "2026-07-14T19:00:00Z"
-    },
-    {
-      "home_api": "England",
-      "away_api": "Argentina",
-      "status": "TIMED",
-      "utcDate": "2026-07-15T19:00:00Z"
-    },
-    {
-      "home_api": "France",
-      "away_api": null,
-      "status": "TIMED",
-      "utcDate": "2026-07-18T21:00:00Z"
-    },
-    {
-      "home_api": "Spain",
-      "away_api": null,
-      "status": "TIMED",
-      "utcDate": "2026-07-19T19:00:00Z"
-    }
-  ],
+  "partidos_finalizados_segun_api": [],
+  "TODOS_los_partidos_segun_api": [],
   "todos": [
     {
       "match": "México-Sudáfrica",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
@@ -1401,7 +51,7 @@
     },
     {
       "match": "Corea del Sur-República Checa",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -1410,7 +60,7 @@
     },
     {
       "match": "Canadá-Bosnia y Herzegovina",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1419,7 +69,7 @@
     },
     {
       "match": "Catar-Suiza",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1428,7 +78,7 @@
     },
     {
       "match": "Brasil-Marruecos",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1437,7 +87,7 @@
     },
     {
       "match": "Haití-Escocia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
@@ -1446,7 +96,7 @@
     },
     {
       "match": "Estados Unidos-Paraguay",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|4-1",
       "api_actual": "1|4-1",
       "used": "1|4-1",
@@ -1455,7 +105,7 @@
     },
     {
       "match": "Australia-Turquía",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
@@ -1464,7 +114,7 @@
     },
     {
       "match": "Alemania-Curazao",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|7-1",
       "api_actual": "1|7-1",
       "used": "1|7-1",
@@ -1473,7 +123,7 @@
     },
     {
       "match": "Costa de Marfil-Ecuador",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1482,7 +132,7 @@
     },
     {
       "match": "Países Bajos-Japón",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|2-2",
       "api_actual": "X|2-2",
       "used": "X|2-2",
@@ -1491,7 +141,7 @@
     },
     {
       "match": "Suecia-Túnez",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|5-1",
       "api_actual": "1|5-1",
       "used": "1|5-1",
@@ -1500,7 +150,7 @@
     },
     {
       "match": "Bélgica-Egipto",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1509,7 +159,7 @@
     },
     {
       "match": "Irán-Nueva Zelanda",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|2-2",
       "api_actual": "X|2-2",
       "used": "X|2-2",
@@ -1518,7 +168,7 @@
     },
     {
       "match": "España-Cabo Verde",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1527,7 +177,7 @@
     },
     {
       "match": "Arabia Saudita-Uruguay",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1536,7 +186,7 @@
     },
     {
       "match": "Francia-Senegal",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
@@ -1545,7 +195,7 @@
     },
     {
       "match": "Irak-Noruega",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-4",
       "api_actual": "2|1-4",
       "used": "2|1-4",
@@ -1554,7 +204,7 @@
     },
     {
       "match": "Argentina-Argelia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-0",
       "api_actual": "1|3-0",
       "used": "1|3-0",
@@ -1563,7 +213,7 @@
     },
     {
       "match": "Austria-Jordania",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
@@ -1572,7 +222,7 @@
     },
     {
       "match": "Portugal-RD Congo",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1581,7 +231,7 @@
     },
     {
       "match": "Uzbekistán-Colombia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
@@ -1590,7 +240,7 @@
     },
     {
       "match": "Inglaterra-Croacia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|4-2",
       "api_actual": "1|4-2",
       "used": "1|4-2",
@@ -1599,7 +249,7 @@
     },
     {
       "match": "Ghana-Panamá",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1608,7 +258,7 @@
     },
     {
       "match": "República Checa-Sudáfrica",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1617,7 +267,7 @@
     },
     {
       "match": "México-Corea del Sur",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1626,7 +276,7 @@
     },
     {
       "match": "Suiza-Bosnia y Herzegovina",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|4-1",
       "api_actual": "1|4-1",
       "used": "1|4-1",
@@ -1635,7 +285,7 @@
     },
     {
       "match": "Canadá-Catar",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|6-0",
       "api_actual": "1|6-0",
       "used": "1|6-0",
@@ -1644,7 +294,7 @@
     },
     {
       "match": "Escocia-Marruecos",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
@@ -1653,7 +303,7 @@
     },
     {
       "match": "Brasil-Haití",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-0",
       "api_actual": "1|3-0",
       "used": "1|3-0",
@@ -1662,7 +312,7 @@
     },
     {
       "match": "Estados Unidos-Australia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
@@ -1671,7 +321,7 @@
     },
     {
       "match": "Turquía-Paraguay",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
@@ -1680,7 +330,7 @@
     },
     {
       "match": "Alemania-Costa de Marfil",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -1689,7 +339,7 @@
     },
     {
       "match": "Ecuador-Curazao",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1698,7 +348,7 @@
     },
     {
       "match": "Países Bajos-Suecia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|5-1",
       "api_actual": "1|5-1",
       "used": "1|5-1",
@@ -1707,7 +357,7 @@
     },
     {
       "match": "Túnez-Japón",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-4",
       "api_actual": "2|0-4",
       "used": "2|0-4",
@@ -1716,7 +366,7 @@
     },
     {
       "match": "Bélgica-Irán",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1725,7 +375,7 @@
     },
     {
       "match": "Nueva Zelanda-Egipto",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
@@ -1734,7 +384,7 @@
     },
     {
       "match": "España-Arabia Saudita",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|4-0",
       "api_actual": "1|4-0",
       "used": "1|4-0",
@@ -1743,7 +393,7 @@
     },
     {
       "match": "Uruguay-Cabo Verde",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|2-2",
       "api_actual": "X|2-2",
       "used": "X|2-2",
@@ -1752,7 +402,7 @@
     },
     {
       "match": "Francia-Irak",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-0",
       "api_actual": "1|3-0",
       "used": "1|3-0",
@@ -1761,7 +411,7 @@
     },
     {
       "match": "Noruega-Senegal",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-2",
       "api_actual": "1|3-2",
       "used": "1|3-2",
@@ -1770,7 +420,7 @@
     },
     {
       "match": "Argentina-Austria",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-0",
       "api_actual": "1|2-0",
       "used": "1|2-0",
@@ -1779,7 +429,7 @@
     },
     {
       "match": "Jordania-Argelia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-2",
       "api_actual": "2|1-2",
       "used": "2|1-2",
@@ -1788,7 +438,7 @@
     },
     {
       "match": "Portugal-Uzbekistán",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|5-0",
       "api_actual": "1|5-0",
       "used": "1|5-0",
@@ -1797,7 +447,7 @@
     },
     {
       "match": "Colombia-RD Congo",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1806,7 +456,7 @@
     },
     {
       "match": "Inglaterra-Ghana",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1815,7 +465,7 @@
     },
     {
       "match": "Panamá-Croacia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
@@ -1824,7 +474,7 @@
     },
     {
       "match": "República Checa-México",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-3",
       "api_actual": "2|0-3",
       "used": "2|0-3",
@@ -1833,7 +483,7 @@
     },
     {
       "match": "Sudáfrica-Corea del Sur",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|1-0",
       "api_actual": "1|1-0",
       "used": "1|1-0",
@@ -1842,7 +492,7 @@
     },
     {
       "match": "Suiza-Canadá",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -1851,7 +501,7 @@
     },
     {
       "match": "Bosnia y Herzegovina-Catar",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
@@ -1860,7 +510,7 @@
     },
     {
       "match": "Escocia-Brasil",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-3",
       "api_actual": "2|0-3",
       "used": "2|0-3",
@@ -1869,7 +519,7 @@
     },
     {
       "match": "Marruecos-Haití",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|4-2",
       "api_actual": "1|4-2",
       "used": "1|4-2",
@@ -1878,7 +528,7 @@
     },
     {
       "match": "Turquía-Estados Unidos",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-2",
       "api_actual": "1|3-2",
       "used": "1|3-2",
@@ -1887,7 +537,7 @@
     },
     {
       "match": "Paraguay-Australia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1896,7 +546,7 @@
     },
     {
       "match": "Curazao-Costa de Marfil",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-2",
       "api_actual": "2|0-2",
       "used": "2|0-2",
@@ -1905,7 +555,7 @@
     },
     {
       "match": "Ecuador-Alemania",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
@@ -1914,7 +564,7 @@
     },
     {
       "match": "Japón-Suecia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1923,7 +573,7 @@
     },
     {
       "match": "Túnez-Países Bajos",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
@@ -1932,7 +582,7 @@
     },
     {
       "match": "Egipto-Irán",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|1-1",
       "api_actual": "X|1-1",
       "used": "X|1-1",
@@ -1941,7 +591,7 @@
     },
     {
       "match": "Nueva Zelanda-Bélgica",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-5",
       "api_actual": "2|1-5",
       "used": "2|1-5",
@@ -1950,7 +600,7 @@
     },
     {
       "match": "Cabo Verde-Arabia Saudita",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -1959,7 +609,7 @@
     },
     {
       "match": "Uruguay-España",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-1",
       "api_actual": "2|0-1",
       "used": "2|0-1",
@@ -1968,7 +618,7 @@
     },
     {
       "match": "Noruega-Francia",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-4",
       "api_actual": "2|1-4",
       "used": "2|1-4",
@@ -1977,7 +627,7 @@
     },
     {
       "match": "Senegal-Irak",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|5-0",
       "api_actual": "1|5-0",
       "used": "1|5-0",
@@ -1986,7 +636,7 @@
     },
     {
       "match": "Argelia-Austria",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|3-3",
       "api_actual": "X|3-3",
       "used": "X|3-3",
@@ -1995,7 +645,7 @@
     },
     {
       "match": "Jordania-Argentina",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|1-3",
       "api_actual": "2|1-3",
       "used": "2|1-3",
@@ -2004,7 +654,7 @@
     },
     {
       "match": "Colombia-Portugal",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "X|0-0",
       "api_actual": "X|0-0",
       "used": "X|0-0",
@@ -2013,7 +663,7 @@
     },
     {
       "match": "RD Congo-Uzbekistán",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|3-1",
       "api_actual": "1|3-1",
       "used": "1|3-1",
@@ -2022,7 +672,7 @@
     },
     {
       "match": "Panamá-Inglaterra",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "2|0-2",
       "api_actual": "2|0-2",
       "used": "2|0-2",
@@ -2031,7 +681,7 @@
     },
     {
       "match": "Croacia-Ghana",
-      "api_verification": "verificado_2_fuentes",
+      "api_verification": "solo_openfootball",
       "excel_actual": "1|2-1",
       "api_actual": "1|2-1",
       "used": "1|2-1",
