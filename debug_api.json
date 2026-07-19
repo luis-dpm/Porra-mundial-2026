@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T20:00:47.390537Z",
+  "generated_at": "2026-07-19T20:30:42.308797Z",
   "resumen": {
     "total_partidos": 72,
     "desde_excel": 72,
@@ -1397,7 +1397,7 @@
     {
       "home_api": "Spain",
       "away_api": "Argentina",
-      "status": "PAUSED",
+      "status": "IN_PLAY",
       "utcDate": "2026-07-19T19:00:00Z"
     }
   ],
