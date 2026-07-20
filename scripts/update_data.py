@@ -961,13 +961,65 @@ def build_dataset(api_key):
     except Exception as e:
         print(f"AVISO: error calculando ko_points ({e})", file=sys.stderr)
 
+    # --- Cuadro de Honor: qué ha puesto cada jugador para campeón, bota
+    # de oro (máximo goleador) y balón de oro (mejor jugador) — y, si ya
+    # se sabe el resultado real (columna 13 de cada fila), cuánto ha
+    # acertado cada uno. La columna 13 es la fuente de verdad: para
+    # Campeón/Subcampeón/3º puesto y Bota de Oro también podríamos
+    # sacarlo de la API, pero el Balón de Oro no lo da ninguna API — así
+    # que se usa el Excel para las 5 categorías por consistencia, tal y
+    # como ya lo llevas rellenando a mano.
+    HONOR_ROWS = [
+        ("campeon", "champion"),
+        ("subcampeon", "runner_up"),
+        ("tercer_puesto", "third_place_winner"),
+        ("bota_oro", "top_scorer"),
+        ("balon_oro", "best_player"),
+    ]
+    honor_real = {}
+    honor_pts_value = {}
+    for key, excel_key in HONOR_ROWS:
+        row = EXCEL_ROWS[excel_key]
+        real_val = ws.cell(row=row, column=13).value
+        pts_val = ws.cell(row=row, column=6).value
+        honor_real[key] = str(real_val).strip() if real_val and str(real_val).strip() else None
+        honor_pts_value[key] = int(pts_val) if isinstance(pts_val, (int, float)) else 0
+
+    final_predictions = {}
+    honor_points = {}
+    for p, col in PLAYER_COLUMNS.items():
+        champ = ws.cell(row=EXCEL_ROWS["champion"], column=col).value
+        runner = ws.cell(row=EXCEL_ROWS["runner_up"], column=col).value
+        third = ws.cell(row=EXCEL_ROWS["third_place_winner"], column=col).value
+        top_scorer = ws.cell(row=EXCEL_ROWS["top_scorer"], column=col).value
+        best_player = ws.cell(row=EXCEL_ROWS["best_player"], column=col).value
+        picks = {
+            "campeon": str(champ).strip() if champ and str(champ).strip() else None,
+            "subcampeon": str(runner).strip() if runner and str(runner).strip() else None,
+            "tercer_puesto": str(third).strip() if third and str(third).strip() else None,
+            "bota_oro": str(top_scorer).strip() if top_scorer and str(top_scorer).strip() else None,
+            "balon_oro": str(best_player).strip() if best_player and str(best_player).strip() else None,
+        }
+        final_predictions[p] = {
+            "campeon": picks["campeon"],
+            "bota_oro": picks["bota_oro"],
+            "balon_oro": picks["balon_oro"],
+        }
+        pts_total = 0
+        for key, _ in HONOR_ROWS:
+            real_val = honor_real[key]
+            if real_val and picks[key] and picks[key].lower() == real_val.lower():
+                pts_total += honor_pts_value[key]
+        honor_points[p] = pts_total
+
     # Update standings with ko_points
     standings = sorted(
-        ({"player": p, "points": running[p],
+        ({"player": p, "points": running[p] + honor_points.get(p, 0),
           "group_pos_points": group_pos_points[p],
           "qualified_points": qualified_points.get(p, 0),
           "ko_points": ko_points.get(p, 0),
-          "total_points": running[p]} for p in players),
+          "honor_points": honor_points.get(p, 0),
+          "total_points": running[p] + honor_points.get(p, 0)} for p in players),
         key=lambda x: -x["points"],
     )
     for i, s in enumerate(standings):
@@ -977,7 +1029,7 @@ def build_dataset(api_key):
     # Orden pedido: general primero, luego detalle en orden cronológico.
     ROUND_BUCKET_ORDER = [
         "general", "grupos_partidos", "grupos_posiciones",
-        "dieciseisavos", "octavos", "cuartos", "semis", "final",
+        "dieciseisavos", "octavos", "cuartos", "semis", "final", "honor",
     ]
     ROUND_BUCKET_LABELS = {
         "general": "Clasificación general",
@@ -988,6 +1040,7 @@ def build_dataset(api_key):
         "cuartos": "Cuartos de final",
         "semis": "Semifinales",
         "final": "Final",
+        "honor": "Cuadro de Honor (Campeón, Bota y Balón de Oro)",
     }
 
     ko_match_pts_by_round = {r: {p: 0 for p in players} for r in ["dieciseisavos", "octavos", "cuartos", "semis", "final"]}
@@ -1015,7 +1068,8 @@ def build_dataset(api_key):
         cuartos = ko_match_pts_by_round["cuartos"][p] + _qr("semis", p)
         semis = ko_match_pts_by_round["semis"][p] + _qr("final", p) + _qr("tercer_puesto", p)
         final = ko_match_pts_by_round["final"][p]
-        general = grupos_partidos + grupos_posiciones + dieci + octavos + cuartos + semis + final
+        honor = honor_points.get(p, 0)
+        general = grupos_partidos + grupos_posiciones + dieci + octavos + cuartos + semis + final + honor
         rounds_breakdown["by_player"][p] = {
             "general": general,
             "grupos_partidos": grupos_partidos,
@@ -1025,19 +1079,7 @@ def build_dataset(api_key):
             "cuartos": cuartos,
             "semis": semis,
             "final": final,
-        }
-
-    # --- Cuadro de Honor: qué ha puesto cada jugador para campeón, bota
-    # de oro (máximo goleador) y balón de oro (mejor jugador) ---
-    final_predictions = {}
-    for p, col in PLAYER_COLUMNS.items():
-        champ = ws.cell(row=EXCEL_ROWS["champion"], column=col).value
-        top_scorer = ws.cell(row=EXCEL_ROWS["top_scorer"], column=col).value
-        best_player = ws.cell(row=EXCEL_ROWS["best_player"], column=col).value
-        final_predictions[p] = {
-            "campeon": str(champ).strip() if champ and str(champ).strip() else None,
-            "bota_oro": str(top_scorer).strip() if top_scorer and str(top_scorer).strip() else None,
-            "balon_oro": str(best_player).strip() if best_player and str(best_player).strip() else None,
+            "honor": honor,
         }
 
     return {
@@ -1056,6 +1098,8 @@ def build_dataset(api_key):
         "ko_stage": ko_data,
         "rounds_breakdown": rounds_breakdown,
         "final_predictions": final_predictions,
+        "honor_real": honor_real,
+        "honor_points": honor_points,
         "top_scorers": top_scorers,
         "players": players,
         "dates": dates,
