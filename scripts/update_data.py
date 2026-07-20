@@ -890,7 +890,7 @@ def build_dataset(api_key):
         # 1. Puntos por aciertos de partido (signo/diferencia/exacto en 1/16)
         for round_name, rdata in ko_data.get("rounds", {}).items():
             for m in rdata.get("matches", []):
-                if not m.get("actual") or not m.get("breakdown") or not m.get("date"):
+                if not m.get("actual") or not m.get("date"):
                     continue
                 extra_dates.add(m["date"])
 
@@ -1011,6 +1011,28 @@ def build_dataset(api_key):
             if real_val and picks[key] and picks[key].lower() == real_val.lower():
                 pts_total += honor_pts_value[key]
         honor_points[p] = pts_total
+
+    # Los puntos del Cuadro de Honor (Campeón/Bota/Balón de Oro) no vienen
+    # de ningún partido concreto, así que se anotan en la fecha de la
+    # final — el día en que, en la práctica, se conocen todos.
+    if dates and any(v > 0 for v in honor_points.values()):
+        last_date = dates[-1]
+        for p in players:
+            hp = honor_points.get(p, 0)
+            if hp:
+                daily[p][last_date] = daily[p].get(last_date, 0) + hp
+                cum[p][last_date] = cum[p].get(last_date, 0) + hp
+        positions_by_day = {p: [] for p in players}
+        for d in dates:
+            sorted_p = sorted(players, key=lambda p: -cum[p][d])
+            pos, prev, rank = {}, None, 0
+            for i, p in enumerate(sorted_p):
+                if cum[p][d] != prev:
+                    rank = i + 1
+                pos[p] = rank
+                prev = cum[p][d]
+            for p in players:
+                positions_by_day[p].append(pos[p])
 
     # Update standings with ko_points
     standings = sorted(
